@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta Logitrack Motorista (azul Logitrack) -->
+    <color name="navy">#062D50</color>
+    <color name="navy_2">#003B68</color>
+    <color name="navy_3">#0A4C82</color>
+    <color name="navy_soft">#0E5E9C</color>
+
+    <color name="blue">#007BEB</color>
+    <color name="blue_dark">#0062C4</color>
+    <color name="blue_deep">#003B68</color>
+    <color name="cyan">#00B8FF</color>
+    <color name="blue_soft">#E6F2FB</color>
+    <color name="blue_soft_2">#F0F7FE</color>
+    <color name="blue_border">#C9E4F9</color>
+
+    <color name="green">#00B957</color>
+    <color name="green_dark">#009947</color>
+    <color name="green_soft">#E7F9EF</color>
+    <color name="green_border">#B7EFD0</color>
+
+    <color name="yellow">#FFD879</color>
+    <color name="yellow_soft">#FFF7E3</color>
+    <color name="yellow_dark">#8A6100</color>
+    <color name="amber">#A96800</color>
+    <color name="amber_soft">#FFF4DC</color>
+
+    <color name="red">#D64545</color>
+    <color name="red_soft">#FDECEC</color>
+
+    <!-- Nomes herdados: mantêm os ecrãs existentes alinhados com o azul. -->
+    <color name="orange">#007BEB</color>
+    <color name="orange_dark">#003B68</color>
+    <color name="orange_soft">#E6F2FB</color>
+    <color name="orange_light_text">#BFE3FF</color>
+
+    <color name="ink">#062D50</color>
+    <color name="muted">#4D6B88</color>
+    <color name="line">#DDE9F6</color>
+    <color name="bg">#F2F7FD</color>
+    <color name="bg_2">#F7FAFE</color>
+    <color name="card">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Nomes herdados usados pelo código/layouts -->
+    <color name="primary">@color/blue</color>
+    <color name="primary_dark">@color/blue_dark</color>
+    <color name="primary_soft">@color/blue_soft</color>
+    <color name="accent">@color/cyan</color>
+    <color name="text_primary">@color/ink</color>
+    <color name="text_secondary">@color/muted</color>
+    <color name="text_muted">@color/muted</color>
+    <color name="border">@color/line</color>
+    <color name="success">@color/green</color>
+    <color name="success_soft">@color/green_soft</color>
+    <color name="warning">@color/amber</color>
+    <color name="warning_soft">@color/amber_soft</color>
+    <color name="danger">@color/red</color>
+    <color name="danger_soft">@color/red_soft</color>
+    <color name="white">#FFFFFF</color>
+    <color name="white_80">#CCFFFFFF</color>
+    <color name="white_14">#24FFFFFF</color>
+    <color name="white_07">#12FFFFFF</color>
+    <color name="white_09">#17FFFFFF</color>
+    <color name="white_18">#2EFFFFFF</color>
+
+    <color name="login_bg_start">#062D50</color>
+    <color name="login_bg_mid">#003B68</color>
+    <color name="login_bg_end">#00294A</color>
+    <color name="login_text">#EAF4FF</color>
+    <color name="login_muted">#A9CBE8</color>
+    <color name="login_muted_2">#8FB6D8</color>
+    <color name="login_placeholder">#7E9CBB</color>
+    <color name="login_error_text">#B23B3B</color>
+    <color name="login_glass">#1FFFFFFF</color>
+    <color name="login_glass_stroke">#66FFFFFF</color>
+
+    <color name="chip_text">#4D6B88</color>
+    <color name="chip_bg">#EEF4FB</color>
+    <color name="tab_bg">#E9F1FA</color>
+    <color name="tab_badge_bg">#DBE7F4</color>
+    <color name="tab_badge_text">#4D6B88</color>
+    <color name="grid_bg">#F7FAFE</color>
+    <color name="photo_bg">#F8FBFF</color>
+    <color name="photo_border">#CBDDEF</color>
+    <color name="empty_border">#D9E6F3</color>
+    <color name="empty_icon">#9FB8CF</color>
+    <color name="offline_yellow">#FFD879</color>
+    <color name="offline_text">#FFFFFF</color>
+    <color name="camera_bg">#F7FAFE</color>
+    <color name="camera_header">#F7FAFE</color>
+    <color name="camera_muted">#4D6B88</color>
+    <color name="camera_tip">#062D50</color>
+    <color name="transparent">#00000000</color>
+    <color name="black">#000000</color>
+</resources>

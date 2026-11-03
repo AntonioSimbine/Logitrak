@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/logitrack-blue.css">
+</head>
+<body>
+<div class="login-page" style="min-height:100vh;display:grid;place-items:center">
+    <div class="login-card" style="text-align:center">
+        <div class="brand-mark" style="margin:0 auto 16px">LT</div>
+        <h2>A redirecionar…</h2>
+        <p class="muted">A abrir o Logitrack.</p>
+    </div>
+</div>
+<script src="js/config.js"></script>
+<script>
+    (function () {
+        const sessao = window.LOGITRACK.lerSessao();
+        if (sessao && sessao.token) {
+            window.location.replace(window.LOGITRACK.rotaInicial(
+                sessao.utilizador && sessao.utilizador.perfil));
+        } else {
+            window.location.replace(window.LOGITRACK.url('login.html'));
+        }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+package mz.co.logitrack.service;
+
+import mz.co.logitrack.domain.AlertaAtraso;
+import mz.co.logitrack.domain.Carregamento;
+import mz.co.logitrack.dto.dashboard.AlertaResponse;
+import mz.co.logitrack.exception.ApiException;
+import mz.co.logitrack.mapper.CarregamentoMapper;
+import mz.co.logitrack.repository.AlertaAtrasoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/** Gestão dos alertas de SLA (W4) e notificação em tempo real. */
+@Service
+public class AlertaService {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertaService.class);
+
+    private final AlertaAtrasoRepository alertaRepository;
+    private final CarregamentoMapper mapper;
+    private final NotificacaoService notificacaoService;
+
+    public AlertaService(AlertaAtrasoRepository alertaRepository,
+                         CarregamentoMapper mapper,
+                         NotificacaoService notificacaoService) {
+        this.alertaRepository = alertaRepository;
+        this.mapper = mapper;
+        this.notificacaoService = notificacaoService;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AlertaResponse> listar(Pageable pageable) {
+        return alertaRepository.findAllByOrderByDataHoraEmissaoDesc(pageable)
+                .map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AlertaResponse> naoLidos() {
+        return alertaRepository.findByLidoFalseOrderByDataHoraEmissaoDesc()
+                .stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AlertaResponse> porCarregamento(Long carregamentoId) {
+        return alertaRepository.findByCarregamentoIdOrderByDataHoraEmissaoDesc(carregamentoId)
+                .stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public long contarNaoLidos() {
+        return alertaRepository.countByLidoFalse();
+    }
+
+    @Transactional
+    public AlertaResponse marcarLido(Long id, boolean lido) {
+        AlertaAtraso alerta = alertaRepository.findById(id)
+                .orElseThrow(() -> ApiException.notFound("Alerta não encontrado"));
+        alerta.setLido(lido);
+        AlertaAtraso guardado = alertaRepository.save(alerta);
+        return toResponse(guardado);
+    }
+
+    /**
+     * Cria um alerta se ainda não existir um alerta aberto para o
+     * carregamento (RN05). Publica o alerta no WebSocket.
+     */
+    @Transactional
+    public AlertaResponse criarAlerta(Carregamento carregamento, int minutosExcedidos) {
+        if (alertaRepository.existsByCarregamentoIdAndLidoFalse(carregamento.getId())) {
+            return null;
+        }
+        String fabrica = carregamento.getFabrica() != null
+                ? carregamento.getFabrica().getNome() : "origem";
+        String mensagem = String.format(
+                "O carregamento %s (%s) excedeu o SLA em %d minutos.",
+                carregamento.getGuiaNumero(), fabrica, minutosExcedidos);
+
+        AlertaAtraso alerta = new AlertaAtraso(LocalDateTime.now(), minutosExcedidos,
+                mensagem, carregamento);
+        AlertaAtraso guardado = alertaRepository.save(alerta);
+        AlertaResponse resposta = toResponse(guardado);
+        notificacaoService.publicarAlerta(resposta);
+        log.info("Alerta de SLA criado: carregamento={} minutos={}", carregamento.getId(),
+                minutosExcedidos);
+        return resposta;
+    }
+
+    public AlertaResponse toResponse(AlertaAtraso alerta) {
+        Carregamento c = alerta.getCarregamento();
+        return new AlertaResponse(
+                alerta.getId(),
+                c != null ? c.getId() : null,
+                c != null ? c.getGuiaNumero() : null,
+                c != null && c.getFabrica() != null ? c.getFabrica().getNome() : null,
+                c != null && c.getMotorista() != null ? c.getMotorista().getNome() : null,
+                c != null && c.getVeiculo() != null ? c.getVeiculo().getMatricula() : null,
+                c != null ? mapper.horaLimite(c) : null,
+                alerta.getMinutosExcedidos(),
+                alerta.getMensagem(),
+                alerta.getLido(),
+                alerta.getDataHoraEmissao()
+        );
+    }
+}

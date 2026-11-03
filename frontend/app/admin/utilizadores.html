@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Utilizadores e Perfis · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../../img/favicon.svg">
+    <link rel="stylesheet" href="../../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../../css/logitrack-complete.css">
+</head>
+<body data-pagina="utilizadores" data-requer="ADMIN" data-titulo="Utilizadores e Perfis"
+      data-subtitulo="Contas, papéis e políticas de acesso">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Utilizadores e perfis</h2>
+                    <p>Gerir administradores, operadores da central e motoristas. As contas inativas não conseguem autenticar-se.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnAtualizar" type="button">
+                        <svg><use href="#i-refresh"/></svg> Atualizar
+                    </button>
+                    <button class="btn primary" id="btnNovoUtilizador" type="button">
+                        <svg><use href="#i-plus"/></svg> Novo utilizador
+                    </button>
+                </div>
+            </div>
+
+            <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Total de contas</span>
+                        <span class="kpi-icon"><svg><use href="#i-users"/></svg></span></div>
+                    <div class="kpi-value" id="kpiUtilizadores">—</div>
+                    <div class="kpi-foot">Utilizadores registados</div>
+                </article>
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Administradores</span></div>
+                    <div class="kpi-value" id="kpiAdmins">—</div>
+                    <div class="kpi-foot">Acesso total ao sistema</div>
+                </article>
+                <article class="kpi amber">
+                    <div class="kpi-head"><span class="kpi-label">Operadores</span></div>
+                    <div class="kpi-value" id="kpiOperadores">—</div>
+                    <div class="kpi-foot">Central de operações</div>
+                </article>
+                <article class="kpi green">
+                    <div class="kpi-head"><span class="kpi-label">Motoristas ativos</span></div>
+                    <div class="kpi-value" id="kpiMotoristas">—</div>
+                    <div class="kpi-foot">Contas móveis habilitadas</div>
+                </article>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Contas do sistema</h3>
+                        <div class="sub">A alteração de perfil aplica-se no próximo início de sessão</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="input-icon" style="width:280px">
+                        <svg><use href="#i-search"/></svg>
+                        <input class="input" id="pesquisaUtilizadores" placeholder="Filtrar por nome, e-mail…">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Utilizador</th>
+                            <th>Perfil</th>
+                            <th>Estado</th>
+                            <th>Criado em</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaUtilizadores">
+                        <tr><td colspan="5" class="empty">A carregar utilizadores…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalUtilizador">
+    <div class="modal">
+        <div class="modal-head">
+            <div>
+                <h3 id="tituloModalUtilizador">Novo utilizador</h3>
+                <p>Defina o perfil de acesso e as credenciais iniciais.</p>
+            </div>
+            <div class="spacer"></div>
+            <button class="icon-btn" type="button" data-fechar="modalUtilizador">×</button>
+        </div>
+        <form id="formUtilizador">
+            <input type="hidden" id="utilizadorId">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="field full">
+                        <label for="nomeUtilizador">Nome completo *</label>
+                        <input class="input" id="nomeUtilizador" maxlength="120" required>
+                    </div>
+                    <div class="field full">
+                        <label for="emailUtilizador">E-mail *</label>
+                        <input class="input" id="emailUtilizador" type="email" maxlength="160"
+                               autocomplete="off" required>
+                    </div>
+                    <div class="field">
+                        <label for="perfilUtilizador">Perfil de acesso *</label>
+                        <select class="select" id="perfilUtilizador" required>
+                            <option value="OPERADOR_CENTRAL">Operador da Central</option>
+                            <option value="MOTORISTA">Motorista</option>
+                            <option value="ADMINISTRADOR">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="ativoUtilizador">Estado da conta</label>
+                        <select class="select" id="ativoUtilizador">
+                            <option value="true">Ativa</option>
+                            <option value="false">Inativa</option>
+                        </select>
+                    </div>
+                    <div class="field full">
+                        <label for="senhaUtilizador">Palavra-passe</label>
+                        <input class="input" id="senhaUtilizador" type="password" minlength="6"
+                               maxlength="72" autocomplete="new-password">
+                        <span class="hint" id="hintSenha">Obrigatória na criação (mínimo 6 caracteres).</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" type="button" data-fechar="modalUtilizador">Cancelar</button>
+                <button class="btn primary" type="submit" id="btnGuardarUtilizador">
+                    <svg><use href="#i-save"/></svg> Guardar utilizador
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalSenha">
+    <div class="modal narrow">
+        <div class="modal-head">
+            <div>
+                <h3>Redefinir palavra-passe</h3>
+                <p id="subtituloSenha">A nova palavra-passe será aplicada imediatamente.</p>
+            </div>
+            <div class="spacer"></div>
+            <button class="icon-btn" type="button" data-fechar="modalSenha">×</button>
+        </div>
+        <form id="formSenha">
+            <input type="hidden" id="senhaUtilizadorId">
+            <div class="modal-body">
+                <div class="field">
+                    <label for="novaSenha">Nova palavra-passe *</label>
+                    <input class="input" id="novaSenha" type="password" minlength="6"
+                           maxlength="72" autocomplete="new-password" required>
+                </div>
+                <div class="field mt-12">
+                    <label for="confirmarSenha">Confirmar palavra-passe *</label>
+                    <input class="input" id="confirmarSenha" type="password" minlength="6"
+                           maxlength="72" autocomplete="new-password" required>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" type="button" data-fechar="modalSenha">Cancelar</button>
+                <button class="btn primary" type="submit">Redefinir palavra-passe</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="../../js/api.js"></script>
+<script src="../../js/layout.js"></script>
+<script src="../../js/admin-utilizadores.js"></script>
+    <script src="../../js/logitrack-complete.js" defer></script>
+</body>
+</html>

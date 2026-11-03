@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Indicadores de Desempenho · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../css/logitrack-complete.css">
+</head>
+<body data-pagina="kpis" data-titulo="Indicadores de Desempenho"
+      data-subtitulo="Volume, tempo de ciclo e cumprimento de prazos">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Indicadores de desempenho</h2>
+                    <p>Análise agregada dos carregamentos concluídos, por fábrica e por dia.
+                        <span class="muted" id="atualizadoEm"></span></p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn" href="relatorios.html">
+                        <svg><use href="#i-report"/></svg> Relatórios detalhados
+                    </a>
+                    <button class="btn primary" id="btnAtualizar" type="button">
+                        <svg><use href="#i-refresh"/></svg> Atualizar
+                    </button>
+                </div>
+            </div>
+
+            <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+                <article class="kpi">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Carregamentos</span>
+                        <span class="kpi-icon"><svg><use href="#i-truck"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiTotal">—</div>
+                    <div class="kpi-foot">Registos no histórico analisado</div>
+                </article>
+                <article class="kpi amber">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Volume transportado</span>
+                        <span class="kpi-icon amber"><svg><use href="#i-chart"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiToneladas">—</div>
+                    <div class="kpi-foot">Toneladas acumuladas</div>
+                </article>
+                <article class="kpi">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Tempo médio de ciclo</span>
+                        <span class="kpi-icon"><svg><use href="#i-clock"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiTempo">—</div>
+                    <div class="kpi-foot">Entre partida e conclusão</div>
+                </article>
+                <article class="kpi green">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Cumprimento de prazos</span>
+                        <span class="kpi-icon green"><svg><use href="#i-check"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiCumprimento">—</div>
+                    <div class="kpi-foot" id="kpiCumprimentoDetalhe">No prazo vs. atrasados</div>
+                </article>
+            </section>
+
+            <div class="charts-grid">
+                <section class="card">
+                    <div class="card-head">
+                        <div>
+                            <h3>Volume por fábrica</h3>
+                            <div class="sub">Toneladas transportadas por origem</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box">
+                            <canvas id="graficoVolume" aria-label="Volume por fábrica"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-head">
+                        <div>
+                            <h3>Cumprimento de prazos</h3>
+                            <div class="sub">Percentagem de cargas dentro do SLA</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box">
+                            <canvas id="graficoPrazos" aria-label="Cumprimento de prazos"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card" style="margin-bottom:16px">
+                <div class="card-head">
+                    <div>
+                        <h3>Tempo médio por dia</h3>
+                        <div class="sub">Evolução do tempo médio de espera e transporte (horas)</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-box" style="height:280px">
+                        <canvas id="graficoTempo" aria-label="Tempo médio por dia"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Resumo por fábrica</h3>
+                        <div class="sub">Detalhe do volume e do cumprimento de prazos</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Fábrica</th>
+                            <th>Toneladas</th>
+                            <th>Peso relativo</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaFabricas">
+                        <tr><td colspan="3" class="empty">A carregar indicadores…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script src="../js/kpis.js"></script>
+    <script src="../js/logitrack-complete.js" defer></script>
+</body>
+</html>

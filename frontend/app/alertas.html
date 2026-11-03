@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Alertas de Atraso · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../css/logitrack-complete.css">
+</head>
+<body data-pagina="alertas" data-titulo="Alertas de Atraso"
+      data-subtitulo="Incidentes de SLA e acompanhamento operacional">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Alertas automáticos de atraso</h2>
+                    <p>Alertas emitidos pelo motor de SLA. Os novos alertas aparecem aqui em tempo real.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnMarcarTodos">Marcar todos como lidos</button>
+                    <button class="btn primary" id="btnAtualizar">
+                        <svg><use href="#i-refresh"/></svg> Atualizar
+                    </button>
+                </div>
+            </div>
+
+            <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+                <article class="kpi red">
+                    <div class="kpi-head"><span class="kpi-label">Não lidos</span>
+                        <span class="kpi-icon red"><svg><use href="#i-bell"/></svg></span></div>
+                    <div class="kpi-value" id="kpiNaoLidos">—</div>
+                    <div class="kpi-foot">Requerem atenção da central</div>
+                </article>
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Total de alertas</span></div>
+                    <div class="kpi-value" id="kpiTotal">—</div>
+                    <div class="kpi-foot">Incidentes registados</div>
+                </article>
+                <article class="kpi amber">
+                    <div class="kpi-head"><span class="kpi-label">Maior atraso</span></div>
+                    <div class="kpi-value" id="kpiMaior">—</div>
+                    <div class="kpi-foot">Minutos além do limite</div>
+                </article>
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Fábricas afetadas</span></div>
+                    <div class="kpi-value" id="kpiFabricas">—</div>
+                    <div class="kpi-foot">Origens com incidentes</div>
+                </article>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <div class="segmented" id="filtroLido">
+                        <button type="button" class="active" data-filtro="todos">Todos</button>
+                        <button type="button" data-filtro="nao-lidos">Não lidos</button>
+                        <button type="button" data-filtro="lidos">Lidos</button>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="input-icon" style="width:280px">
+                        <svg><use href="#i-search"/></svg>
+                        <input class="input" id="pesquisaAlertas" placeholder="Filtrar por guia, fábrica, motorista…">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Guia / Carregamento</th>
+                            <th>Fábrica</th>
+                            <th>Motorista</th>
+                            <th>Horário limite</th>
+                            <th>Tempo excedido</th>
+                            <th>Emitido</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaAlertas">
+                        <tr><td colspan="8" class="empty">A carregar alertas…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span id="infoAlertas">—</span>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script src="../js/alertas.js"></script>
+    <script src="../js/logitrack-complete.js" defer></script>
+</body>
+</html>

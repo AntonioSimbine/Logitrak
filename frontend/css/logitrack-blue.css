@@ -1,0 +1,38 @@
+/* LOGITRACK · Identidade visual unificada Android / Web · 2026 */
+:root{--navy:#062d50;--navy-2:#073b65;--navy-3:#0c527e;--orange:#007beb;--orange-dark:#0064ce;--orange-soft:#e6f2fb;--green:#00a960;--green-soft:#e7f8f0;--amber:#ad780c;--amber-soft:#fff7df;--blue:#007beb;--blue-soft:#e6f2fb;--ink:#102e48;--muted:#617b91;--line:#dce9f3;--bg:#f0f6fb;--radius:19px;--shadow:0 2px 5px rgba(6,45,80,.025),0 12px 30px rgba(6,45,80,.065);--shadow-lg:0 24px 60px rgba(6,45,80,.2)}
+body{background:radial-gradient(900px 460px at 98% 0%,#e2f2ff 0%,transparent 75%),#f0f6fb}
+.sidebar{background:radial-gradient(350px 280px at 100% 0%,rgba(0,184,255,.16),transparent 75%),linear-gradient(165deg,#062d50,#041c35 95%);border-right:1px solid rgba(164,213,255,.13);box-shadow:8px 0 28px rgba(6,45,80,.05)}
+.sidebar-brand .brand-mark,.brand-mark{background:linear-gradient(145deg,#00b8ff,#007beb)!important;box-shadow:0 8px 24px rgba(0,123,235,.24)!important;color:#fff}
+.brand-name span,.login-headline h1 em{color:#37c4ff!important}
+.sidebar .nav-section{color:#88b8d8}
+.sidebar nav a.active,.sidebar nav a:hover{background:linear-gradient(100deg,rgba(0,123,235,.28),rgba(0,184,255,.12));border-color:rgba(77,187,255,.32);color:white}
+.sidebar nav a.active:before{background:#00b8ff}
+.topbar{background:rgba(255,255,255,.85);backdrop-filter:blur(18px);border-bottom:1px solid #e2edf6}
+.topbar h1{color:#092f51;font-weight:800}
+.content{background:transparent}
+.page-head h2{font-size:clamp(23px,2vw,30px);font-weight:800;color:#092f51}
+.page-head p{font-size:13px}
+.card,.kpi{border:1px solid #e0ecf5;border-radius:19px;box-shadow:var(--shadow);background:linear-gradient(150deg,#fff,#fbfdff)}
+.kpi{padding:22px;min-height:146px;transition:transform .2s,box-shadow .2s}
+.kpi:hover,.card:hover{box-shadow:0 14px 36px rgba(6,45,80,.095)}
+.kpi:hover{transform:translateY(-2px)}
+.kpi::after{background:linear-gradient(135deg,#e6f2fb,#d5edff);opacity:1}
+.kpi-icon{background:#e6f2fb!important;color:#007beb!important;border-radius:14px!important}
+.kpi-icon.red{background:#fdecec!important;color:#c23c4d!important}.kpi-icon.green{background:#e7f8f0!important;color:#00a960!important}.kpi-icon.amber{background:#fff5d9!important;color:#a97400!important}
+.kpi-value{color:#073b65;font-weight:850}
+.btn.primary,.btn-primary{background:linear-gradient(125deg,#00b8ff,#007beb 60%,#005fc6)!important;border-color:#007beb!important;color:white!important;box-shadow:0 7px 19px rgba(0,123,235,.2)}
+.btn.primary:hover,.btn-primary:hover{filter:brightness(.96);box-shadow:0 9px 23px rgba(0,123,235,.27)}
+.btn{border-radius:12px;transition:transform .15s,box-shadow .15s,background .15s}.btn:active{transform:scale(.98)}
+input,select,textarea{accent-color:#007beb}input:focus,select:focus,textarea:focus{outline-color:#007beb!important}
+.chip.em_transito{background:#e6f2fb;color:#075fa6}
+.login-hero{background:radial-gradient(750px 500px at 90% 10%,rgba(0,184,255,.23),transparent 65%),radial-gradient(800px 500px at 0% 100%,rgba(0,123,235,.22),transparent 70%),linear-gradient(145deg,#041c35,#062d50 60%,#074b76)}
+.login-hero::after{border-color:rgba(0,184,255,.35);box-shadow:0 0 0 60px rgba(0,184,255,.035),0 0 0 120px rgba(0,123,235,.02)}
+.login-page .brand-mark{background:linear-gradient(145deg,#00b8ff,#007beb)}
+/* perfis distintos, mesma linguagem visual */
+body[data-perfil-ui="ADMINISTRADOR"] .topbar{border-top:3px solid #007beb}
+body[data-perfil-ui="OPERADOR"] .topbar{border-top:3px solid #00a7dc}
+.role-banner{display:flex;align-items:center;gap:10px;border-radius:15px;padding:13px 17px;margin-bottom:18px;border:1px solid #d6e9f8;background:linear-gradient(100deg,#eaf6ff,#fff);color:#123f64;font-size:13px}
+.role-banner strong{font-weight:800}.role-banner .role-dot{width:9px;height:9px;border-radius:50%;background:#007beb;box-shadow:0 0 0 5px rgba(0,123,235,.1)}
+.role-banner small{color:#668198}
+@media(max-width:700px){.role-banner{flex-wrap:wrap}.page-head h2{font-size:22px}.kpi{min-height:130px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

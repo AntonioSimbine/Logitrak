@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_splash">
+
+    <View
+        android:layout_width="380dp"
+        android:layout_height="380dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="-150dp"
+        android:background="@drawable/bg_splash_glow" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/logo"
+                android:layout_width="78dp"
+                android:layout_height="78dp"
+                android:background="@drawable/bg_brand"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:text="@string/brand_mark"
+                android:textColor="@color/white"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <!-- Reflexo leve: cópia espelhada com desvanecimento, sem bitmaps. -->
+            <FrameLayout
+                android:layout_width="78dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="2dp"
+                android:clipChildren="true"
+                android:clipToPadding="true">
+
+                <TextView
+                    android:id="@+id/logoReflexo"
+                    android:layout_width="78dp"
+                    android:layout_height="78dp"
+                    android:alpha="0.18"
+                    android:background="@drawable/bg_brand"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:scaleY="-1"
+                    android:text="@string/brand_mark"
+                    android:textColor="@color/white"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_reflection_fade" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/wordmark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/brand_prefix"
+                android:textColor="@color/white"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/brand_suffix"
+                android:textColor="@color/cyan"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:letterSpacing="0.22"
+            android:text="@string/brand_sub_motorista"
+            android:textAllCaps="true"
+            android:textColor="@color/login_muted"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/hero"
+            android:layout_width="292dp"
+            android:layout_height="164dp"
+            android:layout_marginTop="22dp"
+            android:clipToOutline="true"
+            app:cardBackgroundColor="@color/navy"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#33FFFFFF"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/ivSplashCamiao"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/brand_subtitle_splash"
+                android:scaleType="centerCrop"
+                android:src="@drawable/home_truck" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_splash_photo_scrim" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:text="@string/brand_subtitle_splash"
+            android:textColor="@color/login_text"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/loading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="42dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:indeterminateTint="@color/cyan" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/splash_starting"
+            android:textColor="@color/login_muted"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>

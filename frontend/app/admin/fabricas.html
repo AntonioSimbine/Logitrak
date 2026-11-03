@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Fábricas e Geofences · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../../img/favicon.svg">
+    <link rel="stylesheet" href="../../css/app.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../../css/logitrack-complete.css">
+</head>
+<body data-pagina="fabricas" data-requer="ADMIN" data-titulo="Fábricas e Geofences"
+      data-subtitulo="Geofences, prazos de SLA e horários de acostagem">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Fábricas e geofences</h2>
+                    <p>Configure as origens de carga, o raio de validação GPS e o limite de SLA aplicado a cada carregamento.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnAtualizar" type="button">
+                        <svg><use href="#i-refresh"/></svg> Atualizar
+                    </button>
+                    <button class="btn primary" id="btnNovaFabrica" type="button">
+                        <svg><use href="#i-plus"/></svg> Nova fábrica
+                    </button>
+                </div>
+            </div>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Fábricas registadas</h3>
+                        <div class="sub"><span id="totalFabricas">0</span> origem(ns) configurada(s)</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="input-icon" style="width:280px">
+                        <svg><use href="#i-search"/></svg>
+                        <input class="input" id="pesquisaFabricas" placeholder="Filtrar por nome, endereço…">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Fábrica</th>
+                            <th>Coordenadas</th>
+                            <th>Geofence</th>
+                            <th>SLA</th>
+                            <th>Acostagem</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaFabricas">
+                        <tr><td colspan="7" class="empty">A carregar fábricas…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalFabrica">
+    <div class="modal wide">
+        <div class="modal-head">
+            <div>
+                <h3 id="tituloModalFabrica">Nova fábrica</h3>
+                <p>Selecione a localização no mapa ou introduza as coordenadas manualmente.</p>
+            </div>
+            <div class="spacer"></div>
+            <button class="icon-btn" type="button" data-fechar="modalFabrica">×</button>
+        </div>
+        <form id="formFabrica">
+            <input type="hidden" id="fabricaId">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="nomeFabrica">Nome da fábrica *</label>
+                        <input class="input" id="nomeFabrica" maxlength="160" required
+                               placeholder="Ex.: Fábrica da Matola">
+                    </div>
+                    <div class="field">
+                        <label for="enderecoFabrica">Endereço *</label>
+                        <input class="input" id="enderecoFabrica" maxlength="255" required
+                               placeholder="Ex.: Av. do Trabalho, Matola">
+                    </div>
+                    <div class="field">
+                        <label for="latitudeFabrica">Latitude *</label>
+                        <input class="input" id="latitudeFabrica" type="number" step="any"
+                               min="-90" max="90" required placeholder="-25.962">
+                    </div>
+                    <div class="field">
+                        <label for="longitudeFabrica">Longitude *</label>
+                        <input class="input" id="longitudeFabrica" type="number" step="any"
+                               min="-180" max="180" required placeholder="32.456">
+                    </div>
+                    <div class="field">
+                        <label for="raioFabrica">Raio geofence (metros) *</label>
+                        <input class="input" id="raioFabrica" type="number" min="10" max="50000"
+                               value="500" required>
+                    </div>
+                    <div class="field">
+                        <label for="slaFabrica">SLA limite (horas) *</label>
+                        <input class="input" id="slaFabrica" type="number" min="1" max="720"
+                               value="24" required>
+                    </div>
+                    <div class="field">
+                        <label for="horarioFabrica">Horário de acostagem *</label>
+                        <input class="input" id="horarioFabrica" maxlength="50" required
+                               placeholder="Ex.: 06:00–18:00">
+                    </div>
+                    <div class="field">
+                        <label for="ativaFabrica">Estado</label>
+                        <select class="select" id="ativaFabrica">
+                            <option value="true">Ativa</option>
+                            <option value="false">Inativa</option>
+                        </select>
+                    </div>
+                    <div class="field full">
+                        <label>Localização no mapa</label>
+                        <div id="mapaFabrica" style="height:250px;border-radius:10px;border:1px solid var(--line)"></div>
+                        <span class="hint">Clique no mapa para definir as coordenadas e ajustar o raio visual do geofence.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" type="button" data-fechar="modalFabrica">Cancelar</button>
+                <button class="btn primary" type="submit" id="btnGuardarFabrica">
+                    <svg><use href="#i-save"/></svg> Guardar fábrica
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/api.js"></script>
+<script src="../../js/layout.js"></script>
+<script src="../../js/admin-fabricas.js"></script>
+    <script src="../../js/logitrack-complete.js" defer></script>
+</body>
+</html>

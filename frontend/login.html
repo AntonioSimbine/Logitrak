@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/logitrack-blue.css">
+    <link rel="stylesheet" href="css/logitrack-complete.css">
+</head>
+<body>
+<div class="login-page">
+    <section class="login-hero">
+        <div class="login-brand">
+            <div class="brand-mark">LT</div>
+            <div>
+                <div class="brand-name">Logi<span>track</span></div>
+                <div class="brand-sub">Gestão &amp; Rastreabilidade</div>
+            </div>
+        </div>
+
+        <div class="login-headline">
+            <h1>A operação inteira,<br><em>em tempo real.</em></h1>
+            <p>Controle carregamentos, acompanhe a frota no mapa, antecipe atrasos com alertas automáticos de SLA e tome decisões com indicadores fiáveis.</p>
+        </div>
+
+        <div class="login-features">
+            <span class="login-feature"><b>●</b> Rastreio GPS</span>
+            <span class="login-feature"><b>●</b> Alertas SLA</span>
+            <span class="login-feature"><b>●</b> Guias digitalizadas</span>
+            <span class="login-feature"><b>●</b> Offline-first</span>
+        </div>
+    </section>
+
+    <section class="login-panel">
+        <div class="login-card">
+            <div class="eyebrow">Painel de Operações</div>
+            <h2>Bem-vindo de volta</h2>
+            <p>Somente para Administrador e Operador da Central. O Motorista deve aceder pela aplicação móvel.</p>
+
+            <div class="login-alert hidden" id="loginAlert" role="alert"></div>
+
+            <form id="formLogin" novalidate>
+                <div class="field">
+                    <label for="username">E-mail</label>
+                    <div class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/>
+                        </svg>
+                        <input class="input" id="username" name="username" type="email"
+                               placeholder="nome@logitrack.co.mz" autocomplete="username" required autofocus>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="password">Palavra-passe</label>
+                    <div class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <input class="input" id="password" name="password" type="password"
+                               placeholder="••••••••••" autocomplete="current-password" required>
+                    </div>
+                </div>
+
+                <button class="btn primary block" type="submit" id="btnEntrar" style="margin-top:8px">
+                    ENTRAR NO PAINEL
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <span>© <span id="anoAtual">2026</span> Logitrack · Moçambique</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/login.js"></script>
+<script>
+    document.getElementById('anoAtual').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

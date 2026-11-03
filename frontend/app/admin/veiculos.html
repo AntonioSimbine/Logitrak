@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Frota de Veículos · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../../img/favicon.svg">
+    <link rel="stylesheet" href="../../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../../css/logitrack-complete.css">
+</head>
+<body data-pagina="veiculos" data-requer="ADMIN" data-titulo="Frota de Veículos"
+      data-subtitulo="Matrículas, capacidade e disponibilidade">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Frota de veículos</h2>
+                    <p>Mantenha a capacidade de transporte atualizada. Veículos em manutenção não devem ser atribuídos a novas cargas.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnAtualizar" type="button">
+                        <svg><use href="#i-refresh"/></svg> Atualizar
+                    </button>
+                    <button class="btn primary" id="btnNovoVeiculo" type="button">
+                        <svg><use href="#i-plus"/></svg> Novo veículo
+                    </button>
+                </div>
+            </div>
+
+            <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Frota total</span>
+                        <span class="kpi-icon"><svg><use href="#i-car"/></svg></span></div>
+                    <div class="kpi-value" id="kpiFrota">—</div>
+                    <div class="kpi-foot">Veículos registados</div>
+                </article>
+                <article class="kpi green">
+                    <div class="kpi-head"><span class="kpi-label">Disponíveis</span></div>
+                    <div class="kpi-value" id="kpiDisponiveis">—</div>
+                    <div class="kpi-foot">Prontos para carregar</div>
+                </article>
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Em trânsito</span></div>
+                    <div class="kpi-value" id="kpiTransito">—</div>
+                    <div class="kpi-foot">Em rota neste momento</div>
+                </article>
+                <article class="kpi amber">
+                    <div class="kpi-head"><span class="kpi-label">Manutenção</span></div>
+                    <div class="kpi-value" id="kpiManutencao">—</div>
+                    <div class="kpi-foot">Fora de serviço</div>
+                </article>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Veículos</h3>
+                        <div class="sub">Capacidade máxima por carregamento em toneladas</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="input-icon" style="width:280px">
+                        <svg><use href="#i-search"/></svg>
+                        <input class="input" id="pesquisaVeiculos" placeholder="Filtrar por matrícula, modelo…">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Modelo</th>
+                            <th>Capacidade</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaVeiculos">
+                        <tr><td colspan="5" class="empty">A carregar veículos…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalVeiculo">
+    <div class="modal narrow">
+        <div class="modal-head">
+            <div>
+                <h3 id="tituloModalVeiculo">Novo veículo</h3>
+                <p>A matrícula é única no sistema.</p>
+            </div>
+            <div class="spacer"></div>
+            <button class="icon-btn" type="button" data-fechar="modalVeiculo">×</button>
+        </div>
+        <form id="formVeiculo">
+            <input type="hidden" id="veiculoId">
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="matriculaVeiculo">Matrícula *</label>
+                        <input class="input" id="matriculaVeiculo" maxlength="20" required
+                               placeholder="Ex.: AAA-123-MC" style="text-transform:uppercase">
+                    </div>
+                    <div class="field">
+                        <label for="estadoVeiculo">Estado *</label>
+                        <select class="select" id="estadoVeiculo" required>
+                            <option value="DISPONIVEL">Disponível</option>
+                            <option value="EM_TRANSITO">Em trânsito</option>
+                            <option value="MANUTENCAO">Manutenção</option>
+                        </select>
+                    </div>
+                    <div class="field full">
+                        <label for="modeloVeiculo">Modelo do camião *</label>
+                        <input class="input" id="modeloVeiculo" maxlength="120" required
+                               placeholder="Ex.: Volvo FH16">
+                    </div>
+                    <div class="field full">
+                        <label for="capacidadeVeiculo">Capacidade máxima (toneladas) *</label>
+                        <input class="input" id="capacidadeVeiculo" type="number" min="0.1"
+                               step="0.1" required placeholder="Ex.: 34">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" type="button" data-fechar="modalVeiculo">Cancelar</button>
+                <button class="btn primary" type="submit" id="btnGuardarVeiculo">
+                    <svg><use href="#i-save"/></svg> Guardar veículo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="../../js/api.js"></script>
+<script src="../../js/layout.js"></script>
+<script src="../../js/admin-veiculos.js"></script>
+    <script src="../../js/logitrack-complete.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="mz.co.logitrack.motorista.ui.HomeFragment"
+        android:label="@string/nav_home">
+        <action
+            android:id="@+id/action_home_to_novo"
+            app:destination="@id/novoFragment" />
+        <action
+            android:id="@+id/action_home_to_queue"
+            app:destination="@id/queueFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/queueFragment"
+        android:name="mz.co.logitrack.motorista.ui.QueueFragment"
+        android:label="@string/nav_queue">
+        <action
+            android:id="@+id/action_queue_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/documentsFragment"
+        android:name="mz.co.logitrack.motorista.ui.DocumentsFragment"
+        android:label="@string/nav_documents" />
+
+    <fragment
+        android:id="@+id/novoFragment"
+        android:name="mz.co.logitrack.motorista.ui.NovoFragment"
+        android:label="@string/novo_title" />
+
+    <fragment
+        android:id="@+id/perfilFragment"
+        android:name="mz.co.logitrack.motorista.ui.PerfilFragment"
+        android:label="@string/nav_profile" />
+</navigation>

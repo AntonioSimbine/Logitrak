@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Painel de Operações · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../css/logitrack-complete.css">
+</head>
+<body data-pagina="dashboard" data-titulo="Painel de Operações"
+      data-subtitulo="Visão em tempo real da operação">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Central de Operações</h2>
+                    <p>Carregamentos, frota e alertas de SLA num único ecrã.
+                        <span class="muted" id="atualizadoEm"></span></p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnAtualizar">
+                        <svg><use href="#i-refresh"/></svg> Atualizar
+                    </button>
+                    <a class="btn primary" href="carregamentos.html">
+                        <svg><use href="#i-truck"/></svg> Ver carregamentos
+                    </a>
+                </div>
+            </div>
+
+            <section class="kpi-grid">
+                <article class="kpi">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Em trânsito</span>
+                        <span class="kpi-icon"><svg><use href="#i-truck"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiTransito">—</div>
+                    <div class="kpi-foot">Veículos atualmente em rota</div>
+                </article>
+                <article class="kpi red">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Atrasados</span>
+                        <span class="kpi-icon red"><svg><use href="#i-clock"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiAtrasados">—</div>
+                    <div class="kpi-foot">Fora do SLA da fábrica de origem</div>
+                </article>
+                <article class="kpi green">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Concluídos hoje</span>
+                        <span class="kpi-icon green"><svg><use href="#i-check"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiConcluidos">—</div>
+                    <div class="kpi-foot">Carregamentos fechados nas últimas 24h</div>
+                </article>
+                <article class="kpi amber">
+                    <div class="kpi-head">
+                        <span class="kpi-label">Tempo médio de espera</span>
+                        <span class="kpi-icon amber"><svg><use href="#i-chart"/></svg></span>
+                    </div>
+                    <div class="kpi-value" id="kpiTempo">—</div>
+                    <div class="kpi-foot">Média entre partida e conclusão</div>
+                </article>
+            </section>
+
+            <div class="dash-grid">
+                <section class="card">
+                    <div class="card-head">
+                        <div>
+                            <h3>Mapa em tempo real</h3>
+                            <div class="sub">Posição dos veículos em rota e raios de geofence</div>
+                        </div>
+                        <div class="spacer"></div>
+                        <span class="chip em_transito" id="chipVeiculos">0 em rota</span>
+                    </div>
+                    <div class="map-wrap">
+                        <div id="map"></div>
+                        <div class="map-fallback" id="mapFallback">
+                            <div>
+                                <strong>Mapa indisponível</strong><br>
+                                Sem ligação ao serviço de mapas. Os dados continuam disponíveis na tabela.
+                            </div>
+                        </div>
+                        <div class="map-legend">
+                            <span><i class="dot"></i> Fábrica / geofence</span>
+                            <span><i class="dot blue"></i> Veículo em rota</span>
+                            <span><i class="dot red"></i> Atrasado</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card alert-panel">
+                    <div class="card-head">
+                        <div>
+                            <h3>Alertas de atraso</h3>
+                            <div class="sub"><span id="alertasCount">0</span> não lidos · atualizados automaticamente</div>
+                        </div>
+                        <div class="spacer"></div>
+                        <a class="btn small ghost" href="alertas.html">Ver todos</a>
+                    </div>
+                    <div class="alert-list" id="listaAlertas">
+                        <div class="empty">A carregar alertas…</div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Carregamentos recentes</h3>
+                        <div class="sub">Últimas atualizações registadas na central</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="input-icon" style="width:260px">
+                        <svg><use href="#i-search"/></svg>
+                        <input class="input" id="pesquisaRecentes" placeholder="Filtrar por guia, fábrica…">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Guia</th>
+                            <th>Fábrica</th>
+                            <th>Veículo</th>
+                            <th>Motorista</th>
+                            <th>Estado</th>
+                            <th>Início</th>
+                            <th>Atraso</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaRecentes">
+                        <tr><td colspan="8" class="empty">A carregar carregamentos…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script src="../js/dashboard.js"></script>
+    <script src="../js/logitrack-complete.js" defer></script>
+</body>
+</html>

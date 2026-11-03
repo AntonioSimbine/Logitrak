@@ -1,0 +1,64 @@
+{
+  "name": "Logitrack — Aplicação do Motorista",
+  "short_name": "Logitrack",
+  "description": "Registo e rastreabilidade de carregamentos com funcionamento offline.",
+  "lang": "pt-MZ",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0b1f3a",
+  "theme_color": "#0b1f3a",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "../img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../img/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo carregamento",
+      "short_name": "Novo",
+      "description": "Registar uma guia de transporte",
+      "url": "./?acao=novo",
+      "icons": [
+        {
+          "src": "../img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Pendentes",
+      "short_name": "Pendentes",
+      "description": "Abrir a fila offline",
+      "url": "./?acao=pendentes",
+      "icons": [
+        {
+          "src": "../img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

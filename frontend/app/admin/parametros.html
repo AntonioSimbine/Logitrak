@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Parâmetros Globais · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../../img/favicon.svg">
+    <link rel="stylesheet" href="../../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../../css/logitrack-complete.css">
+</head>
+<body data-pagina="parametros" data-requer="ADMIN" data-titulo="Parâmetros Globais"
+      data-subtitulo="Constantes operacionais aplicadas em tempo de execução">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Parâmetros globais</h2>
+                    <p>Altere as constantes do sistema sem reiniciar a aplicação. Os valores são lidos em cada ciclo operacional.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnAtualizar" type="button">
+                        <svg><use href="#i-refresh"/></svg> Recarregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom:16px">
+                <div class="card-body">
+                    <div class="row wrap" style="gap:14px;align-items:flex-start">
+                        <div class="kpi-icon amber" style="flex:none">
+                            <svg><use href="#i-settings"/></svg>
+                        </div>
+                        <div style="flex:1;min-width:240px">
+                            <strong style="font-size:13px">Aplicação imediata</strong>
+                            <p class="muted small" style="margin:4px 0 0;line-height:1.5">
+                                A tolerância de atraso e a precisão máxima do GPS são consultadas a cada
+                                validação e a cada ciclo do motor de SLA. A app móvel descarrega os
+                                parâmetros na sincronização seguinte.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="param-grid" id="listaParametros">
+                <div class="param-card">
+                    <div class="empty">A carregar parâmetros…</div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="../../js/api.js"></script>
+<script src="../../js/layout.js"></script>
+<script src="../../js/admin-parametros.js"></script>
+    <script src="../../js/logitrack-complete.js" defer></script>
+</body>
+</html>

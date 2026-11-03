@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Carregamentos · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../css/logitrack-complete.css">
+</head>
+<body data-pagina="carregamentos" data-titulo="Carregamentos"
+      data-subtitulo="Pesquisa, filtros e acesso à guia digitalizada">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Carregamentos</h2>
+                    <p>Consulte o estado de cada carga e abra o detalhe para inspecionar a guia digitalizada.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn" href="relatorios.html">
+                        <svg><use href="#i-report"/></svg> Exportar relatório
+                    </a>
+                </div>
+            </div>
+
+            <section class="card" style="margin-bottom:16px">
+                <div class="card-body">
+                    <div class="filters">
+                        <div class="field">
+                            <label for="filtroQ">Pesquisa rápida</label>
+                            <div class="input-icon">
+                                <svg><use href="#i-search"/></svg>
+                                <input class="input" id="filtroQ" placeholder="Guia, matrícula, fábrica ou motorista">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="filtroEstado">Estado</label>
+                            <select class="select" id="filtroEstado">
+                                <option value="">Todos</option>
+                                <option value="REGISTADO">Registado</option>
+                                <option value="EM_TRANSITO">Em trânsito</option>
+                                <option value="ATRASADO">Atrasado</option>
+                                <option value="CONCLUIDO">Concluído</option>
+                                <option value="REJEITADO">Rejeitado</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="filtroFabrica">Fábrica</label>
+                            <select class="select" id="filtroFabrica"><option value="">Todas</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="filtroDe">De</label>
+                            <input class="input" id="filtroDe" type="date">
+                        </div>
+                        <div class="field">
+                            <label for="filtroAte">Até</label>
+                            <input class="input" id="filtroAte" type="date">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:13px">
+                        <button class="btn primary" id="btnFiltrar">
+                            <svg><use href="#i-search"/></svg> Aplicar filtros
+                        </button>
+                        <button class="btn ghost" id="btnLimpar">Limpar</button>
+                        <div class="spacer"></div>
+                        <span class="muted small" id="resumoLista"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Lista de carregamentos</h3>
+                        <div class="sub">Clique numa linha para abrir o detalhe e a guia digitalizada</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                        <tr>
+                            <th>Guia</th>
+                            <th>Fábrica</th>
+                            <th>Veículo</th>
+                            <th>Motorista</th>
+                            <th>Tipo / Ton.</th>
+                            <th>Estado</th>
+                            <th>Início</th>
+                            <th>Atraso</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabelaCarregamentos">
+                        <tr><td colspan="9" class="empty">A carregar…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span id="infoPagina">—</span>
+                    <div class="pager-btns">
+                        <button class="btn small" id="btnAnterior">Anterior</button>
+                        <button class="btn small" id="btnSeguinte">Seguinte</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script src="../js/carregamentos.js"></script>
+    <script src="../js/logitrack-complete.js" defer></script>
+</body>
+</html>

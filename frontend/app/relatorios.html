@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Relatórios Operacionais · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+    <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../css/logitrack-complete.css">
+</head>
+<body data-pagina="relatorios" data-titulo="Relatórios Operacionais"
+      data-subtitulo="Filtros avançados, pré-visualização e exportação">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content">
+            <div class="page-head">
+                <div>
+                    <h2>Relatórios operacionais</h2>
+                    <p>Combine filtros, confirme os totais na pré-visualização e exporte em PDF ou Excel.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn" id="btnExportarXlsx" type="button">
+                        <svg><use href="#i-download"/></svg> Excel (.xlsx)
+                    </button>
+                    <button class="btn primary" id="btnExportarPdf" type="button">
+                        <svg><use href="#i-download"/></svg> PDF
+                    </button>
+                </div>
+            </div>
+
+            <section class="card" style="margin-bottom:16px">
+                <div class="card-head">
+                    <div>
+                        <h3>Filtros avançados</h3>
+                        <div class="sub">Os filtros aplicam-se à pré-visualização e às exportações</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="filters">
+                        <div class="field">
+                            <label for="filtroDe">Data de início</label>
+                            <input class="input" id="filtroDe" type="date">
+                        </div>
+                        <div class="field">
+                            <label for="filtroAte">Data de fim</label>
+                            <input class="input" id="filtroAte" type="date">
+                        </div>
+                        <div class="field">
+                            <label for="filtroFabrica">Fábrica de origem</label>
+                            <select class="select" id="filtroFabrica"><option value="">Todas</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="filtroVeiculo">Veículo</label>
+                            <select class="select" id="filtroVeiculo"><option value="">Todos</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="filtroMotorista">Motorista</label>
+                            <select class="select" id="filtroMotorista"><option value="">Todos</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="filtroEstado">Estado do carregamento</label>
+                            <select class="select" id="filtroEstado">
+                                <option value="">Todos</option>
+                                <option value="REGISTADO">Registado</option>
+                                <option value="EM_TRANSITO">Em trânsito</option>
+                                <option value="ATRASADO">Atrasado</option>
+                                <option value="CONCLUIDO">Concluído</option>
+                                <option value="REJEITADO">Rejeitado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-16 wrap">
+                        <button class="btn primary" id="btnGerar" type="button">
+                            <svg><use href="#i-search"/></svg> Gerar pré-visualização
+                        </button>
+                        <button class="btn ghost" id="btnLimpar" type="button">
+                            <svg><use href="#i-rotate"/></svg> Limpar filtros
+                        </button>
+                        <div class="spacer"></div>
+                        <span class="muted small" id="infoGeracao"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h3>Pré-visualização</h3>
+                        <div class="sub">Clique nos cabeçalhos para ordenar os dados</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <span class="chip" id="chipTotal">0 registos</span>
+                </div>
+                <div class="card-body" id="zonaRelatorio">
+                    <div class="report-summary" id="resumoRelatorio">
+                        <div class="rs-item"><div class="lbl">Carregamentos</div><div class="val">—</div></div>
+                        <div class="rs-item orange"><div class="lbl">Toneladas</div><div class="val">—</div></div>
+                        <div class="rs-item green"><div class="lbl">Concluídos</div><div class="val">—</div></div>
+                        <div class="rs-item red"><div class="lbl">Com atraso</div><div class="val">—</div></div>
+                        <div class="rs-item"><div class="lbl">Tempo médio</div><div class="val">—</div></div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data" id="tabelaRelatorio">
+                            <thead>
+                            <tr>
+                                <th data-campo="guiaNumero" data-tipo="texto" style="cursor:pointer">Guia</th>
+                                <th data-campo="fabrica" data-tipo="texto" style="cursor:pointer">Fábrica</th>
+                                <th data-campo="veiculo" data-tipo="texto" style="cursor:pointer">Veículo</th>
+                                <th data-campo="motorista" data-tipo="texto" style="cursor:pointer">Motorista</th>
+                                <th data-campo="tipoCarga" data-tipo="texto" style="cursor:pointer">Tipo / Ton.</th>
+                                <th data-campo="toneladas" data-tipo="numero" style="cursor:pointer">Toneladas</th>
+                                <th data-campo="estado" data-tipo="texto" style="cursor:pointer">Estado</th>
+                                <th data-campo="dataHoraInicio" data-tipo="data" style="cursor:pointer">Início</th>
+                                <th data-campo="dataHoraFim" data-tipo="data" style="cursor:pointer">Fim</th>
+                                <th data-campo="atrasoMinutos" data-tipo="numero" style="cursor:pointer">Atraso</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="tabelaRelatorioCorpo">
+                            <tr><td colspan="11" class="empty">Defina os filtros e gere a pré-visualização.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <span id="infoPaginaRelatorio">—</span>
+                        <div class="pager-btns">
+                            <button class="btn small" id="btnAnterior" type="button" disabled>Anterior</button>
+                            <button class="btn small" id="btnSeguinte" type="button" disabled>Seguinte</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script src="../js/relatorios.js"></script>
+    <script src="../js/logitrack-complete.js" defer></script>
+</body>
+</html>

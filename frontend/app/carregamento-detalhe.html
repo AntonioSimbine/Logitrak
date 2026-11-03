@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Detalhe do Carregamento · Logitrack</title>
+    <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/logitrack-blue.css">
+    <link rel="stylesheet" href="../css/logitrack-complete.css">
+</head>
+<body data-pagina="carregamentos" data-titulo="Detalhe do Carregamento"
+      data-subtitulo="Rastreio, guia digitalizada e ciclo de vida">
+<div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+        <header class="topbar" id="topbar"></header>
+        <main class="content" id="detalhePage">
+            <div class="page-head">
+                <div>
+                    <div class="row" style="gap:10px">
+                        <a class="btn small ghost" href="carregamentos.html">← Voltar</a>
+                        <h2 id="tituloGuia">Carregamento</h2>
+                        <span id="chipEstado"></span>
+                    </div>
+                    <p id="subtituloDetalhe">A carregar informação do carregamento…</p>
+                </div>
+                <div class="page-actions" id="acoesEstado"></div>
+            </div>
+
+            <section class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Fábrica de origem</span></div>
+                    <div class="kpi-value" id="infoFabrica" style="font-size:20px">—</div>
+                    <div class="kpi-foot" id="infoFabricaEndereco">—</div>
+                </article>
+                <article class="kpi">
+                    <div class="kpi-head"><span class="kpi-label">Veículo / Motorista</span></div>
+                    <div class="kpi-value" id="infoVeiculo" style="font-size:20px">—</div>
+                    <div class="kpi-foot" id="infoMotorista">—</div>
+                </article>
+                <article class="kpi amber">
+                    <div class="kpi-head"><span class="kpi-label">Carga</span></div>
+                    <div class="kpi-value" id="infoCarga" style="font-size:20px">—</div>
+                    <div class="kpi-foot" id="infoToneladas">—</div>
+                </article>
+                <article class="kpi green">
+                    <div class="kpi-head"><span class="kpi-label">Limite SLA</span></div>
+                    <div class="kpi-value" id="infoLimite" style="font-size:20px">—</div>
+                    <div class="kpi-foot" id="infoAtraso">—</div>
+                </article>
+            </section>
+
+            <div class="detail-grid">
+                <div class="stack">
+                    <section class="card">
+                        <div class="card-head">
+                            <div>
+                                <h3>Guia de transporte digitalizada</h3>
+                                <div class="sub" id="guideSub">Documento capturado na app do motorista</div>
+                            </div>
+                            <div class="spacer"></div>
+                            <span class="chip" id="guideIntegridade">SHA-256</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="guide-viewer" id="guideViewer">
+                                <div class="empty">A carregar guia…</div>
+                            </div>
+                            <div class="guide-tools" id="guideTools"></div>
+                            <div class="hash mt-12" id="guideHash"></div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-head">
+                            <div>
+                                <h3>Rastreio GPS</h3>
+                                <div class="sub">Origem, pontos intermédios e última posição conhecida</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="map-mini" id="mapDetalhe"></div>
+                            <div class="row mt-12 wrap" id="resumoGps"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="stack">
+                    <section class="card">
+                        <div class="card-head">
+                            <div>
+                                <h3>Linha do tempo</h3>
+                                <div class="sub">Estado do ciclo de vida</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline" id="timeline"></div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-head">
+                            <div>
+                                <h3>Informação detalhada</h3>
+                                <div class="sub">Dados do registo central</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-grid" id="infoDetalhada"></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalRejeitar">
+    <div class="modal narrow">
+        <div class="modal-head">
+            <div>
+                <h3>Rejeitar carregamento</h3>
+                <p>O motivo é obrigatório e fica visível para o motorista.</p>
+            </div>
+            <div class="spacer"></div>
+            <button class="icon-btn" type="button" onclick="LT.fecharModal('modalRejeitar')">×</button>
+        </div>
+        <form id="formRejeitar">
+            <div class="modal-body">
+                <div class="field">
+                    <label for="motivoRejeicao">Motivo da rejeição</label>
+                    <textarea class="textarea" id="motivoRejeicao" rows="4" required
+                              placeholder="Ex.: Guia ilegível — fotografia sem resolução mínima"></textarea>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" type="button" onclick="LT.fecharModal('modalRejeitar')">Cancelar</button>
+                <button class="btn danger" type="submit">Confirmar rejeição</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+    <button class="close" type="button" onclick="document.getElementById('lightbox').classList.remove('open')">×</button>
+    <img id="lightboxImg" alt="Guia de transporte ampliada">
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/layout.js"></script>
+<script src="../js/carregamento-detalhe.js"></script>
+    <script src="../js/logitrack-complete.js" defer></script>
+</body>
+</html>

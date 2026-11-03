@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="120dp"
+    android:viewportWidth="240"
+    android:viewportHeight="120">
+
+    <!-- Caixa de carga -->
+    <path
+        android:pathData="M10,34 L140,34 L140,78 L10,78 Z"
+        android:fillColor="#EAF4FF" />
+    <path
+        android:pathData="M10,34 L140,34 L140,44 L10,44 Z"
+        android:fillColor="#BFE3FF" />
+    <path
+        android:pathData="M10,63 L140,63 L140,67 L10,67 Z"
+        android:fillColor="#D3E8FA" />
+
+    <!-- Cabine -->
+    <path
+        android:pathData="M146,50 L182,50 L214,68 L214,78 L146,78 Z"
+        android:fillColor="#CFE9FF" />
+    <path
+        android:pathData="M154,55 L179,55 L198,68 L154,68 Z"
+        android:fillColor="#0A3A66" />
+    <path
+        android:pathData="M199,71 L220,71 L220,78 L199,78 Z"
+        android:fillColor="#00B8FF" />
+
+    <!-- Rodas -->
+    <path
+        android:pathData="M28,84 m-13,0 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0"
+        android:fillColor="#041A2E" />
+    <path
+        android:pathData="M28,84 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"
+        android:fillColor="#4D6B88" />
+    <path
+        android:pathData="M112,84 m-13,0 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0"
+        android:fillColor="#041A2E" />
+    <path
+        android:pathData="M112,84 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"
+        android:fillColor="#4D6B88" />
+    <path
+        android:pathData="M184,84 m-13,0 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0"
+        android:fillColor="#041A2E" />
+    <path
+        android:pathData="M184,84 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"
+        android:fillColor="#4D6B88" />
+
+    <!-- Estrada -->
+    <path
+        android:pathData="M0,99 L240,99 L240,103 L0,103 Z"
+        android:fillColor="#26FFFFFF" />
+</vector>

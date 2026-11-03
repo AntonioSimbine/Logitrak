@@ -1,0 +1,31 @@
+# Deploy do backend no Render.
+# 1. Cria um MySQL gerido (Aiven, Railway, Clever Cloud, etc.).
+# 2. No Render: New > Blueprint e escolhe este repositório.
+# 3. Preenche DB_URL, DB_USERNAME, DB_PASSWORD e CORS_ALLOWED_ORIGINS.
+services:
+  - type: web
+    name: logitrack-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: LOGITRACK_DEMO_SEED
+        value: "false"
+      - key: LOGITRACK_UPLOAD_DIR
+        value: /tmp/logitrack-uploads
+      - key: PORT
+        value: "8080"

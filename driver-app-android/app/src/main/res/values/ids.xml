@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chaves internas usadas pelos ajudantes de animação. -->
+    <item name="tag_animacao" type="id" />
+    <item name="tag_animado" type="id" />
+    <item name="tag_pressao" type="id" />
+</resources>

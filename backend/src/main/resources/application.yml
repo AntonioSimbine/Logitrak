@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: logitrack-api
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/logitrack?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Maputo&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 2
+      connection-timeout: 20000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: Africa/Maputo
+    show-sql: false
+  jackson:
+    time-zone: Africa/Maputo
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 12MB
+      max-request-size: 15MB
+
+server:
+  port: ${PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/javascript,application/json,text/css,text/html,image/svg+xml
+  forward-headers-strategy: framework
+  tomcat:
+    max-swallow-size: 20MB
+  error:
+    include-message: never
+
+logitrack:
+  jwt:
+    # Obrigatório: definir JWT_SECRET com pelo menos 32 caracteres (nunca versionar).
+    secret: ${JWT_SECRET:}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:720}
+  cors:
+    # Em desenvolvimento aceita qualquer porta local (npx serve -l 3000, Live Server, etc.).
+    # Em produção restringir, por exemplo: CORS_ALLOWED_ORIGINS=https://app.logitrack.co.mz
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*,http://[::1]:*}
+  upload-dir: ${LOGITRACK_UPLOAD_DIR:uploads}
+  sla:
+    intervalo-ms: ${SLA_INTERVALO_MS:60000}
+    atraso-inicial-ms: 12000
+  demo-seed: ${LOGITRACK_DEMO_SEED:true}
+  demo:
+    # Obrigatório quando demo-seed=true. Nunca versionar a palavra-passe.
+    password: ${LOGITRACK_DEMO_PASSWORD:}
+
+logging:
+  level:
+    mz.co.logitrack: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN

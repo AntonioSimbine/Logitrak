@@ -1,0 +1,239 @@
+package mz.co.logitrack.service;
+
+import mz.co.logitrack.domain.Carregamento;
+import mz.co.logitrack.domain.DocumentoGuia;
+import mz.co.logitrack.domain.Fabrica;
+import mz.co.logitrack.domain.LocalizacaoGPS;
+import mz.co.logitrack.domain.Utilizador;
+import mz.co.logitrack.domain.Veiculo;
+import mz.co.logitrack.domain.enums.EstadoCarregamento;
+import mz.co.logitrack.domain.enums.EstadoVeiculo;
+import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
+import mz.co.logitrack.dto.carregamento.SyncCarregamentoRequest;
+import mz.co.logitrack.exception.ApiException;
+import mz.co.logitrack.mapper.CarregamentoMapper;
+import mz.co.logitrack.repository.CarregamentoRepository;
+import mz.co.logitrack.repository.LocalizacaoGPSRepository;
+import mz.co.logitrack.repository.UtilizadorRepository;
+import mz.co.logitrack.repository.VeiculoRepository;
+import mz.co.logitrack.security.AuthenticatedUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Núcleo do mecanismo offline-first:
+ * <ul>
+ *   <li>idempotência por uuidLocal;</li>
+ *   <li>validação da precisão GPS (&le; parâmetro global);</li>
+ *   <li>deteção de geofence por Haversine;</li>
+ *   <li>gravação do carregamento, guia e localização numa única transação;</li>
+ *   <li>transição REGISTADO -&gt; EM_TRANSITO.</li>
+ * </ul>
+ */
+@Service
+public class SyncService {
+
+    private static final Logger log = LoggerFactory.getLogger(SyncService.class);
+    private static final int TAMANHO_MAXIMO_FOTO = 10 * 1024 * 1024;
+
+    private final CarregamentoRepository carregamentoRepository;
+    private final VeiculoRepository veiculoRepository;
+    private final UtilizadorRepository utilizadorRepository;
+    private final LocalizacaoGPSRepository gpsRepository;
+    private final GeofenceService geofenceService;
+    private final ParametroService parametroService;
+    private final DocumentoService documentoService;
+    private final CarregamentoMapper mapper;
+    private final NotificacaoService notificacaoService;
+    private final TransactionTemplate transacao;
+
+    public SyncService(CarregamentoRepository carregamentoRepository,
+                       VeiculoRepository veiculoRepository,
+                       UtilizadorRepository utilizadorRepository,
+                       LocalizacaoGPSRepository gpsRepository,
+                       GeofenceService geofenceService,
+                       ParametroService parametroService,
+                       DocumentoService documentoService,
+                       CarregamentoMapper mapper,
+                       NotificacaoService notificacaoService,
+                       PlatformTransactionManager transactionManager) {
+        this.carregamentoRepository = carregamentoRepository;
+        this.veiculoRepository = veiculoRepository;
+        this.utilizadorRepository = utilizadorRepository;
+        this.gpsRepository = gpsRepository;
+        this.geofenceService = geofenceService;
+        this.parametroService = parametroService;
+        this.documentoService = documentoService;
+        this.mapper = mapper;
+        this.notificacaoService = notificacaoService;
+        this.transacao = new TransactionTemplate(transactionManager);
+    }
+
+    public record ResultadoSincronizacao(CarregamentoResumo carregamento, boolean duplicado,
+                                         HttpStatus status) {
+    }
+
+    public ResultadoSincronizacao sincronizar(SyncCarregamentoRequest requisicao,
+                                              AuthenticatedUser motorista) {
+
+        // 1) Idempotência: o mesmo uuidLocal devolve o registo já processado.
+        Optional<ResultadoSincronizacao> existente = procurarDuplicado(requisicao.uuidLocal());
+        if (existente.isPresent()) {
+            log.info("Sincronização idempotente: uuidLocal={} já existe",
+                    requisicao.uuidLocal());
+            return existente.get();
+        }
+
+        try {
+            ResultadoSincronizacao resultado =
+                    transacao.execute(status -> criarCarregamento(requisicao, motorista));
+            if (resultado == null) {
+                throw new IllegalStateException("Não foi possível sincronizar o carregamento");
+            }
+            return resultado;
+        } catch (DataIntegrityViolationException ex) {
+            // Duas sincronizações concorrentes do mesmo uuidLocal: a restrição
+            // única da base de dados decide qual vence. A perdedora devolve
+            // exatamente o mesmo contrato idempotente (HTTP 200).
+            Optional<ResultadoSincronizacao> duplicado =
+                    procurarDuplicado(requisicao.uuidLocal());
+            if (duplicado.isPresent()) {
+                log.info("Sincronização concorrente resolvida por idempotência: uuidLocal={}",
+                        requisicao.uuidLocal());
+                return duplicado.get();
+            }
+            throw ex;
+        }
+    }
+
+    private Optional<ResultadoSincronizacao> procurarDuplicado(UUID uuidLocal) {
+        ResultadoSincronizacao resultado = transacao.execute(status ->
+                carregamentoRepository.findByUuidLocal(uuidLocal)
+                        .map(c -> new ResultadoSincronizacao(
+                                mapper.toResumo(c), true, HttpStatus.OK))
+                        .orElse(null));
+        return Optional.ofNullable(resultado);
+    }
+
+    private ResultadoSincronizacao criarCarregamento(SyncCarregamentoRequest requisicao,
+                                                     AuthenticatedUser motorista) {
+
+        // 2) Precisão do GPS (RNF005 / RN02).
+        double precisaoMaxima = parametroService.obterDouble(
+                ParametroService.PRECISAO_MAXIMA_GPS_METROS);
+        if (requisicao.precisaoMetros() > precisaoMaxima) {
+            throw ApiException.badRequest(String.format(
+                    "Precisão de GPS insuficiente para validação (Máx: %sm)",
+                    formatarMetros(precisaoMaxima)));
+        }
+
+        // 3) Veículo e motorista.
+        Veiculo veiculo = veiculoRepository.findById(requisicao.veiculoId())
+                .orElseThrow(() -> ApiException.unprocessable("Veículo não encontrado"));
+        if (veiculo.getEstado() == EstadoVeiculo.MANUTENCAO) {
+            throw ApiException.unprocessable(
+                    "O veículo " + veiculo.getMatricula() + " está em manutenção");
+        }
+        Utilizador motoristaEntidade = utilizadorRepository.findById(motorista.getId())
+                .orElseThrow(() -> ApiException.unauthorized("Credenciais inválidas"));
+
+        // 4) Geofence / fábrica de origem (RN03).
+        Fabrica fabrica = geofenceService.resolver(
+                requisicao.fabricaId(),
+                requisicao.latitude(),
+                requisicao.longitude(),
+                Boolean.TRUE.equals(requisicao.confirmarForaGeofence()));
+
+        // 5) Fotografia obrigatória (RN01).
+        byte[] fotografia = descodificarFotografia(requisicao.fotoBase64());
+
+        LocalDateTime inicio = requisicao.dataHoraInicio() != null
+                ? requisicao.dataHoraInicio() : LocalDateTime.now();
+
+        // 6) Registo central.
+        Carregamento carregamento = new Carregamento();
+        carregamento.setUuidLocal(requisicao.uuidLocal());
+        carregamento.setGuiaNumero(requisicao.guiaNumero().trim());
+        carregamento.setTipoCarga(requisicao.tipoCarga().trim());
+        carregamento.setQuantidadeToneladas(requisicao.quantidadeToneladas());
+        carregamento.setEstado(EstadoCarregamento.REGISTADO);
+        carregamento.setDataHoraInicio(inicio);
+        carregamento.setFabrica(fabrica);
+        carregamento.setVeiculo(veiculo);
+        carregamento.setMotorista(motoristaEntidade);
+        // Flush imediato: a restrição UNIQUE de uuidLocal resolve corridas
+        // entre sincronizações concorrentes antes de gravar a fotografia.
+        carregamento = carregamentoRepository.saveAndFlush(carregamento);
+
+        // 7) Guia digitalizada (validada e comprimida no dispositivo).
+        DocumentoGuia documento = documentoService.salvarFoto(
+                carregamento, fotografia, null, inicio);
+
+        // 8) GPS de origem.
+        LocalizacaoGPS localizacao = new LocalizacaoGPS(
+                requisicao.latitude(), requisicao.longitude(),
+                requisicao.precisaoMetros(), LocalDateTime.now(),
+                carregamento, veiculo);
+        gpsRepository.save(localizacao);
+
+        // 9) Transição de sucesso: REGISTADO -> EM_TRANSITO.
+        carregamento.setEstado(EstadoCarregamento.EM_TRANSITO);
+        carregamento = carregamentoRepository.save(carregamento);
+        veiculo.setEstado(EstadoVeiculo.EM_TRANSITO);
+        veiculoRepository.save(veiculo);
+
+        CarregamentoResumo resumo = mapper.toResumo(carregamento);
+        notificacaoService.publicarCarregamento(resumo);
+
+        log.info("Carregamento sincronizado: id={} guia={} uuidLocal={} fabrica={}",
+                carregamento.getId(), carregamento.getGuiaNumero(),
+                carregamento.getUuidLocal(), fabrica.getNome());
+
+        return new ResultadoSincronizacao(resumo, false, HttpStatus.CREATED);
+    }
+
+    private byte[] descodificarFotografia(String fotoBase64) {
+        if (fotoBase64 == null || fotoBase64.isBlank()) {
+            throw ApiException.unprocessable("A fotografia da guia é obrigatória");
+        }
+        String conteudo = fotoBase64.trim();
+        if (conteudo.startsWith("data:")) {
+            int virgula = conteudo.indexOf(',');
+            if (virgula < 0) {
+                throw ApiException.unprocessable("Fotografia inválida");
+            }
+            conteudo = conteudo.substring(virgula + 1);
+        }
+        conteudo = conteudo.replaceAll("\\s", "");
+        try {
+            byte[] bytes = Base64.getDecoder().decode(conteudo);
+            if (bytes.length == 0) {
+                throw ApiException.unprocessable("A fotografia da guia está vazia");
+            }
+            if (bytes.length > TAMANHO_MAXIMO_FOTO) {
+                throw ApiException.unprocessable(
+                        "A fotografia excede o tamanho máximo de 10 MB");
+            }
+            return bytes;
+        } catch (IllegalArgumentException ex) {
+            throw ApiException.unprocessable("Fotografia inválida (Base64 malformado)");
+        }
+    }
+
+    private String formatarMetros(double valor) {
+        if (Math.abs(valor - Math.rint(valor)) < 0.0001) {
+            return String.format("%.0f", valor);
+        }
+        return String.format("%.1f", valor);
+    }
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="66dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_bottom_nav"
+        android:elevation="12dp"
+        app:itemActiveIndicatorStyle="@style/Widget.Logitrack.NavIndicator"
+        app:itemIconSize="21dp"
+        app:itemIconTint="@color/nav_color"
+        app:itemPaddingTop="7dp"
+        app:itemPaddingBottom="7dp"
+        app:itemTextColor="@color/nav_color"
+        app:itemTextAppearanceActive="@style/TextAppearance.Logitrack.NavLabelActive"
+        app:itemTextAppearanceInactive="@style/TextAppearance.Logitrack.NavLabel"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_menu" />
+
+    <LinearLayout
+        android:id="@+id/connBar"
+        android:layout_width="match_parent"
+        android:layout_height="34dp"
+        android:background="@drawable/bg_connectivity_online"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/connDot"
+            android:layout_width="7dp"
+            android:layout_height="7dp"
+            android:background="@drawable/bg_dot" />
+
+        <TextView
+            android:id="@+id/connText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:letterSpacing="0.02"
+            android:text="@string/connectivity_online"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>
