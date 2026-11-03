@@ -30,6 +30,9 @@ jobs:
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5
+        with:
+          # Ativa o GitHub Pages (source: GitHub Actions) se ainda não estiver ativo.
+          enablement: true
 
       - name: Empacotar frontend
         uses: actions/upload-pages-artifact@v3
