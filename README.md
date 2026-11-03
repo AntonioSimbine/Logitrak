@@ -17,17 +17,42 @@ o carregamento em tempo real, recebe alertas de atraso e exporta relatórios.
 |---|---|
 | **Frontend publicado** | <https://antoniosimbine.github.io/Logitrak/> |
 | Repositório | <https://github.com/AntonioSimbine/Logitrak> |
-| API Spring Boot | ainda não publicada — ver [`docs/DEPLOY.md`](docs/DEPLOY.md) |
+| API Spring Boot | local + túnel HTTPS (ver abaixo) ou Render — [`docs/DEPLOY.md`](docs/DEPLOY.md) |
 
-O frontend já está online. Enquanto a API não estiver publicada, o login não
-funciona no site (ele tenta `http://localhost:8080`). Assim que a API estiver
-pública, basta abrir o site uma vez com o endereço dela:
+O **frontend** é servido pelo GitHub Pages. A **API** precisa de um servidor com
+JVM: o GitHub não executa Java nem MySQL.
+
+### Ligar o site à API
+
+O frontend usa `http://localhost:8080` por omissão. Para apontar para outra API,
+abre o site **uma vez** com o parâmetro `api`:
 
 ```text
-https://antoniosimbine.github.io/Logitrak/?api=https://a-tua-api.onrender.com
+https://antoniosimbine.github.io/Logitrak/?api=https://a-tua-api.exemplo.com
 ```
 
-O valor fica guardado no browser e o frontend passa a usar essa API.
+O valor fica guardado no `localStorage` do browser e passa a ser usado por todas
+as páginas, incluindo a app do motorista em `/m/`.
+
+### Publicar a API a partir do teu PC (túnel temporário)
+
+Enquanto não houver um servidor dedicado, é possível expor a API local com um
+túnel HTTPS gratuito. Num único comando:
+
+```powershell
+.\start-online.ps1
+```
+
+O script arranca a API (se necessário), abre o túnel Cloudflare e imprime/copia o
+link pronto, por exemplo:
+
+```text
+https://antoniosimbine.github.io/Logitrak/?api=https://algo-aleatorio.trycloudflare.com
+```
+
+> O link só funciona enquanto o teu computador estiver ligado, com a API e o
+> `cloudflared` a correr. O endereço muda em cada arranque. Para um serviço
+> permanente (24/7), segue o deploy no Render em [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ![Logitrack](frontend/img/favicon.svg)
 
@@ -298,6 +323,7 @@ logitrack/
 │   │   ├── main/resources/application.yml
 │   │   └── test/
 │   ├── mvnw · mvnw.cmd · .mvn/
+│   ├── run-local.ps1               # arranca a API com um comando
 │   └── pom.xml
 ├── docs/
 │   ├── DEPLOY.md                   # guia de publicação
@@ -315,6 +341,7 @@ logitrack/
 ├── .env.example
 ├── .gitignore
 ├── render.yaml                     # deploy do backend no Render
+├── start-online.ps1                # API + túnel HTTPS + link pronto
 └── README.md
 ```
 
@@ -332,7 +359,7 @@ um serviço com JVM (Render, Railway, Fly.io) e de uma base gerida (Aiven, Railw
 | Código no GitHub | ✅ `AntonioSimbine/Logitrak` |
 | Frontend no GitHub Pages | ✅ <https://antoniosimbine.github.io/Logitrak/> |
 | CI do backend (build + testes) | ✅ a passar |
-| API + MySQL publicados | ⬜ por fazer (requer conta Render/Aiven) |
+| API + MySQL publicados | ⚠️ local + túnel temporário (`.\start-online.ps1`); permanente no Render por fazer |
 
 O passo a passo completo está em [`docs/DEPLOY.md`](docs/DEPLOY.md). Resumo:
 
