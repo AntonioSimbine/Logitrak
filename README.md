@@ -201,6 +201,15 @@ $env:LOGITRACK_DEMO_PASSWORD = "<palavra-passe-dos-utilizadores-demo>"
 .\mvnw.cmd spring-boot:run
 ```
 
+**Atalho (recomendado):** guarda esses valores num `backend/.env` (já ignorado pelo
+Git) e arranca com um único comando. O script valida as variáveis obrigatórias:
+
+```powershell
+cd backend
+.\run-local.ps1            # compila e arranca (mvnw spring-boot:run)
+.\run-local.ps1 -Jar       # usa o JAR já compilado
+```
+
 A API fica em **http://localhost:8080**. Confirma com:
 
 ```powershell
@@ -223,6 +232,9 @@ Numa segunda consola:
 cd frontend
 npx serve -l 3000
 ```
+
+> No Windows, se aparecer *"running scripts is disabled on this system"*, usa
+> `npx.cmd` em vez de `npx`.
 
 Abre **http://localhost:3000**. A porta é livre; o CORS predefinido aceita
 `http://localhost:*`.
