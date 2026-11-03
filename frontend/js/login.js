@@ -33,6 +33,14 @@
         mostrarAlerta('erro', 'A sua sessão expirou. Volte a autenticar-se.');
     } else if (params.get('redirect')) {
         mostrarAlerta('info', 'Autentique-se para continuar.');
+    } else {
+        // Frontend publicado mas API ainda em localhost: avisa em vez de falhar em silêncio.
+        const apiLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(CONFIG.apiBase || '');
+        const siteLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(window.location.hostname);
+        if (apiLocal && !siteLocal) {
+            mostrarAlerta('info', 'Este site está online, mas a API ainda não foi publicada. '
+                + 'Abra o site com ?api=https://o-endereco-da-api para o ligar ao servidor.');
+        }
     }
 
     function mostrarAlerta(tipo, mensagem) {
@@ -114,7 +122,8 @@
             const semLigacao = !navigator.onLine || erro instanceof TypeError
                 || erro.message === 'Failed to fetch';
             mostrarAlerta('erro', semLigacao
-                ? 'Não foi possível estabelecer ligação. Verifique a sua Internet e tente novamente.'
+                ? 'Não foi possível ligar à API (' + (CONFIG.apiBase || 'indefinida')
+                    + '). Confirme que o servidor está a correr e que o endereço está correto.'
                 : erro.message);
         } finally {
             botao.disabled = false;

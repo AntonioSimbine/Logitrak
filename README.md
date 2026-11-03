@@ -11,6 +11,28 @@ o carregamento em tempo real, recebe alertas de atraso e exporta relatórios.
 
 ---
 
+## 🌐 Demo online
+
+| O quê | Endereço |
+|---|---|
+| **Frontend publicado** | <https://antoniosimbine.github.io/Logitrak/> |
+| Repositório | <https://github.com/AntonioSimbine/Logitrak> |
+| API Spring Boot | ainda não publicada — ver [`docs/DEPLOY.md`](docs/DEPLOY.md) |
+
+O frontend já está online. Enquanto a API não estiver publicada, o login não
+funciona no site (ele tenta `http://localhost:8080`). Assim que a API estiver
+pública, basta abrir o site uma vez com o endereço dela:
+
+```text
+https://antoniosimbine.github.io/Logitrak/?api=https://a-tua-api.onrender.com
+```
+
+O valor fica guardado no browser e o frontend passa a usar essa API.
+
+![Logitrack](frontend/img/favicon.svg)
+
+---
+
 ## 1. O que resolve
 
 | Problema operacional | Como o Logitrack resolve |
@@ -290,6 +312,15 @@ logitrack/
 
 O GitHub hospeda o **código** e o **frontend estático**. A API e o MySQL precisam de
 um serviço com JVM (Render, Railway, Fly.io) e de uma base gerida (Aiven, Railway).
+
+**Estado atual:**
+
+| Passo | Estado |
+|---|---|
+| Código no GitHub | ✅ `AntonioSimbine/Logitrak` |
+| Frontend no GitHub Pages | ✅ <https://antoniosimbine.github.io/Logitrak/> |
+| CI do backend (build + testes) | ✅ a passar |
+| API + MySQL publicados | ⬜ por fazer (requer conta Render/Aiven) |
 
 O passo a passo completo está em [`docs/DEPLOY.md`](docs/DEPLOY.md). Resumo:
 
