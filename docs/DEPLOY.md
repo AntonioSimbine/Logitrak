@@ -1,5 +1,9 @@
 # Publicar o Logitrack
 
+> **Estado atual:** o código e o frontend já estão publicados em
+> <https://github.com/AntonioSimbine/Logitrak> e <https://antoniosimbine.github.io/Logitrak/>.
+> Falta publicar a API e o MySQL (secções 3 e 4).
+
 Este guia cobre a publicação completa:
 
 | Componente | Serviço recomendado | Gratuito? |
@@ -31,7 +35,7 @@ git add .
 git status          # confirma que target/, build/, node_modules/, .env não entram
 git commit -m "Initial commit: Logitrack"
 git branch -M main
-git remote add origin https://github.com/SEU-USUARIO/logitrack.git
+git remote add origin https://github.com/AntonioSimbine/Logitrak.git
 git push -u origin main
 ```
 
@@ -42,7 +46,7 @@ git push -u origin main
 1. No repositório: **Settings → Pages**.
 2. Em **Build and deployment → Source**, escolhe **GitHub Actions**.
 3. Faz push para `main`. O workflow `deploy-pages.yml` publica `frontend/`.
-4. O endereço fica `https://SEU-USUARIO.github.io/logitrack/`.
+4. O endereço fica `https://antoniosimbine.github.io/Logitrak/`.
 
 O frontend foi preparado para funcionar em subpastas (GitHub Pages project site).
 
@@ -51,7 +55,7 @@ O frontend foi preparado para funcionar em subpastas (GitHub Pages project site)
 Depois de a API estar pública, abre o site uma vez com o parâmetro `api`:
 
 ```text
-https://SEU-USUARIO.github.io/logitrack/?api=https://logitrack-api.onrender.com
+https://antoniosimbine.github.io/Logitrak/?api=https://logitrack-api.onrender.com
 ```
 
 O valor fica guardado no `localStorage` do browser. Também podes definir
@@ -108,7 +112,7 @@ jdbc:mysql://HOST:PORTA/logitrack?useSSL=true&allowPublicKeyRetrieval=true&serve
 | `DB_USERNAME` | utilizador da base |
 | `DB_PASSWORD` | palavra-passe da base |
 | `JWT_SECRET` | chave aleatória com ≥ 32 caracteres |
-| `CORS_ALLOWED_ORIGINS` | `https://SEU-USUARIO.github.io` |
+| `CORS_ALLOWED_ORIGINS` | `https://antoniosimbine.github.io` |
 | `LOGITRACK_DEMO_SEED` | `false` em produção |
 | `LOGITRACK_UPLOAD_DIR` | `/tmp/logitrack-uploads` |
 
@@ -137,7 +141,7 @@ curl https://logitrack-api.onrender.com/api/v1/health
 A API tem de autorizar o domínio do frontend. Exemplo:
 
 ```text
-CORS_ALLOWED_ORIGINS=https://SEU-USUARIO.github.io
+CORS_ALLOWED_ORIGINS=https://antoniosimbine.github.io
 ```
 
 Se usares um domínio próprio:
@@ -168,7 +172,7 @@ No Render: **Settings → Custom Domain** e cria o `CNAME` indicado.
 
 ## 7. Verificação final
 
-- [ ] `https://SEU-USUARIO.github.io/logitrack/` abre com estilos e o login.
+- [ ] `https://antoniosimbine.github.io/Logitrak/` abre com estilos e o login.
 - [ ] `https://logitrack-api.onrender.com/api/v1/health` responde `UP`.
 - [ ] O login devolve um token JWT.
 - [ ] `CORS_ALLOWED_ORIGINS` inclui o domínio do frontend.
