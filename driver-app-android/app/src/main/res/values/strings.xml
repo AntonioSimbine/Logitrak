@@ -37,6 +37,12 @@
     <string name="password_placeholder">A sua palavra-passe</string>
     <string name="login">Entrar</string>
     <string name="login_loading">A entrar…</string>
+    <string name="server_label">Servidor da API</string>
+    <string name="server_dialog_title">Endereço do servidor</string>
+    <string name="server_dialog_hint">Ex.: https://logitrack-api.exemplo.com</string>
+    <string name="server_saved">Servidor atualizado.</string>
+    <string name="server_invalid">Endereço inválido. Usa http:// ou https://.</string>
+    <string name="server_tap_hint">Toque para alterar o servidor</string>
     <string name="offline_hint">O primeiro acesso precisa de internet. Depois pode entrar sem internet neste telemóvel.</string>
     <string name="driver_fallback">Motorista</string>
     <string name="profile_no_email">—</string>

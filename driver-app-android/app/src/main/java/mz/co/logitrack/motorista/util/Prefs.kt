@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import mz.co.logitrack.motorista.BuildConfig
 import mz.co.logitrack.motorista.data.dto.DashboardDto
 import mz.co.logitrack.motorista.data.dto.ReferenciasDto
 import java.security.MessageDigest
@@ -235,7 +236,7 @@ class Prefs(context: Context) {
     }
 
     companion object {
-        const val BASE_PADRAO = "http://192.168.137.1:8080"
+        val BASE_PADRAO: String = BuildConfig.API_BASE_PADRAO
         private const val CHAVE_NOTIF_LIDAS = "notif_lidas"
         private const val MAX_NOTIF_LIDAS = 300
 

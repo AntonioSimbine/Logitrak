@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -54,6 +57,8 @@ class LoginActivity : AppCompatActivity() {
 
         binding.btnMostrarSenha.setOnClickListener { alternarSenha() }
         binding.btnEntrar.setOnClickListener { submeter() }
+        binding.wrapServidor.setOnClickListener { editarServidor() }
+        atualizarServidor()
         binding.btnEsqueci.setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.login_forgot)
@@ -63,6 +68,45 @@ class LoginActivity : AppCompatActivity() {
         }
         prepararBiometria()
         prepararAnimacoes()
+    }
+
+    /** Mostra o servidor ativo no ecrã de login. */
+    private fun atualizarServidor() {
+        binding.tvServidor.text = prefs.apiBase
+    }
+
+    /** Permite ao motorista apontar a app para outra API sem reinstalar o APK. */
+    private fun editarServidor() {
+        val campo = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            setText(prefs.apiBase)
+            setSelection(text.length)
+            hint = getString(R.string.server_dialog_hint)
+            setPadding(48, 32, 48, 32)
+        }
+        val caixa = FrameLayout(this).apply { addView(campo) }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.server_dialog_title)
+            .setView(caixa)
+            .setPositiveButton(R.string.save) { _, _ ->
+                var valor = campo.text.toString().trim()
+                if (valor.isEmpty()) {
+                    valor = Prefs.BASE_PADRAO
+                }
+                if (!valor.startsWith("http://") && !valor.startsWith("https://")) {
+                    valor = "https://$valor"
+                }
+                if (!Regex("^https?://[^\\s]+$").matches(valor)) {
+                    Toast.makeText(this, R.string.server_invalid, Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                prefs.apiBase = valor
+                atualizarServidor()
+                Toast.makeText(this, R.string.server_saved, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun prepararAnimacoes() {

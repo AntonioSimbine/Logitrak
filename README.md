@@ -43,6 +43,8 @@ túnel HTTPS gratuito. Num único comando:
 .\start-online.ps1
 ```
 
+> Se o Windows bloquear scripts, usa **`start-online.cmd`** (duplo clique).
+
 O script arranca a API (se necessário), abre o túnel Cloudflare e imprime/copia o
 link pronto, por exemplo:
 
@@ -150,9 +152,29 @@ Existem duas variantes no repositório:
 | `driver-app-android/` | Kotlin nativo (Jetpack, Room, CameraX) | Abrir no Android Studio ou `gradlew assembleDebug` |
 | `driver-app/` | Capacitor (reutiliza a PWA) | `npm install` e `npm run build:apk` |
 
-O APK de debug fica em `app/build/outputs/apk/debug/app-debug.apk`. Para testar num
-telemóvel físico, o telemóvel tem de conseguir chegar à API (mesma rede ou API
-publicada). O endereço da API configura-se na app ou em `Prefs.kt`.
+O APK de debug fica em `driver-app-android/app/build/outputs/apk/debug/app-debug.apk`.
+
+**Endereço da API na app Android** — duas formas:
+
+1. **Na própria app (sem reinstalar):** no ecrã de login, toca no cartão
+   **“Servidor da API”** e escreve o endereço (ex.: `https://a-tua-api.onrender.com`).
+   Fica guardado no dispositivo e a app passa a usá-lo.
+2. **No build, como valor inicial:**
+
+```powershell
+cd driver-app-android
+.\gradlew.bat assembleDebug -PapiBase=https://a-tua-api.onrender.com
+```
+
+> O telemóvel tem de conseguir chegar à API. Se usares um túnel HTTPS para a API
+> local, o telemóvel pode estar em qualquer rede — desde que o computador e o
+> túnel estejam ativos.
+
+Instalar o APK:
+
+```powershell
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
 
 ### Endereço da API
 
@@ -233,6 +255,12 @@ Git) e arranca com um único comando. O script valida as variáveis obrigatória
 cd backend
 .\run-local.ps1            # compila e arranca (mvnw spring-boot:run)
 .\run-local.ps1 -Jar       # usa o JAR já compilado
+```
+
+Se o Windows bloquear scripts (*"running scripts is disabled"*), usa o atalho:
+
+```text
+backend\run-local.cmd      # duplo clique ou executar no terminal
 ```
 
 A API fica em **http://localhost:8080**. Confirma com:
