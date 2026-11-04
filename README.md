@@ -154,6 +154,14 @@ Existem duas variantes no repositório:
 
 O APK de debug fica em `driver-app-android/app/build/outputs/apk/debug/app-debug.apk`.
 
+**Descarregar o APK já compilado (debug, 11,8 MB):**
+
+<https://github.com/AntonioSimbine/Logitrak/releases/download/android-v1.0.0/Logitrack-Motorista-1.0-debug.apk>
+
+No telemóvel: abre o link, permite **instalar de fontes desconhecidas** para o
+browser/gestor de ficheiros e instala. O APK já vem apontado para a API de
+demonstração.
+
 **Endereço da API na app Android** — duas formas:
 
 1. **Na própria app (sem reinstalar):** no ecrã de login, toca no cartão
