@@ -1,0 +1,52 @@
+server {
+    listen ${PORT};
+    listen [::]:${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    charset utf-8;
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml text/plain;
+    gzip_min_length 1024;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Ficheiros estáticos com cache longo.
+    location ~* \.(?:js|css|png|jpe?g|gif|svg|webp|ico|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    # O service worker e o manifesto têm de ser sempre revalidados.
+    location = /sw.js {
+        add_header Cache-Control "no-cache";
+        try_files $uri =404;
+    }
+
+    location = /manifest.webmanifest {
+        add_header Cache-Control "no-cache";
+        try_files $uri =404;
+    }
+
+    # APK Android servido pelo próprio Railway.
+    location = /downloads/Logitrack-Motorista.apk {
+        default_type application/vnd.android.package-archive;
+        add_header Content-Disposition "attachment; filename=Logitrack-Motorista.apk";
+        add_header Cache-Control "no-cache";
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ $uri.html =404;
+    }
+}

@@ -1,38 +1,33 @@
 # Publicar o Logitrack
 
-> **Estado atual:** o código e o frontend já estão publicados em
-> <https://github.com/AntonioSimbine/Logitrak> e <https://antoniosimbine.github.io/Logitrak/>.
-> Falta publicar a API e o MySQL (secções 3 e 4).
+> **Estado atual:** todo o sistema está publicado no **Railway** — API, MySQL,
+> site, PWA do motorista e APK. O GitHub Pages mantém um espelho do frontend.
 
-Este guia cobre a publicação completa:
-
-| Componente | Serviço recomendado | Gratuito? |
+| Componente | Onde está | Endereço |
 |---|---|---|
-| Código e frontend | GitHub + GitHub Pages | Sim (repositório público) |
-| API Spring Boot | Render (Docker) | Sim, com hibernação |
-| MySQL 8 | Aiven, Railway ou Clever Cloud | Sim, com limites |
+| Sistema web | Railway (`web`) | <https://web-production-f93e366a.up.railway.app/> |
+| App do motorista (PWA) | Railway (`web`) | <https://web-production-f93e366a.up.railway.app/m/> |
+| APK Android | Railway (`web`) | <https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk> |
+| API Spring Boot | Railway (`api`) | <https://api-production-938e6a7a.up.railway.app/api/v1/health> |
+| MySQL 8 | Railway (`MySQL`) | rede privada do projeto |
+| Frontend (espelho) | GitHub Pages | <https://antoniosimbine.github.io/Logitrak/> |
+| Código | GitHub | <https://github.com/AntonioSimbine/Logitrak> |
 
-> O GitHub **não executa** o backend Java nem o MySQL. O GitHub Pages serve apenas
-> ficheiros estáticos (o frontend).
+O repositório não contém segredos: tudo o que é sensível vem de variáveis de
+ambiente do Railway.
 
 ---
 
-## 1. Criar o repositório no GitHub
+## 1. Repositório no GitHub
 
-1. Entra em <https://github.com/new>.
-2. Nome: `logitrack`.
-3. Escolhe **Public** para usar GitHub Pages gratuitamente.
-4. **Não** marques “Add a README”, “.gitignore” nem licença.
-5. Cria o repositório.
-
-No computador:
+1. Cria o repositório em <https://github.com/new> (público, sem README inicial).
+2. No computador:
 
 ```powershell
 cd C:\Users\user\IdeaProjects\logitrack
-
 git init
 git add .
-git status          # confirma que target/, build/, node_modules/, .env não entram
+git status          # target/, build/, node_modules/ e .env não devem entrar
 git commit -m "Initial commit: Logitrack"
 git branch -M main
 git remote add origin https://github.com/AntonioSimbine/Logitrak.git
@@ -41,110 +36,134 @@ git push -u origin main
 
 ---
 
-## 2. Publicar o frontend no GitHub Pages
+## 2. Publicar no Railway
 
-1. No repositório: **Settings → Pages**.
-2. Em **Build and deployment → Source**, escolhe **GitHub Actions**.
-3. Faz push para `main`. O workflow `deploy-pages.yml` publica `frontend/`.
-4. O endereço fica `https://antoniosimbine.github.io/Logitrak/`.
+### 2.1 Criar o projeto e a base de dados
 
-O frontend foi preparado para funcionar em subpastas (GitHub Pages project site).
-
-### Apontar o frontend para a API
-
-Depois de a API estar pública, abre o site uma vez com o parâmetro `api`:
-
-```text
-https://antoniosimbine.github.io/Logitrak/?api=https://logitrack-api.onrender.com
+```powershell
+railway login
+railway init --name logitrack        # ou usa um projeto existente
+railway add --database mysql
 ```
 
-O valor fica guardado no `localStorage` do browser. Também podes definir
-`window.LOGITRACK_API_BASE` em `frontend/js/config.js`.
+O plugin MySQL expõe, entre outras, as variáveis `MYSQLHOST`, `MYSQLPORT`,
+`MYSQLUSER`, `MYSQLPASSWORD` e `MYSQLDATABASE`. Não é preciso copiar valores: a
+API referencia-as diretamente.
 
-### Alternativa: Cloudflare Pages
+### 2.2 Serviço `api`
 
-Se o repositório for privado e a conta GitHub for gratuita, o GitHub Pages pode não
-estar disponível. Nesse caso:
-
-1. Em <https://pages.cloudflare.com>, liga o GitHub.
-2. Framework preset: **None**.
-3. Build command: *(vazio)*.
-4. Output directory: `frontend`.
-5. Define a variável `LOGITRACK_API_BASE` no build, se quiseres fixar a API.
-
-O site fica na raiz do domínio, pelo que também funciona sem ajustes de caminho.
-
----
-
-## 3. Criar o MySQL gerido
-
-Exemplo com Aiven:
-
-1. Cria um serviço **MySQL 8**.
-2. Copia o host, porta, utilizador, palavra-passe e nome da base.
-3. Constrói a `DB_URL`:
-
-```text
-jdbc:mysql://HOST:PORTA/logitrack?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Africa/Maputo&characterEncoding=UTF-8
-```
-
-4. Executa `backend/database/logitrack_mysql.sql` nessa base (MySQL Workbench ou CLI).
-
-> O script cria o schema e os dados de referência. Os utilizadores demo são criados
-> pela aplicação no primeiro arranque, com a palavra-passe de `LOGITRACK_DEMO_PASSWORD`.
-
----
-
-## 4. Publicar o backend no Render
-
-1. Cria conta em <https://render.com> e liga o GitHub.
-2. **New → Blueprint** e escolhe o repositório (ou **New → Web Service**).
-3. Configuração:
-   - **Root Directory:** `backend`
-   - **Runtime:** Docker
-   - **Dockerfile Path:** `./Dockerfile`
-   - **Health Check Path:** `/api/v1/health`
-4. Variáveis de ambiente:
+1. Cria o serviço `api` (`railway add -s api`).
+2. Em **Settings → Source**, define **Root Directory** = `backend`.
+3. O Railway deteta o `backend/Dockerfile`; não é preciso comando de build.
+4. **Health check path:** `/api/v1/health`.
+5. **Volume:** cria um volume montado em `/data` (guarda as fotografias das guias).
+6. Variáveis de ambiente:
 
 | Variável | Valor |
 |---|---|
-| `DB_URL` | a URL JDBC do MySQL |
-| `DB_USERNAME` | utilizador da base |
-| `DB_PASSWORD` | palavra-passe da base |
+| `DB_URL` | `jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/logitrack?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Maputo&characterEncoding=UTF-8` |
+| `DB_USERNAME` | `${{MySQL.MYSQLUSER}}` |
+| `DB_PASSWORD` | `${{MySQL.MYSQLPASSWORD}}` |
 | `JWT_SECRET` | chave aleatória com ≥ 32 caracteres |
-| `CORS_ALLOWED_ORIGINS` | `https://antoniosimbine.github.io` |
-| `LOGITRACK_DEMO_SEED` | `false` em produção |
-| `LOGITRACK_UPLOAD_DIR` | `/tmp/logitrack-uploads` |
+| `JWT_EXPIRATION_MINUTES` | `720` |
+| `CORS_ALLOWED_ORIGINS` | `https://web-production-f93e366a.up.railway.app,https://antoniosimbine.github.io` |
+| `LOGITRACK_DEMO_SEED` | `true` (demonstração) ou `false` (produção) |
+| `LOGITRACK_DEMO_PASSWORD` | palavra-passe das contas demo (não versionar) |
+| `LOGITRACK_UPLOAD_DIR` | `/data/uploads` |
 
-5. Faz deploy. Testa:
+7. Gera o domínio público: **Settings → Networking → Generate Domain**.
+
+A base `logitrack` é criada automaticamente no primeiro arranque
+(`createDatabaseIfNotExist=true`) e o esquema é gerido pelo Hibernate
+(`ddl-auto: update`). O `DataSeeder` cria fábricas, veículos, utilizadores e
+carregamentos de demonstração.
+
+### 2.3 Serviço `web`
+
+1. Cria o serviço `web` (`railway add -s web`).
+2. **Root Directory** = `frontend`.
+3. Build pelo `frontend/Dockerfile` (Nginx).
+4. **Health check path:** `/healthz`.
+5. Gera o domínio público.
+
+O `Dockerfile` descarrega o APK da release estável do GitHub
+(`/releases/latest/download/Logitrack-Motorista.apk`) para `downloads/`, pelo que
+o ficheiro passa a ser servido pelo próprio Railway.
+
+### 2.4 Deploy a partir do computador
+
+Enquanto o serviço não estiver ligado ao GitHub, publica pela CLI:
 
 ```powershell
-curl https://logitrack-api.onrender.com/api/v1/health
+railway link -p <PROJECT_ID> -e production
+railway up -s api --ci      # raiz do repositório; root directory = backend
+railway up -s web --ci      # root directory = frontend
 ```
 
-> No plano gratuito do Render o serviço hiberna após inatividade e o disco é efémero.
-> As guias em `uploads/` perdem-se num redeploy. Para produção, usa disco persistente
-> (plano pago) ou armazenamento S3.
+> A CLI envia o repositório; o campo **Root Directory** de cada serviço decide o
+> que é construído. Sem esse campo, o Railpack tenta construir a raiz e falha.
 
-### Alternativa: Railway
+### 2.5 Ligar o repositório ao Railway (opcional, para deploys automáticos)
 
-1. **New Project → Deploy from GitHub repo**.
-2. Root directory: `backend`.
-3. O Railway deteta o `Dockerfile`.
-4. Adiciona um plugin **MySQL** e usa as variáveis `MYSQLHOST`, `MYSQLPORT`, etc. para
-   construir `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`.
+Em **Settings → Source → Connect Repo**, escolhe `AntonioSimbine/Logitrak` e o
+branch `main`. A partir daí, cada `git push` publica os dois serviços.
+
+### 2.6 Contas de demonstração
+
+Criadas no arranque com a palavra-passe de `LOGITRACK_DEMO_PASSWORD`:
+
+| Perfil | E-mail |
+|---|---|
+| Administrador | `admin@logitrack.co.mz` |
+| Operador da central | `operador@logitrack.co.mz` |
+| Motorista | `motorista@logitrack.co.mz` |
 
 ---
 
-## 5. Configurar o CORS
+## 3. Frontend no GitHub Pages (espelho)
 
-A API tem de autorizar o domínio do frontend. Exemplo:
+1. **Settings → Pages → Source:** GitHub Actions.
+2. O workflow `deploy-pages.yml` publica `frontend/` a cada push em `main`.
+3. Endereço: <https://antoniosimbine.github.io/Logitrak/>.
 
-```text
-CORS_ALLOWED_ORIGINS=https://antoniosimbine.github.io
+O frontend usa a API do Railway por omissão fora de `localhost`. Para forçar
+outra API, abre o site uma vez com `?api=https://a-tua-api.exemplo.com` (fica no
+`localStorage`) ou define `window.LOGITRACK_API_BASE`.
+
+---
+
+## 4. App Android
+
+O APK é gerado a partir de `driver-app-android/`:
+
+```powershell
+cd driver-app-android
+$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'
+.\gradlew.bat assembleDebug -PapiBase=https://api-production-938e6a7a.up.railway.app
 ```
 
-Se usares um domínio próprio:
+O endereço da API pode ser alterado sem reinstalar: ecrã de login → cartão
+**Servidor da API**.
+
+Para publicar uma nova versão, cria uma release com o asset
+`Logitrack-Motorista.apk` (o `web` descarrega sempre a release marcada como
+*latest*). O link de download no site fica:
+
+```text
+https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk
+```
+
+---
+
+## 5. CORS
+
+A API tem de autorizar o domínio do site:
+
+```text
+CORS_ALLOWED_ORIGINS=https://web-production-f93e366a.up.railway.app,https://antoniosimbine.github.io
+```
+
+Com domínio próprio:
 
 ```text
 CORS_ALLOWED_ORIGINS=https://app.logitrack.co.mz
@@ -156,30 +175,24 @@ Não uses `*` em produção.
 
 ## 6. Domínio próprio (opcional)
 
-### GitHub Pages
-
-1. **Settings → Pages → Custom domain**.
-2. Cria um registo `CNAME` no teu DNS a apontar para `SEU-USUARIO.github.io`.
-3. Ativa **Enforce HTTPS**.
-
-O site passa a ser servido na raiz do domínio.
-
-### API
-
-No Render: **Settings → Custom Domain** e cria o `CNAME` indicado.
+1. **Railway → serviço → Settings → Networking → Custom Domain.**
+2. Cria o registo `CNAME` indicado no teu DNS.
+3. Atualiza `CORS_ALLOWED_ORIGINS` com o novo domínio.
 
 ---
 
 ## 7. Verificação final
 
-- [ ] `https://antoniosimbine.github.io/Logitrak/` abre com estilos e o login.
-- [ ] `https://logitrack-api.onrender.com/api/v1/health` responde `UP`.
+- [ ] `https://api-production-938e6a7a.up.railway.app/api/v1/health` responde `UP`.
 - [ ] O login devolve um token JWT.
-- [ ] `CORS_ALLOWED_ORIGINS` inclui o domínio do frontend.
-- [ ] `JWT_SECRET` tem pelo menos 32 caracteres e não está no repositório.
-- [ ] `LOGITRACK_DEMO_SEED=false` em produção.
-- [ ] As guias enviadas ficam acessíveis após reinício (disco persistente/S3).
-- [ ] O MySQL tem backups configurados.
+- [ ] `https://web-production-f93e366a.up.railway.app/` abre com estilos.
+- [ ] `.../m/` instala como PWA (HTTPS).
+- [ ] `.../downloads/Logitrack-Motorista.apk` descarrega o APK.
+- [ ] `CORS_ALLOWED_ORIGINS` inclui o domínio do site.
+- [ ] `JWT_SECRET` tem ≥ 32 caracteres e não está no repositório.
+- [ ] `LOGITRACK_DEMO_SEED=false` numa instalação real.
+- [ ] As fotografias sobrevivem a um redeploy (volume em `/data`).
+- [ ] O MySQL tem backups/configuração de retenção adequada.
 
 ---
 
@@ -188,10 +201,20 @@ No Render: **Settings → Custom Domain** e cria o `CNAME` indicado.
 | Sintoma | Causa / solução |
 |---|---|
 | `Failed to fetch` no login | API indisponível ou URL errada; testa `/api/v1/health` |
-| Erro de CORS | Adiciona o domínio do frontend a `CORS_ALLOWED_ORIGINS` |
-| Página sem estilos | O site tem de ser servido a partir da raiz publicada; confirma o workflow |
-| Câmara não abre no telemóvel | `getUserMedia` exige HTTPS ou `localhost` |
-| PWA não instala | Service Worker só regista em HTTPS/localhost |
-| `JWT_SECRET` inválido | Define uma chave com pelo menos 32 caracteres |
-| Seed falha no arranque | Define `LOGITRACK_DEMO_PASSWORD` ou `LOGITRACK_DEMO_SEED=false` |
-| Guias desaparecem após deploy | O disco do Render é efémero; usa disco persistente/S3 |
+| Erro de CORS | Adiciona o domínio do site a `CORS_ALLOWED_ORIGINS` |
+| Build falha com `Railpack could not determine how to build` | Falta o **Root Directory** (`backend`/`frontend`) no serviço |
+| Build falha com `default.conf.template: not found` | O `.dockerignore` do frontend não pode excluir o template do Nginx |
+| Health check falha no arranque | A API pode demorar ~1 min na primeira subida; confirma os logs |
+| Câmara não abre no telemóvel | `getUserMedia` exige HTTPS |
+| PWA não instala | Service Worker só regista em HTTPS |
+| `Seed falha` | Define `LOGITRACK_DEMO_PASSWORD` ou `LOGITRACK_DEMO_SEED=false` |
+| Fotografias desaparecem | Confirma o volume montado em `/data` e `LOGITRACK_UPLOAD_DIR=/data/uploads` |
+
+---
+
+## 9. Alternativas
+
+O repositório inclui `render.yaml` e o mesmo `backend/Dockerfile` funciona no
+**Render** (root directory `backend`, runtime Docker). Para a base de dados,
+qualquer MySQL 8 gerido serve (Aiven, Clever Cloud, Railway). O procedimento é o
+mesmo; só mudam os nomes das variáveis de ligação.

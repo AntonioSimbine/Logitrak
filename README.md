@@ -11,33 +11,46 @@ o carregamento em tempo real, recebe alertas de atraso e exporta relatórios.
 
 ---
 
-## 🌐 Demo online
+## 🌐 Sistema online (Railway)
 
 | O quê | Endereço |
 |---|---|
-| **Frontend publicado** | <https://antoniosimbine.github.io/Logitrak/> |
+| **Sistema web** | <https://web-production-f93e366a.up.railway.app/> |
+| **App do motorista (PWA)** | <https://web-production-f93e366a.up.railway.app/m/> |
+| **APK Android** | <https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk> |
+| **API Spring Boot** | <https://api-production-938e6a7a.up.railway.app/api/v1/health> |
+| Espelho no GitHub Pages | <https://antoniosimbine.github.io/Logitrak/> |
 | Repositório | <https://github.com/AntonioSimbine/Logitrak> |
-| API Spring Boot | local + túnel HTTPS (ver abaixo) ou Render — [`docs/DEPLOY.md`](docs/DEPLOY.md) |
 
-O **frontend** é servido pelo GitHub Pages. A **API** precisa de um servidor com
-JVM: o GitHub não executa Java nem MySQL.
+O **Railway** aloja a API Spring Boot, o MySQL, o site (sistema web + PWA do
+motorista) e o APK Android. O GitHub Pages mantém-se como espelho do frontend.
+
+### Contas de demonstração
+
+| Perfil | E-mail | Palavra-passe |
+|---|---|---|
+| Administrador | `admin@logitrack.co.mz` | definida em `LOGITRACK_DEMO_PASSWORD` |
+| Operador da central | `operador@logitrack.co.mz` | idem |
+| Motorista | `motorista@logitrack.co.mz` | idem |
+
+A palavra-passe demo é definida pela variável `LOGITRACK_DEMO_PASSWORD`, que não
+é guardada no repositório (fica em `backend/.env` e nas variáveis do Railway).
 
 ### Ligar o site à API
 
-O frontend usa `http://localhost:8080` por omissão. Para apontar para outra API,
-abre o site **uma vez** com o parâmetro `api`:
+O frontend usa a API do Railway por omissão quando é servido fora do computador
+local. Para apontar para outra API, abre o site **uma vez** com o parâmetro `api`:
 
 ```text
-https://antoniosimbine.github.io/Logitrak/?api=https://a-tua-api.exemplo.com
+https://web-production-f93e366a.up.railway.app/?api=https://a-tua-api.exemplo.com
 ```
 
 O valor fica guardado no `localStorage` do browser e passa a ser usado por todas
 as páginas, incluindo a app do motorista em `/m/`.
 
-### Publicar a API a partir do teu PC (túnel temporário)
+### Correr a API no teu PC (opcional, com túnel temporário)
 
-Enquanto não houver um servidor dedicado, é possível expor a API local com um
-túnel HTTPS gratuito. Num único comando:
+Para desenvolver localmente, a API pode ser exposta com um túnel HTTPS gratuito:
 
 ```powershell
 .\start-online.ps1
@@ -45,16 +58,8 @@ túnel HTTPS gratuito. Num único comando:
 
 > Se o Windows bloquear scripts, usa **`start-online.cmd`** (duplo clique).
 
-O script arranca a API (se necessário), abre o túnel Cloudflare e imprime/copia o
-link pronto, por exemplo:
-
-```text
-https://antoniosimbine.github.io/Logitrak/?api=https://algo-aleatorio.trycloudflare.com
-```
-
-> O link só funciona enquanto o teu computador estiver ligado, com a API e o
-> `cloudflared` a correr. O endereço muda em cada arranque. Para um serviço
-> permanente (24/7), segue o deploy no Render em [`docs/DEPLOY.md`](docs/DEPLOY.md).
+> O túnel só funciona enquanto o computador estiver ligado e o endereço muda em
+> cada arranque. O deploy do Railway é permanente e não depende do teu PC.
 
 ![Logitrack](frontend/img/favicon.svg)
 
@@ -156,11 +161,12 @@ O APK de debug fica em `driver-app-android/app/build/outputs/apk/debug/app-debug
 
 **Descarregar o APK já compilado (debug, 11,8 MB):**
 
-<https://github.com/AntonioSimbine/Logitrak/releases/download/android-v1.0.0/Logitrack-Motorista-1.0-debug.apk>
+<https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk>
 
-No telemóvel: abre o link, permite **instalar de fontes desconhecidas** para o
-browser/gestor de ficheiros e instala. O APK já vem apontado para a API de
-demonstração.
+(ou pelo GitHub: <https://github.com/AntonioSimbine/Logitrak/releases/latest>)
+
+O APK já vem apontado para a API do Railway. No telemóvel: abre o link, permite
+**instalar de fontes desconhecidas** para o browser/gestor de ficheiros e instala.
 
 **Endereço da API na app Android** — duas formas:
 
@@ -186,10 +192,12 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 
 ### Endereço da API
 
-O frontend usa `http://localhost:8080` por omissão. Para apontar para outra API:
+Em produção o frontend usa automaticamente a API do Railway
+(`https://api-production-938e6a7a.up.railway.app`). Em `localhost` usa
+`http://localhost:8080`. Para apontar para outra API:
 
 1. Abre a aplicação com `?api=https://a-tua-api.exemplo.com` (fica guardado no browser); ou
-2. Edita `frontend/js/config.js` (`apiBase`); ou
+2. Edita `frontend/js/config.js` (`API_PRODUCAO`); ou
 3. Define `window.LOGITRACK_API_BASE` antes de carregar `config.js`.
 
 ---
@@ -376,35 +384,40 @@ logitrack/
 │   └── package.json
 ├── .env.example
 ├── .gitignore
-├── render.yaml                     # deploy do backend no Render
-├── start-online.ps1                # API + túnel HTTPS + link pronto
+├── backend/Dockerfile              # imagem da API para o Railway
+├── frontend/Dockerfile             # site + APK servidos por Nginx no Railway
+├── render.yaml                     # alternativa de deploy no Render
+├── start-online.ps1                # API local + túnel HTTPS
 └── README.md
 ```
 
 ---
 
-## 9. Publicação (GitHub Pages + API)
+## 9. Publicação no Railway
 
-O GitHub hospeda o **código** e o **frontend estático**. A API e o MySQL precisam de
-um serviço com JVM (Render, Railway, Fly.io) e de uma base gerida (Aiven, Railway).
+O Railway aloja a **API**, o **MySQL**, o **site** (sistema web + PWA) e o **APK**.
 
 **Estado atual:**
 
 | Passo | Estado |
 |---|---|
 | Código no GitHub | ✅ `AntonioSimbine/Logitrak` |
-| Frontend no GitHub Pages | ✅ <https://antoniosimbine.github.io/Logitrak/> |
+| API + MySQL no Railway | ✅ <https://api-production-938e6a7a.up.railway.app/api/v1/health> |
+| Site + PWA no Railway | ✅ <https://web-production-f93e366a.up.railway.app/> |
+| APK servido pelo Railway | ✅ `/downloads/Logitrack-Motorista.apk` |
+| Espelho no GitHub Pages | ✅ <https://antoniosimbine.github.io/Logitrak/> |
 | CI do backend (build + testes) | ✅ a passar |
-| API + MySQL publicados | ⚠️ local + túnel temporário (`.\start-online.ps1`); permanente no Render por fazer |
 
 O passo a passo completo está em [`docs/DEPLOY.md`](docs/DEPLOY.md). Resumo:
 
-1. **Frontend:** o workflow `deploy-pages.yml` publica `frontend/` no GitHub Pages.
-2. **Backend:** cria um Web Service no Render a partir de `backend/Dockerfile`.
-3. **Base de dados:** cria um MySQL gerido e define `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`.
-4. **Ligação:** abre o site com `?api=https://a-tua-api.onrender.com` ou define
-   `window.LOGITRACK_API_BASE` em `frontend/js/config.js`.
-5. **CORS:** define `CORS_ALLOWED_ORIGINS` com o domínio do frontend.
+1. **Projeto:** um projeto Railway (`logitrack`) com os serviços `api`, `web` e `MySQL`.
+2. **API:** root directory `backend`, build pelo `Dockerfile`, health check
+   `/api/v1/health`, volume em `/data` para as fotografias.
+3. **Site:** root directory `frontend`, build pelo `Dockerfile` (Nginx), que também
+   descarrega o APK da release do GitHub para `/downloads/`.
+4. **Base de dados:** plugin MySQL; `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` usam as
+   referências `${{MySQL.MYSQLHOST}}`, `${{MySQL.MYSQLPORT}}`, etc.
+5. **CORS:** `CORS_ALLOWED_ORIGINS` inclui o domínio do site e o GitHub Pages.
 
 ---
 

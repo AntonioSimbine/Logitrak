@@ -33,7 +33,15 @@
         }
     })();
     const apiConfigurada = window.LOGITRACK_API_BASE;
-    const apiBase = String(apiPedida || apiConfigurada || apiGuardada || 'http://localhost:8080')
+
+    // API publicada no Railway. É usada sempre que o site não está a correr
+    // no computador local (Railway, GitHub Pages, telemóvel, etc.).
+    const API_PRODUCAO = 'https://api-production-938e6a7a.up.railway.app';
+    const anfitrioesLocais = ['localhost', '127.0.0.1', '::1', ''];
+    const emLocal = anfitrioesLocais.indexOf(window.location.hostname) !== -1;
+    const apiPredefinida = emLocal ? 'http://localhost:8080' : API_PRODUCAO;
+
+    const apiBase = String(apiPedida || apiConfigurada || apiGuardada || apiPredefinida)
         .replace(/\/+$/, '');
 
     if (apiPedida) {

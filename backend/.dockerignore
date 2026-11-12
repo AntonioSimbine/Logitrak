@@ -1,8 +1,9 @@
-target/
-uploads/
-.idea/
-.git/
-.gitignore
+target
+uploads
+logs
 *.log
 .env
 .env.*
+.mvn
+mvnw
+mvnw.cmd
