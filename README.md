@@ -16,6 +16,8 @@ o carregamento em tempo real, recebe alertas de atraso e exporta relatórios.
 | O quê | Endereço |
 |---|---|
 | **Sistema web** | <https://web-production-f93e366a.up.railway.app/> |
+| **Apresentação do sistema** | <https://web-production-f93e366a.up.railway.app/apresentacao.html> |
+| **Acesso e download** | <https://web-production-f93e366a.up.railway.app/acesso.html> |
 | **App do motorista (PWA)** | <https://web-production-f93e366a.up.railway.app/m/> |
 | **APK Android** | <https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk> |
 | **API Spring Boot** | <https://api-production-938e6a7a.up.railway.app/api/v1/health> |
@@ -381,6 +383,8 @@ logitrack/
 │   ├── js/                         # config, api, layout e scripts
 │   ├── m/                          # PWA do motorista M1–M6
 │   ├── index.html · login.html
+│   ├── apresentacao.html           # página pública de apresentação
+│   ├── acesso.html                 # download da app e acesso ao painel
 │   └── package.json
 ├── .env.example
 ├── .gitignore
