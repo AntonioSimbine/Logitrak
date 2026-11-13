@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso e download — Logitrack</title>
+    <meta name="description" content="Descarregar a app do motorista (APK ou PWA) e entrar no painel do administrador e do operador da central.">
+    <meta name="theme-color" content="#0b1f3a">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/site.css">
+</head>
+<body class="site">
+
+<header class="site-nav">
+    <div class="wrap">
+        <a class="site-brand" href="apresentacao.html">
+            <span class="mark">LT</span>
+            <span>
+                <span class="name">Logi<span>track</span></span>
+                <span class="sub">Gestão &amp; Rastreabilidade</span>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="apresentacao.html#sistema">O sistema</a>
+            <a href="apresentacao.html#painel">Painel</a>
+            <a href="apresentacao.html#app">App do motorista</a>
+            <a href="#perfis">Perfis</a>
+            <a href="#ajuda">Ajuda</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a class="btn btn-ghost btn-sm" href="apresentacao.html">Apresentação</a>
+            <a class="btn btn-primary btn-sm" href="login.html">Entrar</a>
+        </div>
+    </div>
+</header>
+
+<section class="hero" style="padding:58px 0 66px">
+    <div class="wrap">
+        <span class="eyebrow">Acesso e download</span>
+        <h1 style="font-size:clamp(30px,4.4vw,46px)">Instala a app.<br><em>Entra no painel.</em></h1>
+        <p class="lead">
+            Descarrega a app do motorista para Android ou instala-a como PWA.
+            O painel web é usado pelo administrador e pelo operador da central,
+            no browser, sem instalar nada.
+        </p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" href="#download">Descarregar o APK</a>
+            <a class="btn btn-ghost" href="#painel">Acesso ao painel</a>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="download">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">App do motorista</span>
+            <h2>Download e instalação.</h2>
+            <p class="sub">
+                Há duas formas de usar a app: instalar o ficheiro APK no Android ou
+                instalar a PWA diretamente pelo browser. As duas funcionam offline.
+            </p>
+        </div>
+
+        <div class="access-grid">
+            <article class="access-card">
+                <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--orange);margin-bottom:10px">OPÇÃO A · ANDROID</span>
+                <h2>Instalar o APK</h2>
+                <p>Ficheiro Android pronto a instalar, já apontado para o servidor do Logitrack.</p>
+
+                <ol>
+                    <li>Abre esta página no telemóvel Android.</li>
+                    <li>Toca em <strong>Descarregar o APK</strong>.</li>
+                    <li>Quando o telemóvel avisar, permite <strong>instalar de fontes desconhecidas</strong> para o browser ou gestor de ficheiros.</li>
+                    <li>Abre o ficheiro descarregado e confirma <strong>Instalar</strong>.</li>
+                    <li>Abre a app <strong>Logitrack</strong> e inicia sessão com a conta de motorista.</li>
+                </ol>
+
+                <div class="actions">
+                    <a class="btn btn-primary" id="linkApk"
+                       href="downloads/Logitrack-Motorista.apk"
+                       data-apk-local="downloads/Logitrack-Motorista.apk"
+                       data-apk-github="https://github.com/AntonioSimbine/Logitrak/releases/latest/download/Logitrack-Motorista.apk">
+                        Descarregar o APK
+                    </a>
+                    <a class="btn btn-outline" href="https://github.com/AntonioSimbine/Logitrak/releases/latest"
+                       target="_blank" rel="noopener">Ver release no GitHub</a>
+                </div>
+
+                <div class="note">
+                    O Android pode mostrar um aviso de segurança por a app não vir da
+                    Play Store. É esperado em instalações por APK. Instala apenas a
+                    partir deste site ou do repositório oficial.
+                </div>
+            </article>
+
+            <article class="access-card">
+                <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--blue);margin-bottom:10px">OPÇÃO B · PWA</span>
+                <h2>Instalar pelo browser</h2>
+                <p>Sem APK e sem loja de aplicações. Funciona em Android e iPhone.</p>
+
+                <ol>
+                    <li>Abre a app do motorista em <code>/m/</code> no Chrome, Edge ou Safari.</li>
+                    <li>No menu do browser, escolhe <strong>Instalar aplicação</strong> ou <strong>Adicionar ao ecrã inicial</strong>.</li>
+                    <li>Abre o ícone <strong>Logitrack</strong> que aparece no telemóvel.</li>
+                    <li>Inicia sessão e permite o acesso à <strong>localização</strong> e à <strong>câmara</strong>.</li>
+                </ol>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="m/">Abrir a app do motorista</a>
+                    <a class="btn btn-outline" href="apresentacao.html#app">Ver o que a app faz</a>
+                </div>
+
+                <div class="note info">
+                    A câmara, o GPS e a instalação da PWA exigem uma ligação segura
+                    (<strong>HTTPS</strong>). Por isso usa o endereço publicado, não um
+                    endereço local por HTTP.
+                </div>
+            </article>
+        </div>
+
+        <div class="note" style="margin-top:22px">
+            <strong>Sem rede no local de carga?</strong> A app guarda o registo numa fila
+            no telemóvel e envia automaticamente quando a ligação voltar. Podes também
+            forçar o envio no ecrã da fila.
+        </div>
+    </div>
+</section>
+
+<section class="section alt" id="painel">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">Painel web</span>
+            <h2>Entrar no painel.</h2>
+            <p class="sub">
+                O painel abre no browser, no computador ou no telemóvel. Não precisa de
+                instalação. O mesmo login serve administradores e operadores — o que
+                aparece depois depende do perfil da conta.
+            </p>
+        </div>
+
+        <div class="access-grid">
+            <article class="access-card">
+                <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--orange);margin-bottom:10px">ACESSO TOTAL</span>
+                <h2>Administrador</h2>
+                <p>
+                    Configura fábricas, veículos, utilizadores e parâmetros, além de
+                    acompanhar toda a operação, alertas, KPIs e relatórios.
+                </p>
+
+                <ol>
+                    <li>Abre a página de login do painel.</li>
+                    <li>Escreve o e-mail e a palavra-passe do administrador.</li>
+                    <li>Entras no dashboard com acesso a todos os módulos.</li>
+                </ol>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="login.html">Entrar como administrador</a>
+                    <a class="btn btn-outline" href="apresentacao.html#perfis">Ver permissões</a>
+                </div>
+            </article>
+
+            <article class="access-card">
+                <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--blue);margin-bottom:10px">OPERAÇÃO DIÁRIA</span>
+                <h2>Operador da central</h2>
+                <p>
+                    Acompanha carregamentos, mapa, alertas de atraso, KPIs e relatórios.
+                    Não altera utilizadores, fábricas, veículos nem parâmetros.
+                </p>
+
+                <ol>
+                    <li>Abre a página de login do painel.</li>
+                    <li>Escreve o e-mail e a palavra-passe do operador.</li>
+                    <li>Entras no dashboard da central.</li>
+                </ol>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="login.html">Entrar como operador</a>
+                    <a class="btn btn-outline" href="apresentacao.html#painel">Ver módulos</a>
+                </div>
+            </article>
+        </div>
+
+        <div class="access-card" id="perfis" style="margin-top:18px">
+            <h2>Contas de demonstração</h2>
+            <p>
+                O sistema publicado inclui contas de exemplo para experimentar os três
+                perfis. Numa instalação real, as contas são criadas pelo administrador e
+                estas credenciais deixam de existir.
+            </p>
+
+            <details class="demo">
+                <summary>Mostrar e-mails e palavra-passe de demonstração</summary>
+                <div style="overflow-x:auto">
+                <table class="creds">
+                    <thead>
+                    <tr>
+                        <th>Perfil</th>
+                        <th>E-mail</th>
+                        <th>Palavra-passe</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Administrador</td>
+                        <td><code>admin@logitrack.co.mz</code></td>
+                        <td><code>LogitrackDemo@2026</code></td>
+                    </tr>
+                    <tr>
+                        <td>Operador da central</td>
+                        <td><code>operador@logitrack.co.mz</code></td>
+                        <td><code>LogitrackDemo@2026</code></td>
+                    </tr>
+                    <tr>
+                        <td>Motorista</td>
+                        <td><code>motorista@logitrack.co.mz</code></td>
+                        <td><code>LogitrackDemo@2026</code></td>
+                    </tr>
+                    <tr>
+                        <td>Motorista (2)</td>
+                        <td><code>motorista2@logitrack.co.mz</code></td>
+                        <td><code>LogitrackDemo@2026</code></td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+            </details>
+
+            <div class="note">
+                Estas contas são apenas para demonstração. Numa operação real, define
+                uma palavra-passe própria e desativa o seed de dados de exemplo.
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="ajuda">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">Ajuda</span>
+            <h2>Problemas frequentes.</h2>
+        </div>
+
+        <div class="steps" style="margin-top:34px">
+            <div class="step">
+                <h3>O download do APK não começa</h3>
+                <p>
+                    Confirma que abriste o link no telemóvel e que tens espaço livre.
+                    Se o browser bloquear, abre o link no Chrome ou usa a opção PWA.
+                </p>
+            </div>
+            <div class="step">
+                <h3>O Android não deixa instalar</h3>
+                <p>
+                    Autoriza “instalar de fontes desconhecidas” para o browser ou para o
+                    gestor de ficheiros nas definições do telemóvel e tenta novamente.
+                </p>
+            </div>
+            <div class="step">
+                <h3>A câmara ou o GPS não abrem</h3>
+                <p>
+                    Verifica se a app tem permissão de câmara e localização e se estás a
+                    usar o endereço HTTPS. Em localhost também funciona.
+                </p>
+            </div>
+            <div class="step">
+                <h3>O login diz “Failed to fetch”</h3>
+                <p>
+                    O servidor não está acessível a partir do teu dispositivo. Confirma a
+                    ligação à internet e tenta novamente dentro de alguns segundos.
+                </p>
+            </div>
+            <div class="step">
+                <h3>Os registos ficaram pendentes</h3>
+                <p>
+                    Estão guardados no telemóvel. Abre a fila offline na app e toca em
+                    sincronizar quando tiveres rede; nada é perdido entretanto.
+                </p>
+            </div>
+            <div class="step">
+                <h3>Esqueci a palavra-passe</h3>
+                <p>
+                    Pede ao administrador para repor a palavra-passe no módulo de
+                    utilizadores. Nas contas de demonstração, usa a palavra-passe acima.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section alt">
+    <div class="wrap">
+        <div class="dark-band">
+            <div>
+                <h2>Ainda com dúvidas sobre o sistema?</h2>
+                <p>
+                    A página de apresentação explica o fluxo completo, os módulos do
+                    painel, os ecrãs da app e a matriz de acessos por perfil.
+                </p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px">
+                <a class="btn btn-primary" href="apresentacao.html">Ver apresentação</a>
+                <a class="btn btn-ghost" href="login.html">Entrar no painel</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div>
+                <a class="site-brand" href="apresentacao.html" style="margin-bottom:12px">
+                    <span class="mark">LT</span>
+                    <span>
+                        <span class="name">Logi<span>track</span></span>
+                        <span class="sub">Gestão &amp; Rastreabilidade</span>
+                    </span>
+                </a>
+                <p style="margin:0;max-width:30rem">
+                    Gestão e rastreabilidade de carregamentos para operações industriais
+                    em Moçambique. Central, fábricas e motoristas no mesmo fluxo.
+                </p>
+            </div>
+            <div>
+                <h4>App</h4>
+                <a href="#download">Download do APK</a>
+                <a href="m/">Abrir a PWA</a>
+                <a href="apresentacao.html#app">Ecrãs da app</a>
+            </div>
+            <div>
+                <h4>Painel</h4>
+                <a href="login.html">Entrar</a>
+                <a href="#perfis">Contas de demonstração</a>
+                <a href="#ajuda">Ajuda</a>
+            </div>
+        </div>
+        <div class="footer-base">
+            <span>© <span id="anoAtual">2026</span> Logitrack · Moçambique</span>
+            <span>Projeto demonstrativo — dados de exemplo</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+    document.getElementById('anoAtual').textContent = new Date().getFullYear();
+
+    // O APK é servido pelo próprio site quando publicado (Railway). No espelho
+    // do GitHub Pages o ficheiro não existe, por isso usa-se a release do GitHub.
+    (function () {
+        const link = document.getElementById('linkApk');
+        if (!link) return;
+        const anfitriao = window.location.hostname;
+        const noGitHubPages = /\.github\.io$/i.test(anfitriao);
+        if (!noGitHubPages) {
+            link.href = link.dataset.apkLocal;
+        } else {
+            link.href = link.dataset.apkGithub;
+        }
+    })();
+</script>
+</body>
+</html>

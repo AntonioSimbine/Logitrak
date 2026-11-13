@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logitrack — Gestão e rastreabilidade de carregamentos</title>
+    <meta name="description" content="Logitrack liga a central, as fábricas e os motoristas num único fluxo digital: guia digitalizada, GPS, alertas de atraso, KPIs e relatórios — com funcionamento offline.">
+    <meta name="theme-color" content="#0b1f3a">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/site.css">
+</head>
+<body class="site">
+
+<header class="site-nav">
+    <div class="wrap">
+        <a class="site-brand" href="apresentacao.html">
+            <span class="mark">LT</span>
+            <span>
+                <span class="name">Logi<span>track</span></span>
+                <span class="sub">Gestão &amp; Rastreabilidade</span>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="#sistema">O sistema</a>
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#painel">Painel</a>
+            <a href="#app">App do motorista</a>
+            <a href="#perfis">Perfis</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a class="btn btn-ghost btn-sm" href="login.html">Entrar</a>
+            <a class="btn btn-primary btn-sm" href="acesso.html">Descarregar app</a>
+        </div>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="wrap">
+        <div class="hero-grid">
+            <div>
+                <span class="eyebrow">Sistema de gestão e rastreabilidade</span>
+
+                <h1>A operação inteira,<br><em>em tempo real.</em></h1>
+
+                <p class="lead">
+                    O Logitrack liga a central, as fábricas e os motoristas num único
+                    fluxo digital. O motorista registra a guia e o GPS no telemóvel —
+                    mesmo sem rede — e a central acompanha o carregamento em tempo real,
+                    recebe alertas de atraso e exporta relatórios.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="acesso.html">Descarregar a app</a>
+                    <a class="btn btn-ghost" href="#sistema">Conhecer o sistema</a>
+                </div>
+
+                <ul class="hero-facts">
+                    <li>Funciona offline</li>
+                    <li>GPS por carregamento</li>
+                    <li>Alertas de SLA</li>
+                    <li>Relatórios PDF e Excel</li>
+                </ul>
+            </div>
+
+            <div class="mock" aria-hidden="true">
+                <div class="mock-bar"><span></span><span></span><span></span></div>
+                <div class="mock-head">
+                    <span>Dashboard da central</span>
+                    <span>ao vivo</span>
+                </div>
+                <div class="mock-kpis">
+                    <div class="mock-kpi"><b>128</b><small>Carregamentos</small></div>
+                    <div class="mock-kpi"><b>94%</b><small>Dentro do SLA</small></div>
+                    <div class="mock-kpi"><b>12</b><small>Em trânsito</small></div>
+                </div>
+                <div class="mock-row">
+                    <span class="dot"></span>
+                    <span>Matola → Zimpeto · guia digitalizada</span>
+                    <span class="tag">ok</span>
+                </div>
+                <div class="mock-row">
+                    <span class="dot warn"></span>
+                    <span>Marracuene → Machava · atraso 18 min</span>
+                    <span class="tag">alerta</span>
+                </div>
+                <div class="mock-row">
+                    <span class="dot"></span>
+                    <span>Beira → Dondo · sincronizado agora</span>
+                    <span class="tag">gps</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="sistema">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">O que é</span>
+            <h2>Um único sistema, do papel ao indicador.</h2>
+            <p class="sub">
+                O Logitrack cobre o ciclo completo de um carregamento: o registo no
+                local de carga, o acompanhamento pela central e a análise no fim do mês.
+                São três aplicações a trabalhar sobre a mesma base de dados.
+            </p>
+        </div>
+
+        <div class="grid grid-3">
+            <article class="card">
+                <div class="icon">
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+                </div>
+                <h3>Guia digitalizada</h3>
+                <p>
+                    Cada carregamento tem guia, fotografia, toneladas, veículo e
+                    motorista. O ficheiro é validado e guardado com hash SHA-256, com
+                    histórico de alterações.
+                </p>
+            </article>
+
+            <article class="card">
+                <div class="icon orange">
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+                </div>
+                <h3>Visibilidade total</h3>
+                <p>
+                    Mapa, posições GPS, tempos médios e cumprimento de prazos. A central
+                    vê o que está em trânsito, o que atrasou e o que já foi entregue.
+                </p>
+            </article>
+
+            <article class="card">
+                <div class="icon green">
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 12.5a10 10 0 0 1 20 0"/><circle cx="12" cy="18" r="2.2"/></svg>
+                </div>
+                <h3>Offline-first</h3>
+                <p>
+                    Sem rede no local de carga, o registo fica numa fila no telemóvel e
+                    sincroniza sozinho quando a ligação volta. Nada se perde.
+                </p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section alt" id="como-funciona">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">Como funciona</span>
+            <h2>Do local de carga ao relatório.</h2>
+            <p class="sub">
+                O fluxo é o mesmo em todas as operações. O administrador prepara a
+                estrutura, o operador acompanha o dia e o motorista alimenta o sistema
+                a partir do telemóvel.
+            </p>
+        </div>
+
+        <div class="steps">
+            <div class="step">
+                <h3>Administrador prepara a estrutura</h3>
+                <p>
+                    Cria fábricas com geofence, SLA e horário de acostagem, registra
+                    veículos e motoristas e define os parâmetros do sistema.
+                </p>
+            </div>
+            <div class="step">
+                <h3>Operador acompanha a central</h3>
+                <p>
+                    Vê o dashboard, os carregamentos em curso, o mapa e os alertas.
+                    Filtra por período, fábrica, veículo, motorista ou estado.
+                </p>
+            </div>
+            <div class="step">
+                <h3>Motorista registra no local</h3>
+                <p>
+                    Na app, escolhe o veículo, indica a guia e as toneladas, recolhe o
+                    GPS e fotografa a guia. Tudo com poucos toques.
+                </p>
+            </div>
+            <div class="step">
+                <h3>App sincroniza automaticamente</h3>
+                <p>
+                    Com rede, o registo sobe para a API. Sem rede, fica na fila local e
+                    sobe quando a ligação regressa — cada registo é idempotente.
+                </p>
+            </div>
+            <div class="step">
+                <h3>Central recebe e reage</h3>
+                <p>
+                    O carregamento aparece no painel em tempo real. Se o SLA aperta, o
+                    motor de alertas avisa por WebSocket e o alerta fica registado.
+                </p>
+            </div>
+            <div class="step">
+                <h3>Gestão analisa e exporta</h3>
+                <p>
+                    KPIs por fábrica, tempos médios e cumprimento de prazos, com
+                    exportação dos mesmos filtros em PDF e Excel.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="wrap">
+        <div class="dark-band">
+            <div>
+                <span class="section-kicker" style="color:#37c4ff">Arquitetura</span>
+                <h2>Três aplicações, uma base de dados.</h2>
+                <p>
+                    O painel web e a app do motorista falam com a mesma API Spring Boot,
+                    que guarda tudo no MySQL. A app funciona offline e sincroniza depois.
+                </p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start">
+                <span class="eyebrow">Painel web</span>
+                <span class="eyebrow">PWA</span>
+                <span class="eyebrow">APK Android</span>
+                <span class="eyebrow">API Spring Boot</span>
+                <span class="eyebrow">MySQL</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section alt" id="painel">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">Painel web</span>
+            <h2>O que o painel faz.</h2>
+            <p class="sub">
+                É a mesma aplicação para administradores e operadores. O que cada um vê
+                depende do perfil: o operador trabalha o dia, o administrador configura
+                e supervisiona tudo.
+            </p>
+        </div>
+
+        <div class="grid grid-3">
+            <article class="card">
+                <span class="num">W2 · DASHBOARD</span>
+                <h3>Visão do dia</h3>
+                <p>Indicadores em tempo real, mapa da operação e últimos carregamentos.</p>
+            </article>
+            <article class="card">
+                <span class="num">W3 · CARREGAMENTOS</span>
+                <h3>Ciclo de cada carga</h3>
+                <p>Pesquisa e filtros, detalhe com timeline, GPS e guia digitalizada.</p>
+            </article>
+            <article class="card">
+                <span class="num">W4 · ALERTAS</span>
+                <h3>Atrasos sob controlo</h3>
+                <p>Alertas de atraso com leitura, contadores e notificação em tempo real.</p>
+            </article>
+            <article class="card">
+                <span class="num">W5 · RELATÓRIOS</span>
+                <h3>Exportação</h3>
+                <p>Filtros por período, fábrica, veículo, motorista e estado; PDF e Excel.</p>
+            </article>
+            <article class="card">
+                <span class="num">W6 · KPIs</span>
+                <h3>Indicadores de gestão</h3>
+                <p>Volume por fábrica, tempos médios e cumprimento de prazos.</p>
+            </article>
+            <article class="card">
+                <span class="num">W7 · FÁBRICAS</span>
+                <h3>Locais de carga</h3>
+                <p>Geofence, SLA e horário de acostagem por fábrica.</p>
+            </article>
+            <article class="card">
+                <span class="num">W8 · UTILIZADORES</span>
+                <h3>Quem entra</h3>
+                <p>Perfis, ativação de contas e reposição de palavra-passe.</p>
+            </article>
+            <article class="card">
+                <span class="num">W9 · VEÍCULOS</span>
+                <h3>Frota</h3>
+                <p>Registo de veículos, capacidade e estado operacional.</p>
+            </article>
+            <article class="card">
+                <span class="num">W10 · PARÂMETROS</span>
+                <h3>Regras do sistema</h3>
+                <p>SLA, GPS e sincronização ajustáveis em tempo de execução.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="app">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">App do motorista</span>
+            <h2>Feita para o local de carga.</h2>
+            <p class="sub">
+                Disponível como PWA no browser e como APK Android. Interface simples,
+                pensada para uso com uma mão, com câmara e GPS integrados.
+            </p>
+        </div>
+
+        <div class="grid grid-3">
+            <article class="card">
+                <span class="num">M1 · LOGIN</span>
+                <h3>Entrar</h3>
+                <p>Login online com JWT e cache segura para continuar a trabalhar offline.</p>
+            </article>
+            <article class="card">
+                <span class="num">M2 · DASHBOARD</span>
+                <h3>Resumo pessoal</h3>
+                <p>Carregamentos recentes, pendentes de envio e estado da ligação.</p>
+            </article>
+            <article class="card">
+                <span class="num">M3 · NOVO REGISTO</span>
+                <h3>Registar carga</h3>
+                <p>Guia, tipo de carga, toneladas, veículo, GPS e fotografia.</p>
+            </article>
+            <article class="card">
+                <span class="num">M4 · FOTOGRAFIA</span>
+                <h3>Guia fotografada</h3>
+                <p>Câmara com moldura, compressão automática e pré-visualização.</p>
+            </article>
+            <article class="card">
+                <span class="num">M5 · FILA OFFLINE</span>
+                <h3>Sem rede, sem problema</h3>
+                <p>Registos guardados no dispositivo, contagem de pendentes e reenvio.</p>
+            </article>
+            <article class="card">
+                <span class="num">M6 · DETALHE</span>
+                <h3>Acompanhar envio</h3>
+                <p>Timeline, GPS, guia e estado de sincronização de cada registo.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section alt" id="perfis">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">Perfis e acessos</span>
+            <h2>Três perfis, três níveis de acesso.</h2>
+            <p class="sub">
+                Cada utilizador só vê o que precisa. As permissões são verificadas no
+                servidor, não apenas no ecrã.
+            </p>
+        </div>
+
+        <div class="profiles">
+            <article class="profile admin">
+                <h3>Administrador</h3>
+                <span class="where">Painel web</span>
+                <ul>
+                    <li>Configura fábricas, veículos e utilizadores</li>
+                    <li>Define parâmetros de SLA, GPS e sincronização</li>
+                    <li>Acede a todos os carregamentos, alertas e relatórios</li>
+                    <li>É o único perfil que cria e desativa contas</li>
+                </ul>
+            </article>
+
+            <article class="profile operador">
+                <h3>Operador da central</h3>
+                <span class="where">Painel web</span>
+                <ul>
+                    <li>Acompanha carregamentos e mapa em tempo real</li>
+                    <li>Trata alertas de atraso</li>
+                    <li>Consulta KPIs e exporta relatórios</li>
+                    <li>Não altera utilizadores, fábricas nem parâmetros</li>
+                </ul>
+            </article>
+
+            <article class="profile motorista">
+                <h3>Motorista</h3>
+                <span class="where">PWA ou APK Android</span>
+                <ul>
+                    <li>Registra cargas e fotografa a guia</li>
+                    <li>Recolhe a posição GPS do local de carga</li>
+                    <li>Trabalha offline e sincroniza depois</li>
+                    <li>Vê apenas os seus próprios registos</li>
+                </ul>
+            </article>
+        </div>
+
+        <div class="table-wrap">
+            <table class="access">
+                <thead>
+                <tr>
+                    <th>Funcionalidade</th>
+                    <th>Administrador</th>
+                    <th>Operador</th>
+                    <th>Motorista</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Dashboard e mapa</td>
+                    <td class="yes">Sim</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Ver carregamentos</td>
+                    <td class="yes">Todos</td>
+                    <td class="yes">Todos</td>
+                    <td class="yes">Próprios</td>
+                </tr>
+                <tr>
+                    <td>Registar carregamento</td>
+                    <td class="yes">Sim</td>
+                    <td class="yes">Sim</td>
+                    <td class="yes">Sim</td>
+                </tr>
+                <tr>
+                    <td>Alertas de atraso</td>
+                    <td class="yes">Sim</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Relatórios PDF / Excel</td>
+                    <td class="yes">Sim</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>KPIs</td>
+                    <td class="yes">Sim</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Gerir fábricas</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Gerir veículos</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Gerir utilizadores</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Parâmetros do sistema</td>
+                    <td class="yes">Sim</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="note info">
+            <strong>Como é criado um acesso:</strong> o administrador cria o utilizador
+            no painel e define o perfil. O motorista recebe o e-mail e a palavra-passe
+            inicial e entra pela app. Em demonstração, as contas de exemplo são criadas
+            no arranque do servidor.
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <span class="section-kicker">Segurança e fiabilidade</span>
+            <h2>Os dados não se perdem pelo caminho.</h2>
+        </div>
+
+        <div class="grid grid-3">
+            <article class="card">
+                <h3>Autenticação por JWT</h3>
+                <p>Sessões sem estado, com expiração configurável e permissões por perfil no servidor.</p>
+            </article>
+            <article class="card">
+                <h3>Palavras-passe com BCrypt</h3>
+                <p>Nenhuma palavra-passe é guardada em texto simples, nem aparece no repositório.</p>
+            </article>
+            <article class="card">
+                <h3>Guias com SHA-256</h3>
+                <p>Cada fotografia é validada e identificada por hash, para provar que não foi alterada.</p>
+            </article>
+            <article class="card">
+                <h3>Fila offline idempotente</h3>
+                <p>Cada registo tem um identificador local: reenviar duas vezes não duplica nada.</p>
+            </article>
+            <article class="card">
+                <h3>HTTPS em todo o lado</h3>
+                <p>Câmara, GPS e instalação da PWA só funcionam em ligações seguras.</p>
+            </article>
+            <article class="card">
+                <h3>Fotografias persistentes</h3>
+                <p>As imagens ficam em armazenamento próprio, fora do contentor da aplicação.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section alt">
+    <div class="wrap">
+        <div class="dark-band">
+            <div>
+                <h2>Pronto para experimentar?</h2>
+                <p>
+                    Instala a app do motorista ou entra diretamente no painel da central.
+                    As instruções de download e os acessos estão na página de acesso.
+                </p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px">
+                <a class="btn btn-primary" href="acesso.html">Ir para o acesso</a>
+                <a class="btn btn-ghost" href="login.html">Entrar no painel</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div>
+                <a class="site-brand" href="apresentacao.html" style="margin-bottom:12px">
+                    <span class="mark">LT</span>
+                    <span>
+                        <span class="name">Logi<span>track</span></span>
+                        <span class="sub">Gestão &amp; Rastreabilidade</span>
+                    </span>
+                </a>
+                <p style="margin:0;max-width:30rem">
+                    Gestão e rastreabilidade de carregamentos para operações industriais
+                    em Moçambique. Central, fábricas e motoristas no mesmo fluxo.
+                </p>
+            </div>
+            <div>
+                <h4>Sistema</h4>
+                <a href="#sistema">O que é</a>
+                <a href="#como-funciona">Como funciona</a>
+                <a href="#painel">Painel web</a>
+                <a href="#app">App do motorista</a>
+            </div>
+            <div>
+                <h4>Acesso</h4>
+                <a href="acesso.html">Download e instalação</a>
+                <a href="login.html">Entrar no painel</a>
+                <a href="acesso.html#perfis">Perfis e credenciais</a>
+                <a href="acesso.html#ajuda">Ajuda</a>
+            </div>
+        </div>
+        <div class="footer-base">
+            <span>© <span id="anoAtual">2026</span> Logitrack · Moçambique</span>
+            <span>Projeto demonstrativo — dados de exemplo</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+    document.getElementById('anoAtual').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
