@@ -109,6 +109,88 @@
         return tipo.includes('json') ? resposta.json() : resposta.text();
     };
 
+    function decodificarPalavraCabecalho(valor) {
+        return String(valor || '').replace(/=\?([^?]+)\?([BQbq])\?([^?]*)\?=/g,
+            function (todo, charset, codificacao, texto) {
+                try {
+                    if (codificacao.toUpperCase() === 'B') {
+                        const binario = window.atob(texto);
+                        const bytes = new Uint8Array(binario.length);
+                        for (let i = 0; i < binario.length; i++) {
+                            bytes[i] = binario.charCodeAt(i);
+                        }
+                        return new TextDecoder(charset || 'utf-8').decode(bytes);
+                    }
+                    const fonte = texto.replace(/_/g, ' ');
+                    const bytes = [];
+                    for (let i = 0; i < fonte.length; i++) {
+                        if (fonte[i] === '=' && /^[0-9A-Fa-f]{2}$/.test(fonte.substr(i + 1, 2))) {
+                            bytes.push(parseInt(fonte.substr(i + 1, 2), 16));
+                            i += 2;
+                        } else {
+                            bytes.push(fonte.charCodeAt(i));
+                        }
+                    }
+                    return new TextDecoder(charset || 'utf-8').decode(new Uint8Array(bytes));
+                } catch (e) {
+                    return todo;
+                }
+            });
+    }
+
+    function extensaoFicheiro(tipo) {
+        const mapa = {
+            'application/pdf': '.pdf',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+            'application/vnd.ms-excel': '.xls',
+            'text/csv': '.csv',
+            'application/zip': '.zip',
+            'image/png': '.png',
+            'image/jpeg': '.jpg',
+            'image/svg+xml': '.svg'
+        };
+        return mapa[tipo] || '';
+    }
+
+    function nomeFicheiroResposta(resposta, nomeSugerido) {
+        if (nomeSugerido) {
+            return nomeSugerido;
+        }
+        const disposicao = resposta.headers.get('content-disposition') || '';
+        let nome = '';
+
+        // O parâmetro RFC 5987 (filename*) tem prioridade e evita nomes
+        // codificados como "=?UTF-8?Q?...?=", que deixam o ficheiro sem extensão.
+        const estendido = /filename\*\s*=\s*([^']*)'[^']*'([^;]+)/i.exec(disposicao);
+        if (estendido) {
+            const valor = estendido[2].trim().replace(/^"|"$/g, '');
+            try {
+                nome = decodeURIComponent(valor);
+            } catch (e) {
+                nome = valor;
+            }
+        }
+        if (!nome) {
+            const simples = /filename\s*=\s*"([^"]+)"|filename\s*=\s*([^;]+)/i.exec(disposicao);
+            if (simples) {
+                nome = decodificarPalavraCabecalho((simples[1] || simples[2] || '').trim());
+            }
+        }
+        if (!nome) {
+            nome = 'logitrack-export';
+        }
+
+        // Remove caracteres inválidos em nomes de ficheiro.
+        nome = nome.replace(/[\\/:*?"<>|\r\n]+/g, '_').trim();
+        const tipo = (resposta.headers.get('content-type') || '')
+            .split(';')[0].trim().toLowerCase();
+        const extensao = extensaoFicheiro(tipo);
+        if (extensao && !/\.[a-z0-9]{2,5}$/i.test(nome)) {
+            nome += extensao;
+        }
+        return nome;
+    }
+
     LT.download = async function (caminho, nomeSugerido) {
         const resposta = await fetch(LT.apiUrl(caminho), {
             headers: TOKEN ? {'Authorization': 'Bearer ' + TOKEN} : {}
@@ -122,12 +204,7 @@
             }
             throw new Error(mensagemErro(corpo, resposta.status));
         }
-        let nome = nomeSugerido;
-        if (!nome) {
-            const disposicao = resposta.headers.get('content-disposition') || '';
-            const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposicao);
-            nome = match ? decodeURIComponent(match[1]) : 'logitrack-export';
-        }
+        const nome = nomeFicheiroResposta(resposta, nomeSugerido);
         const blob = await resposta.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

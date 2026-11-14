@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 
 /** Relatórios operacionais e exportação (W5 / CU012). */
@@ -59,7 +58,7 @@ public class RelatorioController {
                 new RelatorioFiltro(de, ate, fabricaId, veiculoId, motoristaId, estado), formato);
 
         ContentDisposition disposicao = ContentDisposition.attachment()
-                .filename(exportacao.nomeFicheiro(), StandardCharsets.UTF_8)
+                .filename(exportacao.nomeFicheiro())
                 .build();
 
         return ResponseEntity.ok()
@@ -77,7 +76,7 @@ public class RelatorioController {
                 filtro != null ? filtro : new RelatorioFiltro(null, null, null, null, null, null),
                 formato);
         ContentDisposition disposicao = ContentDisposition.attachment()
-                .filename(exportacao.nomeFicheiro(), StandardCharsets.UTF_8)
+                .filename(exportacao.nomeFicheiro())
                 .build();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(exportacao.contentType()))
