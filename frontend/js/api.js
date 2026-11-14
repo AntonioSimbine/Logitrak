@@ -364,6 +364,63 @@
 
     let stompClient = null;
     let tentativaRealtime = 0;
+    let verificacaoServidor = null;
+
+    function pintarIndicador(estado) {
+        const indicador = document.getElementById('liveIndicator');
+        if (!indicador) {
+            return;
+        }
+        if (estado === 'offline') {
+            indicador.innerHTML = '<i style="background:#c0392b"></i> Sem ligação à Internet';
+            indicador.style.color = '#a33';
+            indicador.style.background = '#fdecea';
+            return;
+        }
+        if (estado === 'reconectar') {
+            indicador.innerHTML = '<i style="background:#c0392b"></i> A reconectar…';
+            indicador.style.color = '#c0392b';
+            indicador.style.background = '#fdecea';
+            return;
+        }
+        indicador.innerHTML = '<i></i> Tempo real';
+        indicador.style.color = '';
+        indicador.style.background = '';
+    }
+
+    // Confirma se a API continua acessível antes de assumir que a ligação caiu.
+    // O canal WebSocket pode fechar (proxy, inatividade) sem que o servidor
+    // esteja indisponível — nesse caso não faz sentido mostrar "A reconectar…".
+    function servidorAcessivel() {
+        if (!navigator.onLine) {
+            return Promise.resolve(false);
+        }
+        if (verificacaoServidor) {
+            return verificacaoServidor;
+        }
+        const controlador = typeof AbortController !== 'undefined'
+            ? new AbortController() : null;
+        const temporizador = controlador
+            ? window.setTimeout(function () {
+                controlador.abort();
+            }, 4000)
+            : null;
+        verificacaoServidor = fetch(LT.apiUrl('/api/v1/health'), {
+            method: 'GET',
+            cache: 'no-store',
+            signal: controlador ? controlador.signal : undefined
+        }).then(function (resposta) {
+            return resposta.ok;
+        }).catch(function () {
+            return false;
+        }).finally(function () {
+            if (temporizador) {
+                window.clearTimeout(temporizador);
+            }
+            verificacaoServidor = null;
+        });
+        return verificacaoServidor;
+    }
 
     function ligarRealtime() {
         if (!TOKEN || !window.SockJS || !window.StompJs) {
@@ -386,12 +443,7 @@
                 }
             });
             stompClient.onConnect = function () {
-                const indicador = document.getElementById('liveIndicator');
-                if (indicador) {
-                    indicador.innerHTML = '<i></i> Tempo real';
-                    indicador.style.color = '';
-                    indicador.style.background = '';
-                }
+                pintarIndicador('ligado');
                 stompClient.subscribe('/topic/alertas-atraso', function (msg) {
                     const alerta = JSON.parse(msg.body);
                     LT.emit('alerta', alerta);
@@ -414,12 +466,13 @@
                 console.warn('Erro WebSocket:', evento);
             };
             stompClient.onWebSocketClose = function () {
-                const indicador = document.getElementById('liveIndicator');
-                if (indicador) {
-                    indicador.innerHTML = '<i style="background:#c0392b"></i> A reconectar…';
-                    indicador.style.color = '#c0392b';
-                    indicador.style.background = '#fdecea';
+                if (!navigator.onLine) {
+                    pintarIndicador('offline');
+                    return;
                 }
+                servidorAcessivel().then(function (acessivel) {
+                    pintarIndicador(acessivel ? 'ligado' : 'reconectar');
+                });
             };
             stompClient.activate();
         } catch (e) {
@@ -443,12 +496,7 @@
     });
 
     window.addEventListener('offline', function () {
-        const indicador = document.getElementById('liveIndicator');
-        if (indicador) {
-            indicador.textContent = 'Sem ligação à Internet';
-            indicador.style.color = '#a33';
-            indicador.style.background = '#fdecea';
-        }
+        pintarIndicador('offline');
     });
 
     function carregarBadge() {
