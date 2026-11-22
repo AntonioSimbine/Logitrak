@@ -128,7 +128,7 @@ object FasesManager {
                         dao.atualizar(
                             item.copy(
                                 fasesSincronizadasEm = System.currentTimeMillis(),
-                                erro = ApiErrors.mensagem(resp)
+                                erro = ApiErrors.mensagem(context, resp)
                             )
                         )
                     }

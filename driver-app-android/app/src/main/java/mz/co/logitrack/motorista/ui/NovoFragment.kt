@@ -496,11 +496,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
 
         val maximo = Geo.precisaoMaxima(refs)
         if (precisao > maximo) {
-            b.tvGpsPrecisao.text = getString(
-                R.string.gps_weak,
-                Geo.formatarMetros(precisao),
-                Geo.formatarMetros(maximo)
-            )
+            b.tvGpsPrecisao.text = getString(R.string.gps_weak)
             b.tvGpsPrecisao.setTextColor(cor(R.color.amber))
         } else {
             b.tvGpsPrecisao.text = getString(R.string.gps_ok, Geo.formatarMetros(precisao))

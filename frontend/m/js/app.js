@@ -117,18 +117,19 @@
         linha.classList.toggle('offline', !ligado);
         let texto;
         if (!ligado) {
-            texto = 'Modo offline'
-                + (pendentes + rejeitados ? ' · ' + (pendentes + rejeitados) + ' por sincronizar' : '');
+            texto = 'Sem ligação'
+                + (pendentes + rejeitados
+                    ? ' · ' + (pendentes + rejeitados) + ' aguardam envio' : '');
         } else if (pendentes > 0) {
-            texto = 'Online — ' + pendentes
-                + (pendentes === 1 ? ' registo por sincronizar' : ' registos por sincronizar');
+            texto = 'Com ligação — ' + pendentes
+                + (pendentes === 1 ? ' registo aguarda envio' : ' registos aguardam envio');
         } else if (rejeitados > 0) {
-            texto = 'Online — ' + rejeitados
-                + (rejeitados === 1 ? ' registo rejeitado' : ' registos rejeitados');
+            texto = 'Com ligação — ' + rejeitados
+                + (rejeitados === 1 ? ' registo não aceite' : ' registos não aceites');
         } else if (state.ultimaSync) {
-            texto = 'Online — última sincronização ' + tempoRelativo(state.ultimaSync);
+            texto = 'Com ligação — último envio à central ' + tempoRelativo(state.ultimaSync);
         } else {
-            texto = 'Online — tudo sincronizado';
+            texto = 'Com ligação — todos os registos enviados à central';
         }
         linha.innerHTML = '<span class="dot"></span> ' + esc(texto);
     }
@@ -237,7 +238,7 @@
                 if (lista) {
                     lista.innerHTML = htmlVazio(
                         'Não foi possível carregar',
-                        e.message || 'Tente novamente quando houver ligação.',
+                        e.message || 'A central não está a responder. Tente novamente dentro de instantes.',
                         'i-cloud-off');
                 }
             }
@@ -249,13 +250,13 @@
         const lista = $('#listaRecentes');
         if (lista) {
             lista.innerHTML = htmlVazio(
-                'Sem dados em cache',
-                'Ligue-se à Internet pelo menos uma vez para descarregar os seus carregamentos.',
+                'Ainda não tem registos guardados neste telemóvel',
+                'Ligue-se à Internet uma vez para trazer os seus carregamentos para o telemóvel.',
                 'i-cloud-off');
         }
         const total = $('#recentesTotal');
         if (total) {
-            total.textContent = 'offline';
+            total.textContent = 'Sem ligação';
         }
     }
 
@@ -366,22 +367,22 @@
             const icone = $('#dashboardFilaIcono');
             if (acao === 0) {
                 if (titulo) {
-                    titulo.textContent = 'Tudo sincronizado';
+                    titulo.textContent = 'Tudo enviado à central';
                 }
                 if (texto) {
                     texto.textContent = state.ultimaSync
-                        ? 'Última sincronização às ' + fmt.hora(state.ultimaSync)
-                        : 'Não existem registos pendentes no dispositivo.';
+                        ? 'Último envio às ' + fmt.hora(state.ultimaSync)
+                        : 'Não há registos guardados no telemóvel.';
                 }
                 if (icone) {
                     icone.innerHTML = '<svg><use href="#i-check"/></svg>';
                 }
             } else if (n.rejeitados > 0) {
                 if (titulo) {
-                    titulo.textContent = n.rejeitados + ' rejeitado' + (n.rejeitados === 1 ? '' : 's');
+                    titulo.textContent = n.rejeitados + ' não aceite' + (n.rejeitados === 1 ? '' : 's');
                 }
                 if (texto) {
-                    texto.textContent = 'Abra os pendentes para corrigir ou remover.';
+                    texto.textContent = 'Abra a lista de registos para corrigir ou apagar.';
                 }
                 if (icone) {
                     icone.innerHTML = '<svg><use href="#i-alert"/></svg>';
@@ -393,7 +394,7 @@
                         : n.pendentes + ' carregamentos aguardam envio';
                 }
                 if (texto) {
-                    texto.textContent = 'Guardados no dispositivo. Sincronize quando houver rede.';
+                    texto.textContent = 'Guardados no telemóvel. Serão enviados à central quando houver ligação.';
                 }
                 if (icone) {
                     icone.innerHTML = '<svg><use href="#i-cloud-off"/></svg>';
@@ -405,14 +406,15 @@
         if (resumo) {
             let texto;
             if (!fila.length) {
-                texto = 'Sem registos na fila deste dispositivo.';
+                texto = 'Não há registos guardados neste telemóvel.';
             } else if (acao === 0) {
-                texto = 'Tudo sincronizado'
-                    + (state.ultimaSync ? ' · última sincronização às ' + fmt.hora(state.ultimaSync) : '');
+                texto = 'Tudo enviado à central'
+                    + (state.ultimaSync ? ' · último envio às ' + fmt.hora(state.ultimaSync) : '');
             } else {
-                texto = n.pendentes + ' pendente' + (n.pendentes === 1 ? '' : 's');
+                texto = n.pendentes + ' registo'
+                    + (n.pendentes === 1 ? ' aguarda envio' : 's aguardam envio');
                 if (n.rejeitados) {
-                    texto += ' · ' + n.rejeitados + ' rejeitado' + (n.rejeitados === 1 ? '' : 's');
+                    texto += ' · ' + n.rejeitados + ' não aceite' + (n.rejeitados === 1 ? '' : 's');
                 }
             }
             resumo.textContent = texto;
@@ -434,26 +436,26 @@
 
     function etiquetaItem(item) {
         if (item.estado === 'SINCRONIZADO') {
-            return 'Sincronizado';
+            return 'Enviado à central';
         }
         if (item.estado === 'REJEITADO') {
-            return 'Rejeitado';
+            return 'Não aceite';
         }
-        return 'Pendente';
+        return 'Aguarda envio';
     }
 
     function renderItemFila(item) {
         const estado = item.estado || 'PENDENTE';
         let acoes = '';
         if (estado === 'PENDENTE') {
-            acoes = '<button class="primary" type="button" data-acao="sync">Sincronizar</button>'
-                + '<button class="danger" type="button" data-acao="remove">Remover</button>';
+            acoes = '<button class="primary" type="button" data-acao="sync">Enviar agora</button>'
+                + '<button class="danger" type="button" data-acao="remove">Apagar</button>';
         } else if (estado === 'REJEITADO') {
             acoes = '<button class="primary" type="button" data-acao="retry">Tentar novamente</button>'
-                + '<button class="danger" type="button" data-acao="remove">Remover</button>';
+                + '<button class="danger" type="button" data-acao="remove">Apagar</button>';
         } else if (item.carregamentoId) {
             acoes = '<button type="button" data-acao="open">Abrir detalhe</button>'
-                + '<button class="danger" type="button" data-acao="remove">Remover da fila</button>';
+                + '<button class="danger" type="button" data-acao="remove">Apagar do telemóvel</button>';
         }
         const hora = item.sincronizadoEm || item.criadoEm;
         return '<article class="queue-item ' + classeItem(item) + '" data-uuid="' + esc(item.uuidLocal) + '">'
@@ -466,7 +468,7 @@
             + fmt.numero(item.quantidadeToneladas, 1) + ' t</span>'
             + '<span>' + esc(item.fabricaNome || 'Fábrica') + '</span></div>'
             + '<div class="qi-meta"><span>' + esc(item.veiculoMatricula || '') + '</span>'
-            + '<span>Capturado ' + fmt.dataHora(item.criadoEm) + '</span></div>'
+            + '<span>Fotografado em ' + fmt.dataHora(item.criadoEm) + '</span></div>'
             + (item.erro ? '<div class="qi-error">' + esc(item.erro) + '</div>' : '')
             + (acoes ? '<div class="qi-actions">' + acoes + '</div>' : '')
             + '</article>';
@@ -484,7 +486,7 @@
         try {
             fila = await filaDoUtilizador();
         } catch (e) {
-            lista.innerHTML = htmlVazio('Falha ao ler a fila', e.message, 'i-alert');
+            lista.innerHTML = htmlVazio('Não foi possível ler os registos guardados', e.message, 'i-alert');
             return;
         }
         const filtrada = fila.filter(function (item) {
@@ -492,9 +494,9 @@
         });
         if (!filtrada.length) {
             const textos = {
-                PENDENTE: ['Sem pendentes', 'Todos os registos foram sincronizados.'],
-                SINCRONIZADO: ['Sem sincronizados', 'Os registos enviados aparecem aqui.'],
-                REJEITADO: ['Sem rejeitados', 'Não existem registos com erro.']
+                PENDENTE: ['Sem registos para enviar', 'Todos os registos foram enviados à central.'],
+                SINCRONIZADO: ['Sem registos enviados à central', 'Os registos aceites pela central aparecem aqui.'],
+                REJEITADO: ['Sem registos não aceites', 'Não há registos com problemas.']
             };
             const t = textos[state.filaFiltro] || ['Sem registos', ''];
             lista.innerHTML = htmlVazio(t[0], t[1], 'i-list');
@@ -531,7 +533,7 @@
             return 'ok';
         } catch (e) {
             if (e.status === 401) {
-                item.erro = 'Sessão expirada. Inicie sessão novamente.';
+                item.erro = 'A sessão terminou. Entre novamente com ligação à Internet.';
                 await LTM.dbPut(LOJA_FILA, item);
                 return 'sessao';
             }
@@ -542,7 +544,7 @@
                 await LTM.dbPut(LOJA_FILA, item);
                 return 'rejeitado';
             }
-            item.erro = e.message || 'Falha de comunicação. Será tentado novamente.';
+            item.erro = e.message || 'A central não está a responder. Os registos ficam guardados no telemóvel. Tente novamente dentro de instantes.';
             await LTM.dbPut(LOJA_FILA, item);
             return 'falha';
         }
@@ -554,14 +556,14 @@
         }
         if (state.sincronizando) {
             if (!silencioso) {
-                LTM.toast('Sincronização em curso', 'Aguarde a conclusão dos envios.', 'warn');
+                LTM.toast('Envio em curso…', 'Aguarde. Os registos estão a ser enviados à central.', 'warn');
             }
             return;
         }
         if (!LTM.ligado()) {
             if (!silencioso) {
-                LTM.toast('Sem ligação', 'Os registos continuam guardados no dispositivo. '
-                    + 'A sincronização é automática quando houver rede.', 'warn');
+                LTM.toast('Sem ligação', 'Os registos continuam guardados no telemóvel. '
+                    + 'Serão enviados à central quando a ligação voltar.', 'warn');
             }
             return;
         }
@@ -574,12 +576,12 @@
                 return i.estado === 'PENDENTE';
             });
         } catch (e) {
-            LTM.toast('Fila indisponível', e.message, 'error');
+            LTM.toast('Não foi possível ler os registos', e.message, 'error');
             return;
         }
         if (!fila.length) {
             if (!silencioso) {
-                LTM.toast('Tudo sincronizado', 'Não existem registos pendentes.', 'success');
+                LTM.toast('Tudo enviado à central', 'Não há registos para enviar.', 'success');
             }
             await atualizarResumoFila();
             return;
@@ -634,16 +636,19 @@
                 return;
             }
             if (rejeitados > 0) {
-                LTM.toast('Alguns registos foram rejeitados',
-                    rejeitados + ' registo(s) precisam de correção. Abra o separador Rejeitados.',
+                LTM.toast('Alguns registos não foram aceites',
+                    rejeitados + (rejeitados === 1 ? ' registo precisa' : ' registos precisam')
+                    + ' de correção. Abra a lista "Não aceites" e corrija os dados.',
                     'error');
             } else if (falhas > 0) {
-                LTM.toast('Sincronização incompleta',
-                    ok + ' enviado(s); ' + falhas + ' continuam na fila e serão repetidos.',
+                LTM.toast('Nem todos os registos foram enviados',
+                    ok + (ok === 1 ? ' enviado' : ' enviados') + ' à central; '
+                    + falhas + (falhas === 1 ? ' ficou guardado' : ' ficaram guardados')
+                    + ' no telemóvel e ' + (falhas === 1 ? 'será enviado' : 'serão enviados') + ' de novo.',
                     'warn');
             } else {
-                LTM.toast('Sincronização concluída',
-                    ok + ' carregamento(s) enviado(s) com sucesso.', 'success');
+                LTM.toast('Envio concluído',
+                    ok + ' carregamento(s) recebido(s) pela central.', 'success');
             }
         }
     }
@@ -699,15 +704,15 @@
             return '<div class="tl-item ' + (etapa.concluida ? 'done' : '') + '">'
                 + '<span class="tl-dot"><svg><use href="#i-check"/></svg></span>'
                 + '<div class="tl-body"><strong>' + esc(etapa.titulo) + '</strong>'
-                + '<span>' + (etapa.dataHora ? fmt.dataHora(etapa.dataHora) : 'Pendente') + '</span>'
+                + '<span>' + (etapa.dataHora ? fmt.dataHora(etapa.dataHora) : 'Aguarda') + '</span>'
                 + '</div></div>';
         }).join('');
 
         const posicao = d.ultimaPosicao
-            ? '<div class="detail-card"><h2>Última posição GPS</h2><div class="gps-grid">'
+            ? '<div class="detail-card"><h2>Última localização registada</h2><div class="gps-grid">'
             + renderInfo('Latitude', fmt.numero(d.ultimaPosicao.latitude, 6))
             + renderInfo('Longitude', fmt.numero(d.ultimaPosicao.longitude, 6))
-            + renderInfo('Precisão', fmt.metros(d.ultimaPosicao.precisaoMetros))
+            + renderInfo('Qualidade da localização', fmt.metros(d.ultimaPosicao.precisaoMetros))
             + renderInfo('Registada', fmt.dataHora(d.ultimaPosicao.timestamp))
             + '</div></div>'
             : '';
@@ -719,37 +724,37 @@
             + '<span class="dh-factory"><svg><use href="#i-pin"/></svg>'
             + esc(d.fabrica ? d.fabrica.nome : 'Sem fábrica') + '</span>'
             + '</div><span class="chip ' + esc(estadoClasse) + '">'
-            + esc(d.estadoEtiqueta || d.estado || '—') + '</span></div>'
+            + esc(LTM.textoEstado(d.estado, d.estadoEtiqueta) || '—') + '</span></div>'
             + '<div class="detail-grid">'
             + renderInfo('Tipo de carga', d.tipoCarga)
             + renderInfo('Quantidade', fmt.numero(d.quantidadeToneladas, 1) + ' t')
             + renderInfo('Início', fmt.dataHora(d.dataHoraInicio))
-            + renderInfo(d.dataHoraFim ? 'Concluído' : 'Limite SLA',
+            + renderInfo(d.dataHoraFim ? 'Concluído' : 'Prazo da viagem',
                 fmt.dataHora(d.dataHoraFim || d.horaLimite))
             + renderInfo('Veículo', d.veiculo ? d.veiculo.matricula : '—')
             + renderInfo('Motorista', d.motorista ? d.motorista.nome : '—')
             + '</div></div>'
             + (atraso > 0
                 ? '<div class="detail-alert"><svg><use href="#i-alert"/></svg><span>'
-                + 'Carregamento atrasado há ' + esc(fmt.numero(Math.round(atraso / 60), 0)) + ' h '
-                + '(' + esc(fmt.numero(atraso, 0)) + ' min) face ao limite de SLA.</span></div>'
+                + 'O prazo definido para a viagem foi ultrapassado há ' + esc(fmt.numero(Math.round(atraso / 60), 0)) + ' h '
+                + '(' + esc(fmt.numero(atraso, 0)) + ' min).</span></div>'
                 : '')
             + (d.alertasAbertos > 0 && atraso === 0
                 ? '<div class="detail-alert"><svg><use href="#i-alert"/></svg><span>'
-                + esc(d.alertasAbertos) + ' alerta(s) aberto(s) para este carregamento.</span></div>'
+                + 'Há ' + esc(d.alertasAbertos) + ' alerta(s) por ver neste carregamento.</span></div>'
                 : '')
-            + '<div class="detail-card"><h2>Guia digitalizada</h2>'
+            + '<div class="detail-card"><h2>Fotografia da guia</h2>'
             + (doc
-                ? '<div class="guide-photo" id="guiaFoto">A carregar fotografia…</div>'
-                : '<div class="guide-photo">Sem fotografia associada.</div>')
+                ? '<div class="guide-photo" id="guiaFoto">A carregar a fotografia…</div>'
+                : '<div class="guide-photo">Ainda não há fotografia da guia.</div>')
             + '</div>'
             + posicao
             + '<div class="detail-card"><h2>Progresso</h2><div class="timeline">'
             + (etapasHtml || '<div class="tl-body"><strong>Sem etapas registadas</strong></div>')
             + '</div></div>'
             + '<div class="detail-card"><h2>Identificação</h2><div class="gps-grid">'
-            + renderInfo('ID do registo', d.id)
-            + renderInfo('UUID local', d.uuidLocal || '—')
+            + renderInfo('Número do registo', d.id)
+            + renderInfo('Número no telemóvel', d.uuidLocal || '—')
             + '</div></div>';
 
         if (doc && doc.id) {
@@ -768,20 +773,20 @@
                 cache: 'no-store'
             });
             if (!resposta.ok) {
-                throw new Error('Guia indisponível');
+                throw new Error('A fotografia da guia não está disponível.');
             }
             const blob = await resposta.blob();
             limparObjectUrlFoto();
             state.objectUrlFoto = URL.createObjectURL(blob);
             contentor.innerHTML = '';
             const imagem = document.createElement('img');
-            imagem.alt = 'Guia de transporte digitalizada';
+            imagem.alt = 'Fotografia da guia de transporte';
             imagem.src = state.objectUrlFoto;
             contentor.appendChild(imagem);
         } catch (e) {
             contentor.textContent = LTM.ligado()
-                ? 'Não foi possível carregar a guia.'
-                : 'A guia fica disponível quando houver ligação.';
+                ? 'Não foi possível mostrar a fotografia. Tente novamente.'
+                : 'A fotografia aparece quando houver ligação à central.';
         }
     }
 
@@ -795,7 +800,7 @@
         const conteudo = $('#detalheConteudo');
         if (conteudo) {
             conteudo.innerHTML = '<div class="empty-state"><div class="spinner"></div>'
-                + '<span>A carregar detalhe…</span></div>';
+                + '<span>A carregar o detalhe…</span></div>';
         }
         limparObjectUrlFoto();
         const chave = 'detalhe:' + state.utilizador.id + ':' + id;
@@ -811,7 +816,7 @@
         if (!LTM.ligado()) {
             if (!cache && conteudo) {
                 conteudo.innerHTML = htmlVazio('Sem ligação', 
-                    'Este detalhe ainda não está guardado no dispositivo.', 'i-cloud-off');
+                    'Este detalhe ainda não está guardado no telemóvel. Ligue-se à Internet para o ver.', 'i-cloud-off');
             }
             return;
         }
@@ -822,7 +827,7 @@
         } catch (e) {
             if (!cache && conteudo && state.ecra === 'detalhe') {
                 conteudo.innerHTML = htmlVazio('Não foi possível carregar',
-                    e.message || 'Tente novamente.', 'i-alert');
+                    e.message || 'A central não está a responder. Tente novamente dentro de instantes.', 'i-alert');
             }
         }
     }
@@ -880,7 +885,7 @@
                     return;
                 } catch (e) {
                     if (e.status !== 0) {
-                        mostrarErroLogin(e.message || 'Credenciais inválidas');
+                        mostrarErroLogin(e.message || 'Não foi possível entrar. Verifique o e-mail e a palavra-passe.');
                         return;
                     }
                 }
@@ -893,17 +898,17 @@
                 sessao = LTM.lerTokenOffline();
             }
             if (!LTM.sessaoValida(sessao)) {
-                throw new Error('Sessão offline expirada. Ligue-se à Internet para iniciar sessão novamente.');
+                throw new Error('A sessão guardada no telemóvel terminou. Ligue-se à Internet e entre novamente.');
             }
             LTM.restaurarSessao(sessao);
             state.utilizador = sessao.utilizador;
             LTM.registarEmail(email);
             await entrarNaApp();
-            LTM.toast('Modo offline',
-                'Sessão iniciada neste dispositivo. Os registos serão sincronizados quando houver ligação.',
+            LTM.toast('Sem ligação',
+                'Entrou neste telemóvel. Os registos serão enviados à central quando houver ligação.',
                 'warn');
         } catch (e) {
-            mostrarErroLogin(e.message || 'Não foi possível iniciar sessão.');
+            mostrarErroLogin(e.message || 'Não foi possível entrar. Verifique o e-mail e a palavra-passe.');
         } finally {
             botao.disabled = false;
             if (rotulo) {
@@ -915,7 +920,7 @@
     /* ---------- Ações da fila ---------- */
     async function sincronizarUm(uuid) {
         if (!LTM.ligado()) {
-            LTM.toast('Sem ligação', 'O registo permanece na fila offline.', 'warn');
+            LTM.toast('Sem ligação', 'O registo continua guardado no telemóvel e será enviado quando houver ligação.', 'warn');
             return;
         }
         const item = await LTM.dbGet(LOJA_FILA, uuid);
@@ -927,12 +932,12 @@
         await renderFila();
         if (resultado === 'ok') {
             gravarUltimaSync(Date.now());
-            LTM.toast('Carregamento sincronizado', 'Guia ' + item.guiaNumero + ' enviada.', 'success');
+            LTM.toast('Registo enviado à central', 'Guia ' + item.guiaNumero + ' enviada.', 'success');
             await carregarDashboard();
         } else if (resultado === 'rejeitado') {
-            LTM.toast('Registo rejeitado', item.erro || 'Verifique os dados.', 'error');
+            LTM.toast('Registo não aceite', item.erro || 'Corrija os dados e tente novamente.', 'error');
         } else if (resultado === 'falha') {
-            LTM.toast('Não foi possível sincronizar', item.erro || 'Tente novamente.', 'error');
+            LTM.toast('Não foi possível enviar o registo', item.erro || 'A central não está a responder. Tente novamente dentro de instantes.', 'error');
         }
     }
 
@@ -958,13 +963,13 @@
             return;
         }
         if (acao === 'remove') {
-            if (!window.confirm('Remover o registo ' + item.guiaNumero + ' deste dispositivo?')) {
+            if (!window.confirm('Apagar o registo da guia ' + item.guiaNumero + ' deste telemóvel?')) {
                 return;
             }
             await LTM.dbDelete(LOJA_FILA, uuid);
             await atualizarResumoFila();
             await renderFila();
-            LTM.toast('Registo removido', 'O registo foi apagado da fila local.', 'success');
+            LTM.toast('Registo apagado', 'O registo foi apagado deste telemóvel.', 'success');
             return;
         }
         if (acao === 'retry') {
@@ -998,7 +1003,7 @@
         if (!state.utilizador) {
             return;
         }
-        LTM.toast('Ligação restabelecida', 'A enviar automaticamente os registos pendentes…', 'success');
+        LTM.toast('Ligação restabelecida', 'A enviar à central os registos guardados no telemóvel…', 'success');
         atualizarResumoFila();
         setTimeout(function () {
             if (navigator.onLine && LTM.ligado()) sincronizarFila(true);
@@ -1006,8 +1011,8 @@
     };
 
     LTM.aoExpirarSessao = function () {
-        LTM.toast('Sessão expirada', 'Inicie sessão novamente com ligação à Internet.', 'warn');
-        mostrarLogin('A sua sessão expirou. Ligue-se à Internet e inicie sessão novamente.');
+        LTM.toast('A sessão terminou', 'Entre novamente com ligação à Internet.', 'warn');
+        mostrarLogin('A sessão terminou. Ligue-se à Internet e entre novamente.');
     };
 
     /* ---------- Eventos ---------- */
@@ -1034,7 +1039,7 @@
         const sair = $('#btnSair');
         if (sair) {
             sair.addEventListener('click', function () {
-                if (!window.confirm('Terminar sessão neste dispositivo? Os registos pendentes permanecem guardados.')) {
+                if (!window.confirm('Terminar sessão neste telemóvel? Os registos ainda não enviados ficam guardados.')) {
                     return;
                 }
                 if (typeof LTApp.pararCamera === 'function') {
@@ -1043,7 +1048,7 @@
                 LTM.limparSessao();
                 state.objectUrlFoto = null;
                 mostrarLogin();
-                LTM.toast('Sessão terminada', 'Pode iniciar sessão offline com a sua palavra-passe.', 'success');
+                LTM.toast('Sessão terminada', 'Pode entrar novamente neste telemóvel com a sua palavra-passe.', 'success');
             });
         }
 
@@ -1145,7 +1150,7 @@
                 LTM.limparSessao();
             }
             mostrarLogin(sessao && !LTM.ligado()
-                ? 'A sessão guardada expirou. Ligue-se à Internet para entrar novamente.'
+                ? 'A sessão guardada neste telemóvel terminou. Ligue-se à Internet e entre novamente.'
                 : null);
         }
         if (typeof LTApp.iniciarRegisto === 'function') {

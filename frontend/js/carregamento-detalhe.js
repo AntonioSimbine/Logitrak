@@ -25,12 +25,12 @@
     function MinutosFase(fase) {
         const fases = detalhe && detalhe.fases;
         if (!fases) {
-            return 'sem dados';
+            return 'sem horário registado';
         }
         const minutos = [fases.esperaMinutos, fases.carregamentoMinutos,
             fases.transporteMinutos][fase];
         return minutos === null || minutos === undefined
-            ? 'sem dados' : minutos + ' min';
+            ? 'sem horário registado' : minutos + ' min';
     }
 
     function valorInputLocal(valor) {
@@ -74,7 +74,7 @@
             }
         });
         if (!Object.keys(corpo).length) {
-            LT.toast('Sem alterações', 'Indique pelo menos um instante operacional.', 'info');
+            LT.toast('Sem alterações', 'Preencha pelo menos um horário.', 'info');
             return;
         }
         botao.disabled = true;
@@ -83,7 +83,7 @@
                 method: 'PATCH',
                 body: corpo
             });
-            LT.toast('Fases guardadas', 'Os instantes operacionais foram atualizados.', 'success');
+            LT.toast('Horários guardados', 'Os horários foram atualizados.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -97,7 +97,7 @@
         document.getElementById('chipEstado').innerHTML = LT.chip(detalhe.estado, detalhe.estadoEtiqueta);
         document.getElementById('subtituloDetalhe').textContent =
             'Registado em ' + LT.fmt.dataHora(detalhe.dataHoraInicio)
-            + ' · última atualização ' + LT.fmt.relativo(detalhe.dataHoraFim || detalhe.dataHoraInicio);
+            + ' · última alteração ' + LT.fmt.relativo(detalhe.dataHoraFim || detalhe.dataHoraInicio);
 
         document.getElementById('infoFabrica').textContent = detalhe.fabrica
             ? detalhe.fabrica.nome : '—';
@@ -113,8 +113,8 @@
         document.getElementById('infoLimite').textContent = detalhe.horaLimite
             ? LT.fmt.dataHora(detalhe.horaLimite) : '—';
         document.getElementById('infoAtraso').textContent = detalhe.atrasoMinutos > 0
-            ? '+' + detalhe.atrasoMinutos + ' min além do SLA'
-            : 'Dentro do prazo de SLA';
+            ? '+' + detalhe.atrasoMinutos + ' min além do prazo'
+            : 'Dentro do prazo';
 
         const acoes = document.getElementById('acoesEstado');
         if (detalhe.estado === 'EM_TRANSITO' || detalhe.estado === 'ATRASADO') {
@@ -141,11 +141,11 @@
         const hash = document.getElementById('guideHash');
         if (!detalhe.documento) {
             viewer.innerHTML = '<div class="empty"><svg><use href="#i-report"/></svg><br>'
-                + 'Este carregamento ainda não tem guia digitalizada.</div>';
+                + 'Este carregamento ainda não tem fotografia da guia.</div>';
             tools.innerHTML = '';
             hash.textContent = '';
-            document.getElementById('guideIntegridade').textContent = 'Sem documento';
-            document.getElementById('guideSub').textContent = 'Nenhuma captura associada';
+            document.getElementById('guideIntegridade').textContent = 'Sem fotografia';
+            document.getElementById('guideSub').textContent = 'Ainda não foi tirada nenhuma fotografia';
             return;
         }
         const doc = detalhe.documento;
@@ -154,10 +154,10 @@
             url = await carregarGuia();
         } catch (e) {
             viewer.innerHTML = '<div class="empty"><svg><use href="#i-report"/></svg><br>'
-                + 'Não foi possível carregar a guia digitalizada.</div>';
+                + 'Não foi possível abrir a fotografia da guia. Verifique a ligação e tente novamente.</div>';
             tools.innerHTML = '';
             hash.textContent = '';
-            document.getElementById('guideIntegridade').textContent = 'Documento indisponível';
+            document.getElementById('guideIntegridade').textContent = 'Fotografia indisponível';
             document.getElementById('guideSub').textContent = e.message;
             return;
         }
@@ -169,12 +169,12 @@
             + '<svg><use href="#i-rotate"/></svg> Girar</button>'
             + '<a class="btn small" id="btnDescarregar" href="' + url + '" download>'
             + '<svg><use href="#i-download"/></svg> Descarregar</a>';
-        document.getElementById('guideSub').textContent = 'Capturada em '
+        document.getElementById('guideSub').textContent = 'Fotografada em '
             + LT.fmt.dataHora(doc.dataHoraCaptura) + ' · '
             + (doc.tamanhoBytes ? (doc.tamanhoBytes / 1024).toFixed(0) + ' KB' : '—');
         document.getElementById('guideIntegridade').textContent =
-            doc.mimeType === 'image/svg+xml' ? 'Guia de demonstração' : 'SHA-256 verificado';
-        hash.innerHTML = '<strong>Hash SHA-256:</strong> ' + LT.escape(doc.hashSha256 || '—');
+            doc.mimeType === 'image/svg+xml' ? 'Guia de exemplo' : 'Fotografia verificada';
+        hash.innerHTML = '<strong>Código de verificação da fotografia:</strong> ' + LT.escape(doc.hashSha256 || '—');
 
         document.getElementById('btnAmpliar').addEventListener('click', function () {
             const img = document.getElementById('lightboxImg');
@@ -202,14 +202,14 @@
                 + '"/></svg></div>'
                 + '<div class="tl-body"><strong>' + LT.escape(etapa.titulo) + '</strong>'
                 + '<span>' + (etapa.dataHora ? LT.fmt.dataHora(etapa.dataHora)
-                    : (etapa.concluida ? 'Concluída' : 'A aguardar')) + '</span></div></div>';
+                    : (etapa.concluida ? 'Concluída' : 'Por fazer')) + '</span></div></div>';
         }).join('');
     }
 
     function renderizarInfo() {
         const itens = [
             ['Número da guia', detalhe.guiaNumero],
-            ['UUID local', detalhe.uuidLocal || '—'],
+            ['Número do registo no telemóvel', detalhe.uuidLocal || '—'],
             ['Tipo de carga', detalhe.tipoCarga],
             ['Quantidade', LT.fmt.numero(detalhe.quantidadeToneladas, 2) + ' t'],
             ['Início', LT.fmt.dataHora(detalhe.dataHoraInicio)],
@@ -217,12 +217,12 @@
             ['Espera na fábrica', MinutosFase(0)],
             ['Carregamento', MinutosFase(1)],
             ['Transporte', MinutosFase(2)],
-            ['Horário de acostagem', detalhe.fabrica ? detalhe.fabrica.horarioAcostagem : '—'],
-            ['Raio de geofence', detalhe.fabrica
+            ['Horário de recepção', detalhe.fabrica ? detalhe.fabrica.horarioAcostagem : '—'],
+            ['Área da fábrica', detalhe.fabrica
                 ? detalhe.fabrica.raioGeofenceMetros + ' m' : '—'],
-            ['SLA da fábrica', detalhe.fabrica
+            ['Prazo da viagem', detalhe.fabrica
                 ? detalhe.fabrica.slaLimiteHoras + ' horas' : '—'],
-            ['Alertas abertos', String(detalhe.alertasAbertos || 0)]
+            ['Alertas por tratar', String(detalhe.alertasAbertos || 0)]
         ];
         if (detalhe.motivoRejeicao) {
             itens.push(['Motivo de rejeição', detalhe.motivoRejeicao]);
@@ -237,7 +237,7 @@
         const contentor = document.getElementById('mapDetalhe');
         const resumo = document.getElementById('resumoGps');
         if (!window.L) {
-            contentor.innerHTML = '<div class="map-fallback"><div>Mapa indisponível sem ligação.</div></div>';
+            contentor.innerHTML = '<div class="map-fallback"><div>Mapa indisponível. Verifique a ligação à Internet.</div></div>';
         } else {
             if (!mapa) {
                 mapa = L.map('mapDetalhe', {
@@ -273,8 +273,8 @@
                         color: ultima ? '#c0392b' : '#2563eb',
                         fillColor: ultima ? '#c0392b' : '#2563eb',
                         fillOpacity: .9, weight: 2
-                    }).bindPopup('Ponto ' + (indice + 1) + '<br>' + LT.fmt.dataHora(p.timestamp)
-                        + '<br>Precisão: ' + LT.fmt.numero(p.precisaoMetros, 1) + ' m')
+                    }).bindPopup('Ponto ' + (indice + 1) + ' do percurso<br>' + LT.fmt.dataHora(p.timestamp)
+                        + '<br>Precisão da localização: ' + LT.fmt.numero(p.precisaoMetros, 1) + ' m')
                         .addTo(camada);
                     pontos.push([p.latitude, p.longitude]);
                 });
@@ -289,15 +289,15 @@
         const ultima = detalhe.ultimaPosicao;
         resumo.innerHTML = ultima
             ? '<span class="chip em_transito">Última: ' + LT.fmt.dataHora(ultima.timestamp) + '</span>'
-            + '<span class="chip">Lat ' + LT.fmt.numero(ultima.latitude, 5) + '</span>'
-            + '<span class="chip">Lon ' + LT.fmt.numero(ultima.longitude, 5) + '</span>'
+            + '<span class="chip">Latitude ' + LT.fmt.numero(ultima.latitude, 5) + '</span>'
+            + '<span class="chip">Longitude ' + LT.fmt.numero(ultima.longitude, 5) + '</span>'
             + '<span class="chip ' + (ultima.precisaoMetros <= 15 ? 'concluido' : 'atrasado') + '">'
             + 'Precisão ' + LT.fmt.numero(ultima.precisaoMetros, 1) + ' m</span>'
-            : '<span class="muted small">Sem pontos GPS registados.</span>';
+            : '<span class="muted small">Sem pontos de localização registados.</span>';
     }
 
     async function concluir() {
-        if (!window.confirm('Confirmar a conclusão do carregamento ' + detalhe.guiaNumero + '?')) {
+        if (!window.confirm('Confirmar que o carregamento da guia ' + detalhe.guiaNumero + ' chegou ao destino?')) {
             return;
         }
         try {
@@ -305,7 +305,7 @@
                 method: 'PATCH',
                 body: {estado: 'CONCLUIDO'}
             });
-            LT.toast('Carregamento concluído', 'O estado foi atualizado para Concluído.', 'success');
+            LT.toast('Carregamento concluído', 'O carregamento da guia foi marcado como concluído.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -326,7 +326,7 @@
                 body: {estado: 'REJEITADO', motivoRejeicao: motivo}
             });
             LT.fecharModal('modalRejeitar');
-            LT.toast('Carregamento rejeitado', 'O motivo foi registado.', 'success');
+            LT.toast('Carregamento não aceite', 'Motivo registado: ' + motivo + '. O motorista vai vê-lo e pode corrigir a guia.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -350,7 +350,7 @@
     }
 
     if (!id) {
-        LT.toast('Carregamento inválido', 'Não foi indicado um identificador.', 'error');
+        LT.toast('Carregamento inválido', 'Falta o número do carregamento. Volte à lista e escolha um carregamento.', 'error');
     } else {
         carregar();
     }

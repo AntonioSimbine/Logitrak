@@ -31,7 +31,7 @@ public class ParametroService {
     /** Teto fixo do RNF005: nenhuma configuração pode aceitar precisão superior. */
     public static final double LIMITE_GPS_METROS = 15.0;
     public static final String ORIENTACAO_GPS =
-            "Active o GPS e aguarde uma fix melhor antes de registar a posição.";
+            "Vá para um local aberto e tente novamente.";
 
     private static final Logger log = LoggerFactory.getLogger(ParametroService.class);
 
@@ -41,19 +41,21 @@ public class ParametroService {
     static {
         PADROES.put(TOLERANCIA_ATRASO_MINUTOS, "30");
         DESCRICOES.put(TOLERANCIA_ATRASO_MINUTOS,
-                "Margem de tolerância, em minutos, antes de disparar o alerta de SLA.");
+                "Margem de espera, em minutos, antes de avisar que a viagem está atrasada.");
         PADROES.put(FREQUENCIA_RECOLHA_GPS_SEGUNDOS, "60");
         DESCRICOES.put(FREQUENCIA_RECOLHA_GPS_SEGUNDOS,
-                "Intervalo, em segundos, de transmissão do GPS pela app móvel.");
+                "De quantos em quantos segundos o telemóvel envia a localização à central.");
         PADROES.put(INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS, "5");
         DESCRICOES.put(INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS,
-                "Intervalo, em minutos, da sincronização automática da fila offline.");
+                "Periodicidade com que a app envia à central os registos guardados no telemóvel "
+                        + "(intervalo de envio automático).");
         PADROES.put(PRECISAO_MAXIMA_GPS_METROS, "15.0");
         DESCRICOES.put(PRECISAO_MAXIMA_GPS_METROS,
-                "Precisão máxima aceite para validar a localização GPS (metros).");
+                "Define quão exata deve ser a localização, em metros, para o registo ser aceite. "
+                        + "Quanto menor o valor, mais rigorosa a verificação.");
         PADROES.put(INTERVALO_VERIFICACAO_SLA_MINUTOS, "1");
         DESCRICOES.put(INTERVALO_VERIFICACAO_SLA_MINUTOS,
-                "Intervalo, em minutos, entre execuções do motor de verificação de SLA.");
+                "De quantos em quantos minutos a central verifica se alguma viagem ultrapassou o prazo.");
     }
 
     private final ParametroGlobalRepository parametroRepository;
@@ -127,7 +129,11 @@ public class ParametroService {
     @Transactional
     public ParametroGlobal atualizar(String chave, String valor) {
         ParametroGlobal parametro = parametroRepository.findByChaveIgnoreCase(chave)
-                .orElseThrow(() -> ApiException.notFound("Parâmetro não encontrado: " + chave));
+                .orElseThrow(() -> {
+                    log.warn("Parâmetro não encontrado: {}", chave);
+                    return ApiException.notFound(
+                            "Não foi possível encontrar o parâmetro. Confirme a chave e tente novamente.");
+                });
         validarValor(chave, valor);
         parametro.setValor(valor.trim());
         return parametroRepository.save(parametro);
@@ -135,36 +141,43 @@ public class ParametroService {
 
     private void validarValor(String chave, String valor) {
         if (valor == null || valor.isBlank()) {
-            throw ApiException.unprocessable("O valor do parâmetro é obrigatório");
+            throw ApiException.unprocessable(
+                    "Faltam dados obrigatórios. Preencha os campos assinalados.");
         }
         String limpo = valor.trim().replace(',', '.');
         switch (chave) {
             case TOLERANCIA_ATRASO_MINUTOS -> {
                 int v = parseInteiro(chave, limpo);
                 if (v < 0 || v > 10080) {
+                    log.warn("Tolerância {} fora do intervalo permitido (0 a 10080 minutos)", v);
                     throw ApiException.unprocessable(
-                            "A tolerância deve estar entre 0 e 10080 minutos");
+                            "O valor da margem de espera não é válido. Corrija o valor e tente novamente.");
                 }
             }
             case FREQUENCIA_RECOLHA_GPS_SEGUNDOS -> {
                 int v = parseInteiro(chave, limpo);
                 if (v < 10 || v > 3600) {
+                    log.warn("Frequência de GPS {} fora do intervalo permitido (10 a 3600 segundos)", v);
                     throw ApiException.unprocessable(
-                            "A frequência de GPS deve estar entre 10 e 3600 segundos");
+                            "O valor da periodicidade da localização não é válido. "
+                                    + "Corrija o valor e tente novamente.");
                 }
             }
             case INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS, INTERVALO_VERIFICACAO_SLA_MINUTOS -> {
                 int v = parseInteiro(chave, limpo);
                 if (v < 1 || v > 1440) {
+                    log.warn("Intervalo {} fora do intervalo permitido (1 a 1440 minutos)", v);
                     throw ApiException.unprocessable(
-                            "O intervalo deve estar entre 1 e 1440 minutos");
+                            "O valor da periodicidade não é válido. Corrija o valor e tente novamente.");
                 }
             }
             case PRECISAO_MAXIMA_GPS_METROS -> {
                 double v = parseDecimal(chave, limpo);
                 if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0 || v > LIMITE_GPS_METROS) {
+                    log.warn("Precisão {} fora do intervalo permitido (0 a {} m)",
+                            v, LIMITE_GPS_METROS);
                     throw ApiException.unprocessable(
-                            "A precisão máxima deve estar entre 0 e 15 metros. " + ORIENTACAO_GPS);
+                            "A precisão indicada não é válida. " + ORIENTACAO_GPS);
                 }
             }
             default -> {
@@ -177,7 +190,9 @@ public class ParametroService {
         try {
             return Integer.parseInt(valor);
         } catch (NumberFormatException ex) {
-            throw ApiException.unprocessable("O parâmetro " + chave + " deve ser um número inteiro");
+            log.warn("Parâmetro {} com valor não inteiro: {}", chave, valor);
+            throw ApiException.unprocessable(
+                    "O valor deve ser um número inteiro. Corrija o valor e tente novamente.");
         }
     }
 
@@ -185,7 +200,9 @@ public class ParametroService {
         try {
             return Double.parseDouble(valor);
         } catch (NumberFormatException ex) {
-            throw ApiException.unprocessable("O parâmetro " + chave + " deve ser numérico");
+            log.warn("Parâmetro {} com valor numérico inválido: {}", chave, valor);
+            throw ApiException.unprocessable(
+                    "O valor deve ser um número. Corrija o valor e tente novamente.");
         }
     }
 

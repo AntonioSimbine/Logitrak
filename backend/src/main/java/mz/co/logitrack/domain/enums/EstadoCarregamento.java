@@ -10,13 +10,13 @@ package mz.co.logitrack.domain.enums;
  */
 public enum EstadoCarregamento {
 
-    GUARDADO_LOCAL("Guardado localmente"),
-    PENDENTE_SINCRONIZACAO("Pendente de sincronização"),
+    GUARDADO_LOCAL("Guardado no telemóvel. Aguarda envio."),
+    PENDENTE_SINCRONIZACAO("Guardado no telemóvel. Aguarda envio."),
     REGISTADO("Registado"),
     EM_TRANSITO("Em trânsito"),
     ATRASADO("Atrasado"),
     CONCLUIDO("Concluído"),
-    REJEITADO("Rejeitado");
+    REJEITADO("Não aceite");
 
     private final String etiqueta;
 

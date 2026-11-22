@@ -72,7 +72,7 @@ class RegrasCriticasTest {
 
         assertThatThrownBy(() -> parametroService.atualizar(chave, "50"))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining("15 metros");
+                .hasMessageContaining("A precisão indicada não é válida.");
 
         ParametroGlobal parametro = parametroRepository.findByChaveIgnoreCase(chave).orElseThrow();
         String valorOriginal = parametro.getValor();
@@ -93,7 +93,7 @@ class RegrasCriticasTest {
         assertThatCode(() -> ValidacaoGps.validar(15.0, 15.0)).doesNotThrowAnyException();
         assertThatThrownBy(() -> ValidacaoGps.validar(15.01, 15.0))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining("Máx: 15m");
+                .hasMessageContaining("A localização ainda não é precisa.");
         assertThatThrownBy(() -> ValidacaoGps.validar(Double.NaN, 15.0))
                 .isInstanceOf(ApiException.class);
         assertThatThrownBy(() -> ValidacaoGps.validar(Double.POSITIVE_INFINITY, 15.0))

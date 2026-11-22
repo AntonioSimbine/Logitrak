@@ -86,7 +86,7 @@ public class DocumentoController {
             @AuthenticationPrincipal AuthenticatedUser principal) throws IOException {
 
         if (ficheiro == null || ficheiro.isEmpty()) {
-            throw ApiException.unprocessable("A fotografia da guia está vazia");
+            throw ApiException.unprocessable("Falta a fotografia da guia. Fotografe a guia e tente novamente.");
         }
         Carregamento carregamento = carregamentoService.obterComRelacoes(carregamentoId);
         carregamentoService.verificarAcesso(carregamento, principal);

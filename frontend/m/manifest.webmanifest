@@ -1,7 +1,7 @@
 {
-  "name": "Logitrack — Aplicação do Motorista",
+  "name": "Logitrack · Motorista",
   "short_name": "Logitrack",
-  "description": "Registo e rastreabilidade de carregamentos com funcionamento offline.",
+  "description": "Registe os carregamentos no telemóvel e envie-os à central quando houver ligação.",
   "lang": "pt-MZ",
   "dir": "ltr",
   "id": "./",
@@ -37,7 +37,7 @@
     {
       "name": "Novo carregamento",
       "short_name": "Novo",
-      "description": "Registar uma guia de transporte",
+      "description": "Fotografar a guia e guardar o carregamento no telemóvel.",
       "url": "./?acao=novo",
       "icons": [
         {
@@ -48,9 +48,9 @@
       ]
     },
     {
-      "name": "Pendentes",
-      "short_name": "Pendentes",
-      "description": "Abrir a fila offline",
+      "name": "Registos guardados no telemóvel",
+      "short_name": "Registos",
+      "description": "Ver os registos guardados no telemóvel e enviá-los à central.",
       "url": "./?acao=pendentes",
       "icons": [
         {

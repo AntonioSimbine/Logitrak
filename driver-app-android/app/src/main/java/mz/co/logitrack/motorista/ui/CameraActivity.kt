@@ -342,7 +342,7 @@ class CameraActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.camera_ready, Toast.LENGTH_SHORT).show()
             finish()
         } catch (e: Exception) {
-            avisar(getString(R.string.photo_required), e.localizedMessage ?: "Não foi possível preparar a fotografia.")
+            avisar(getString(R.string.photo_required), getString(R.string.camera_save_failed))
         }
     }
 

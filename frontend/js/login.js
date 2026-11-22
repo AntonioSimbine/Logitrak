@@ -28,18 +28,19 @@
     const alerta = document.getElementById('loginAlert');
 
     if (params.get('logout')) {
-        mostrarAlerta('ok', 'Sessão terminada com segurança.');
+        mostrarAlerta('ok', 'A sessão terminou. Para voltar, entre com a sua conta.');
     } else if (params.get('expirou')) {
-        mostrarAlerta('erro', 'A sua sessão expirou. Volte a autenticar-se.');
+        mostrarAlerta('erro', 'A sessão terminou. Entre novamente com ligação à Internet.');
     } else if (params.get('redirect')) {
-        mostrarAlerta('info', 'Autentique-se para continuar.');
+        mostrarAlerta('info', 'Para continuar, entre com o seu e-mail e palavra-passe.');
     } else {
         // Frontend publicado mas API ainda em localhost: avisa em vez de falhar em silêncio.
         const apiLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(CONFIG.apiBase || '');
         const siteLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(window.location.hostname);
         if (apiLocal && !siteLocal) {
-            mostrarAlerta('info', 'Este site está online, mas a API ainda não foi publicada. '
-                + 'Abra o site com ?api=https://o-endereco-da-api para o ligar ao servidor.');
+            mostrarAlerta('info', 'O site está publicado, mas ainda não consegue falar com a central. '
+                + 'Peça ao administrador o endereço do servidor e acrescente '
+                + '?api=https://o-endereco-da-api ao endereço do site.');
         }
     }
 
@@ -86,9 +87,10 @@
 
             if (!resposta.ok) {
                 if (resposta.status === 401 || resposta.status === 403) {
-                    throw new Error('E-mail ou palavra-passe incorretos. Verifique os dados e tente novamente.');
+                    throw new Error('Não foi possível entrar. Verifique o e-mail e a palavra-passe.');
                 }
-                throw new Error('Não foi possível iniciar sessão neste momento. Tente novamente dentro de instantes.');
+                throw new Error('A central não está a responder. '
+                    + 'Os registos ficam guardados no telemóvel. Tente novamente dentro de instantes.');
             }
 
             CONFIG.guardarSessao({
@@ -121,10 +123,14 @@
             console.error(erro);
             const semLigacao = !navigator.onLine || erro instanceof TypeError
                 || erro.message === 'Failed to fetch';
-            mostrarAlerta('erro', semLigacao
-                ? 'Não foi possível ligar à API (' + (CONFIG.apiBase || 'indefinida')
-                    + '). Confirme que o servidor está a correr e que o endereço está correto.'
-                : erro.message);
+            if (semLigacao) {
+                console.error('[LogiTrack] Não foi possível chegar à central:', CONFIG.apiBase, erro);
+                mostrarAlerta('erro', 'Sem ligação. Não foi possível chegar à central. '
+                    + 'Verifique a ligação à Internet e tente novamente. Se continuar, '
+                    + 'peça ao administrador para confirmar o endereço do servidor.');
+            } else {
+                mostrarAlerta('erro', erro.message);
+            }
         } finally {
             botao.disabled = false;
             botao.textContent = textoOriginal;

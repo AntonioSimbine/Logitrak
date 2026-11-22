@@ -8,13 +8,19 @@ import java.time.LocalDateTime;
 
 /** Ponto de GPS transmitido periodicamente pela app móvel. */
 public record PosicaoRequest(
-        @NotNull @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
-        @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
-        @NotNull
-        @DecimalMin(value = "0.0", message = "A precisão do GPS não pode ser negativa")
+        @NotNull(message = "A latitude é obrigatória")
+        @DecimalMin(value = "-90.0", message = "A latitude indicada não é válida.")
+        @DecimalMax(value = "90.0", message = "A latitude indicada não é válida.")
+        Double latitude,
+        @NotNull(message = "A longitude é obrigatória")
+        @DecimalMin(value = "-180.0", message = "A longitude indicada não é válida.")
+        @DecimalMax(value = "180.0", message = "A longitude indicada não é válida.")
+        Double longitude,
+        @NotNull(message = "A localização é obrigatória.")
+        @DecimalMin(value = "0.0",
+                message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
         @DecimalMax(value = "15.0",
-                message = "Precisão de GPS insuficiente para validação (Máx: 15m). "
-                        + "Active o GPS e aguarde uma fix melhor antes de registar.")
+                message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
         Double precisaoMetros,
         LocalDateTime timestamp
 ) {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>Indicadores de Desempenho · Logitrack</title>
+    <title>Resultados da operação · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
     <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
     <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
-<body data-pagina="kpis" data-titulo="Indicadores de Desempenho"
-      data-subtitulo="Volume, tempo de ciclo e cumprimento de prazos">
+<body data-pagina="kpis" data-titulo="Resultados da operação"
+      data-subtitulo="Quantidade de cargas, tempo das viagens e cumprimento dos prazos">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -21,8 +21,8 @@
         <main class="content">
             <div class="page-head">
                 <div>
-                    <h2>Indicadores de desempenho</h2>
-                    <p>Análise agregada dos carregamentos concluídos, por fábrica e por dia.
+                    <h2>Resultados da operação</h2>
+                    <p>Resumo dos carregamentos terminados, por fábrica e por dia.
                         <span class="muted" id="atualizadoEm"></span></p>
                 </div>
                 <div class="page-actions">
@@ -42,7 +42,7 @@
                         <span class="kpi-icon"><svg><use href="#i-truck"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiTotal">—</div>
-                    <div class="kpi-foot">Registos no histórico analisado</div>
+                    <div class="kpi-foot">Carregamentos contabilizados</div>
                 </article>
                 <article class="kpi amber">
                     <div class="kpi-head">
@@ -54,11 +54,11 @@
                 </article>
                 <article class="kpi">
                     <div class="kpi-head">
-                        <span class="kpi-label">Tempo médio de ciclo</span>
+                        <span class="kpi-label">Tempo médio da viagem</span>
                         <span class="kpi-icon"><svg><use href="#i-clock"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiTempo">—</div>
-                    <div class="kpi-foot">Entre partida e conclusão</div>
+                    <div class="kpi-foot">Da partida ao fim da viagem</div>
                 </article>
                 <article class="kpi green">
                     <div class="kpi-head">
@@ -66,15 +66,15 @@
                         <span class="kpi-icon green"><svg><use href="#i-check"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiCumprimento">—</div>
-                    <div class="kpi-foot" id="kpiCumprimentoDetalhe">No prazo vs. atrasados</div>
+                    <div class="kpi-foot" id="kpiCumprimentoDetalhe">Dentro do prazo e com atraso</div>
                 </article>
             </section>
 
             <section class="card fases-card">
                 <div class="card-head">
                     <div>
-                        <h3>Tempos por fase operacional</h3>
-                        <div class="sub">Espera na fábrica, carregamento e transporte — sem valores estimados</div>
+                        <h3>Tempo de cada fase</h3>
+                        <div class="sub">Espera na fábrica, carga e transporte — só com horas registadas</div>
                     </div>
                     <div class="spacer"></div>
                     <span class="chip" id="fasesAbrangenciaKpi">Sem dados</span>
@@ -105,7 +105,7 @@
                     <div class="card-head">
                         <div>
                             <h3>Cumprimento de prazos</h3>
-                            <div class="sub">Percentagem de cargas dentro do SLA</div>
+                            <div class="sub">Percentagem de cargas que chegaram dentro do prazo</div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -120,7 +120,7 @@
                 <div class="card-head">
                     <div>
                         <h3>Tempo médio por dia</h3>
-                        <div class="sub">Evolução do tempo médio de espera e transporte (horas)</div>
+                        <div class="sub">Como mudaram as horas de espera e de transporte</div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -143,11 +143,11 @@
                         <tr>
                             <th>Fábrica</th>
                             <th>Toneladas</th>
-                            <th>Peso relativo</th>
+                            <th>Parte do total</th>
                         </tr>
                         </thead>
                         <tbody id="tabelaFabricas">
-                        <tr><td colspan="3" class="empty">A carregar indicadores…</td></tr>
+                        <tr><td colspan="3" class="empty">A carregar os resultados…</td></tr>
                         </tbody>
                     </table>
                 </div>

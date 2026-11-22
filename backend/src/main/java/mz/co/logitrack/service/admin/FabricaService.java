@@ -57,7 +57,8 @@ public class FabricaService {
 
     public Fabrica entidade(Long id) {
         return fabricaRepository.findById(id)
-                .orElseThrow(() -> ApiException.notFound("Fábrica não encontrada"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar a fábrica. Confirme os dados e tente novamente."));
     }
 
     private void validarNome(String nome, Long idIgnorado) {
@@ -65,7 +66,8 @@ public class FabricaService {
                 ? fabricaRepository.existsByNomeIgnoreCase(nome.trim())
                 : fabricaRepository.existsByNomeIgnoreCaseAndIdNot(nome.trim(), idIgnorado);
         if (duplicado) {
-            throw ApiException.unprocessable("Já existe uma fábrica com este nome");
+            throw ApiException.unprocessable(
+                    "Já existe uma fábrica com este nome. Escolha outro nome ou edite a fábrica existente.");
         }
     }
 

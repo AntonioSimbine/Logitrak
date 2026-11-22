@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>Fábricas e Geofences · Logitrack</title>
+    <title>Fábricas e áreas de carga · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../../img/favicon.svg">
     <link rel="stylesheet" href="../../css/app.css?v=20261122b">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../../css/logitrack-blue.css?v=20261122b">
     <link rel="stylesheet" href="../../css/logitrack-complete.css?v=20261122b">
 </head>
-<body data-pagina="fabricas" data-requer="ADMIN" data-titulo="Fábricas e Geofences"
-      data-subtitulo="Geofences, prazos de SLA e horários de acostagem">
+<body data-pagina="fabricas" data-requer="ADMIN" data-titulo="Fábricas e áreas de carga"
+      data-subtitulo="Área da fábrica, prazo da viagem e horários de receção dos camiões">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -22,8 +22,8 @@
         <main class="content">
             <div class="page-head">
                 <div>
-                    <h2>Fábricas e geofences</h2>
-                    <p>Configure as origens de carga, o raio de validação GPS e o limite de SLA aplicado a cada carregamento.</p>
+                    <h2>Fábricas e áreas de carga</h2>
+                    <p>Defina a área onde o motorista pode registar a carga, a distância máxima aceite e o prazo de cada viagem.</p>
                 </div>
                 <div class="page-actions">
                     <button class="btn" id="btnAtualizar" type="button">
@@ -39,7 +39,7 @@
                 <div class="card-head">
                     <div>
                         <h3>Fábricas registadas</h3>
-                        <div class="sub"><span id="totalFabricas">0</span> origem(ns) configurada(s)</div>
+                        <div class="sub"><span id="totalFabricas">0</span> fábricas configuradas</div>
                     </div>
                     <div class="spacer"></div>
                     <div class="input-icon" style="width:280px">
@@ -53,9 +53,9 @@
                         <tr>
                             <th>Fábrica</th>
                             <th>Coordenadas</th>
-                            <th>Geofence</th>
-                            <th>SLA</th>
-                            <th>Acostagem</th>
+                            <th>Área da fábrica</th>
+                            <th>Prazo da viagem</th>
+                            <th>Horário</th>
                             <th>Estado</th>
                             <th></th>
                         </tr>
@@ -75,7 +75,7 @@
         <div class="modal-head">
             <div>
                 <h3 id="tituloModalFabrica">Nova fábrica</h3>
-                <p>Selecione a localização no mapa ou introduza as coordenadas manualmente.</p>
+                <p>Escolha o local no mapa ou escreva as coordenadas.</p>
             </div>
             <div class="spacer"></div>
             <button class="icon-btn" type="button" data-fechar="modalFabrica">×</button>
@@ -105,17 +105,19 @@
                                min="-180" max="180" required placeholder="32.456">
                     </div>
                     <div class="field">
-                        <label for="raioFabrica">Raio geofence (metros) *</label>
+                        <label for="raioFabrica">Distância máxima a partir da fábrica (metros) *</label>
                         <input class="input" id="raioFabrica" type="number" min="10" max="50000"
                                value="500" required>
+                        <span class="hint">Define até onde o motorista pode estar para o registo ser aceite.</span>
                     </div>
                     <div class="field">
-                        <label for="slaFabrica">SLA limite (horas) *</label>
+                        <label for="slaFabrica">Prazo da viagem (horas) *</label>
                         <input class="input" id="slaFabrica" type="number" min="1" max="720"
                                value="24" required>
+                        <span class="hint">Tempo limite para a viagem; depois disso o sistema avisa que está atrasada.</span>
                     </div>
                     <div class="field">
-                        <label for="horarioFabrica">Horário de acostagem *</label>
+                        <label for="horarioFabrica">Horário de receção dos camiões *</label>
                         <input class="input" id="horarioFabrica" maxlength="50" required
                                placeholder="Ex.: 06:00–18:00">
                     </div>
@@ -129,7 +131,7 @@
                     <div class="field full">
                         <label>Localização no mapa</label>
                         <div id="mapaFabrica" style="height:250px;border-radius:10px;border:1px solid var(--line)"></div>
-                        <span class="hint">Clique no mapa para definir as coordenadas e ajustar o raio visual do geofence.</span>
+                        <span class="hint">Clique no mapa para escolher o local da fábrica e ajustar a área onde o registo é aceite.</span>
                     </div>
                 </div>
             </div>

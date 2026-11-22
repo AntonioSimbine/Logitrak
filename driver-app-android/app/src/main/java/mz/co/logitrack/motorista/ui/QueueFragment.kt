@@ -165,7 +165,14 @@ class QueueFragment : Fragment(R.layout.fragment_queue) {
             }
             else -> buildString {
                 append(getString(R.string.queue_summary_pending, pendentes))
-                if (rejeitados > 0) append(getString(R.string.queue_summary_rejected, rejeitados))
+                if (rejeitados > 0) {
+                    append(" · ")
+                    append(
+                        resources.getQuantityString(
+                            R.plurals.queue_summary_rejected, rejeitados, rejeitados
+                        )
+                    )
+                }
             }
         }
     }

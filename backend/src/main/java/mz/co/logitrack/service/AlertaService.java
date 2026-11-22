@@ -69,7 +69,8 @@ public class AlertaService {
     @Transactional
     public AlertaResponse marcarLido(Long id, boolean lido, AuthenticatedUser principal) {
         AlertaAtraso alerta = alertaRepository.findById(id)
-                .orElseThrow(() -> ApiException.notFound("Alerta não encontrado"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar o alerta. Confirme os dados e tente novamente."));
         alerta.setLido(lido);
         if (lido) {
             alerta.setTratadoPorId(principal != null ? principal.getId() : null);
@@ -101,7 +102,8 @@ public class AlertaService {
         String fabrica = carregamento.getFabrica() != null
                 ? carregamento.getFabrica().getNome() : "origem";
         String mensagem = String.format(
-                "O carregamento %s (%s) excedeu o SLA em %d minutos.",
+                "O carregamento %s (%s) ultrapassou o prazo definido para a viagem por %d minutos. "
+                        + "Acção necessária: continue a viagem e avise a central de qualquer paragem.",
                 carregamento.getGuiaNumero(), fabrica, minutosExcedidos);
 
         AlertaAtraso alerta = new AlertaAtraso(LocalDateTime.now(), minutosExcedidos,

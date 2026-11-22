@@ -107,7 +107,7 @@
                     return d.dia ? d.dia.charAt(0).toUpperCase() + d.dia.slice(1) : '—';
                 }),
                 datasets: [{
-                    label: 'Tempo médio (h)',
+                    label: 'Tempo médio (horas)',
                     data: dados.map(function (d) { return d.horas; }),
                     borderColor: CORES.blue,
                     backgroundColor: gradiente,
@@ -161,7 +161,7 @@
         graficos.prazos = new window.Chart(canvas, {
             type: 'doughnut',
             data: {
-                labels: ['No prazo', 'Atrasados'],
+                labels: ['Dentro do prazo', 'Fora do prazo'],
                 datasets: [{
                     data: [prazos.noPrazo, prazos.atrasados],
                     backgroundColor: [CORES.green, CORES.red],
@@ -228,15 +228,15 @@
         document.getElementById('kpiCumprimento').innerHTML =
             LT.fmt.numero(dados.cumprimentoPrazos.percentagem, 1) + ' <small>%</small>';
         document.getElementById('kpiCumprimentoDetalhe').textContent =
-            dados.cumprimentoPrazos.noPrazo + ' no prazo · '
-            + dados.cumprimentoPrazos.atrasados + ' atrasados';
+            dados.cumprimentoPrazos.noPrazo + ' dentro do prazo · '
+            + dados.cumprimentoPrazos.atrasados + ' fora do prazo';
 
         const fases = dados.resumo || {};
         const comFases = Number(fases.registosComFases || 0);
         const abrangencia = document.getElementById('fasesAbrangenciaKpi');
         if (abrangencia) {
             abrangencia.textContent = comFases
-                ? comFases + ' registo(s) com fases' : 'Sem dados';
+                ? comFases + ' registos com horários' : 'Sem dados';
         }
         [['kpiFaseEspera', fases.tempoMedioEsperaHoras],
          ['kpiFaseCarregamento', fases.tempoMedioCarregamentoHoras],
@@ -252,9 +252,9 @@
             'Atualizado ' + LT.fmt.relativo(new Date());
 
         if (!configurarChartJs()) {
-            semDados(document.getElementById('graficoVolume'), 'Gráficos indisponíveis sem ligação à Internet.');
-            semDados(document.getElementById('graficoTempo'), 'Gráficos indisponíveis sem ligação à Internet.');
-            semDados(document.getElementById('graficoPrazos'), 'Gráficos indisponíveis sem ligação à Internet.');
+            semDados(document.getElementById('graficoVolume'), 'Os gráficos precisam de ligação à Internet. Verifique a ligação e atualize a página.');
+            semDados(document.getElementById('graficoTempo'), 'Os gráficos precisam de ligação à Internet. Verifique a ligação e atualize a página.');
+            semDados(document.getElementById('graficoPrazos'), 'Os gráficos precisam de ligação à Internet. Verifique a ligação e atualize a página.');
         } else {
             criarVolume(dados.volumePorFabrica || []);
             criarTempo(dados.tempoMedioPorDia || []);

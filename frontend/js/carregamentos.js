@@ -43,7 +43,7 @@
                 return '<tr style="cursor:pointer" onclick="window.location.href=\''
                     + LT.escape(url) + '\'">'
                     + '<td><span class="guia">' + LT.escape(c.guiaNumero) + '</span>'
-                    + '<div class="sub">UUID ' + LT.escape((c.uuidLocal || '').substring(0, 8)) + '…</div></td>'
+                    + '<div class="sub">Registo ' + LT.escape((c.uuidLocal || '').substring(0, 8)) + '…</div></td>'
                     + '<td>' + LT.escape(c.fabricaNome || '—') + '</td>'
                     + '<td><span class="mono">' + LT.escape(c.veiculoMatricula || '—') + '</span></td>'
                     + '<td>' + LT.escape(c.motoristaNome || '—') + '</td>'
@@ -61,8 +61,8 @@
         document.getElementById('infoPagina').textContent = totalRegistos === 0
             ? 'Sem registos'
             : 'Página ' + (dados.page + 1) + ' de ' + Math.max(1, totalPaginas)
-            + ' · ' + totalRegistos + ' registo(s)';
-        document.getElementById('resumoLista').textContent = totalRegistos + ' carregamento(s) encontrados';
+            + ' · ' + totalRegistos + ' carregamentos';
+        document.getElementById('resumoLista').textContent = totalRegistos + ' carregamentos encontrados';
         document.getElementById('btnAnterior').disabled = dados.first;
         document.getElementById('btnSeguinte').disabled = dados.last;
     }

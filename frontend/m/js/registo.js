@@ -57,7 +57,7 @@
         }
         const statusFoto = $('#photoStatus');
         if (statusFoto) {
-            statusFoto.textContent = 'Fotografia obrigatória';
+            statusFoto.textContent = 'Falta a fotografia da guia';
             statusFoto.classList.remove('ok');
         }
         const textoBotao = $('#btnFotografarTexto');
@@ -67,7 +67,7 @@
 
         const precisao = $('#gpsPrecisao');
         if (precisao) {
-            precisao.textContent = 'A obter sinal…';
+            precisao.textContent = 'A procurar a localização…';
             precisao.classList.remove('ok', 'warn');
         }
         const lat = $('#gpsLat');
@@ -81,16 +81,16 @@
 
         const fabricaNome = $('#fabricaNome');
         if (fabricaNome) {
-            fabricaNome.textContent = 'A detetar por GPS…';
+            fabricaNome.textContent = 'A procurar a fábrica pela localização…';
         }
         const fabricaInfo = $('#fabricaInfo');
         if (fabricaInfo) {
-            fabricaInfo.textContent = 'Ative a localização para detetar a fábrica.';
+            fabricaInfo.textContent = 'Ative a localização no telemóvel para encontrar a fábrica.';
         }
         const lock = $('#fabricaLock');
         if (lock) {
             lock.className = 'lock-pill';
-            lock.innerHTML = '<svg><use href="#i-lock"/></svg> GPS';
+            lock.innerHTML = '<svg><use href="#i-lock"/></svg> LOCALIZAÇÃO';
         }
         const aviso = $('#fabricaAviso');
         if (aviso) {
@@ -152,8 +152,8 @@
                 }
                 if (aviso) {
                     aviso.textContent = isFinite(capacidade) && capacidade > 0
-                        ? 'Capacidade do veículo: ' + capacidade + ' t. Não é possível exceder.'
-                        : 'Capacidade do veículo indisponível.';
+                        ? 'Este veículo leva até ' + capacidade + ' t. Não pode colocar mais.'
+                        : 'Não foi possível ver a capacidade deste veículo.';
                 }
             });
         }
@@ -178,15 +178,15 @@
             await LTApp.carregarReferencias();
         }
         if (!state.refs) {
-            LTM.toast('Referências indisponíveis',
-                'Ligue-se à Internet pelo menos uma vez para descarregar fábricas e veículos.',
+            LTM.toast('Não foi possível carregar as listas',
+                'Ligue-se à Internet uma vez para trazer as listas de fábricas e veículos para o telemóvel.',
                 'error');
             LTApp.mostrarEcra('dashboard');
             return;
         }
         if (!prepararReferencias()) {
             LTM.toast('Sem veículos disponíveis',
-                'Não existem veículos aptos. Contacte o operador da central.', 'error');
+                'Não há veículos disponíveis. Fale com a central.', 'error');
             LTApp.mostrarEcra('dashboard');
             return;
         }
@@ -194,7 +194,7 @@
     }
     LTApp.abrirNovo = abrirNovo;
 
-    /* ---------- GPS e geofence ---------- */
+    /* ---------- Localização e área da fábrica ---------- */
     function textoPrecisao(valor) {
         return Number.isInteger(valor) ? String(valor) : Number(valor).toFixed(1);
     }
@@ -203,16 +203,16 @@
         const precisao = $('#gpsPrecisao');
         if (!navigator.geolocation) {
             if (precisao) {
-                precisao.textContent = 'GPS indisponível neste dispositivo';
+                precisao.textContent = 'Este telemóvel não consegue indicar a localização';
                 precisao.classList.add('warn');
             }
-            LTM.toast('GPS indisponível',
-                'Este dispositivo não permite obter a localização. '
-                + 'Não é possível validar o carregamento.', 'error');
+            LTM.toast('Sem localização',
+                'Não foi possível encontrar a sua localização. '
+                + 'Vá para um local aberto e tente novamente.', 'error');
             return;
         }
         if (precisao) {
-            precisao.textContent = 'A obter sinal…';
+            precisao.textContent = 'A procurar a localização…';
             precisao.classList.remove('ok', 'warn');
         }
         navigator.geolocation.getCurrentPosition(function (posicao) {
@@ -234,33 +234,34 @@
             const maximo = LTM.precisaMaxima();
             if (precisao) {
                 if (state.gps.precisao > maximo) {
-                    precisao.textContent = 'Precisão ' + textoPrecisao(state.gps.precisao)
-                        + ' m · máximo ' + textoPrecisao(maximo) + ' m';
+                    precisao.textContent = 'A localização ainda não é precisa. '
+                        + 'Vá para um local aberto e tente novamente. '
+                        + 'O limite é ' + textoPrecisao(maximo) + ' m.';
                     precisao.classList.add('warn');
                     precisao.classList.remove('ok');
                 } else {
                     precisao.textContent = '± ' + textoPrecisao(state.gps.precisao)
-                        + ' m · sinal adequado';
+                        + ' m · localização boa';
                     precisao.classList.add('ok');
                     precisao.classList.remove('warn');
                 }
             }
             avaliarGeofence();
         }, function (erro) {
-            let mensagem = 'Não foi possível obter a localização.';
+            let mensagem = 'Não foi possível encontrar a sua localização. Vá para um local aberto e tente novamente.';
             if (erro && erro.code === 1) {
-                mensagem = 'Permissão de localização negada. Ative o GPS nas definições do dispositivo.';
+                mensagem = 'A localização está desactivada. Abra as definições do telemóvel, active a localização e tente novamente.';
             } else if (erro && erro.code === 2) {
-                mensagem = 'Sinal GPS indisponível. Saia para o exterior e tente novamente.';
+                mensagem = 'A localização ainda não é precisa. Vá para um local aberto e tente novamente.';
             } else if (erro && erro.code === 3) {
-                mensagem = 'Tempo esgotado a obter o GPS. Toque em atualizar para tentar novamente.';
+                mensagem = 'A localização demorou demasiado. Vá para um local aberto e toque em atualizar.';
             }
             if (precisao) {
-                precisao.textContent = 'GPS indisponível — toque em atualizar';
+                precisao.textContent = 'Sem localização — toque em atualizar';
                 precisao.classList.add('warn');
                 precisao.classList.remove('ok');
             }
-            LTM.toast('GPS indisponível', mensagem, 'error');
+            LTM.toast('Sem localização', mensagem, 'error');
         }, {
             enableHighAccuracy: true,
             timeout: 20000,
@@ -305,7 +306,7 @@
                 fabricaNome.textContent = 'Selecione a fábrica';
             }
             if (fabricaInfo) {
-                fabricaInfo.textContent = 'A origem é necessária para validar o carregamento.';
+                fabricaInfo.textContent = 'Escolha a fábrica de origem para continuar.';
             }
             if (confirmarWrap) {
                 confirmarWrap.classList.add('hidden');
@@ -327,8 +328,9 @@
             const fora = distancia > raio;
             state.foraGeofence = fora;
             if (fabricaInfo) {
-                fabricaInfo.textContent = (fora ? 'Fora do raio' : 'Dentro do raio')
-                    + ' · ' + Math.round(distancia) + ' m do centro (raio '
+                fabricaInfo.textContent = (fora
+                    ? 'Está fora da área da fábrica.' : 'Está na área da fábrica.')
+                    + ' Distância: ' + Math.round(distancia) + ' m (distância máxima '
                     + Math.round(raio) + ' m)';
             }
             if (confirmarWrap) {
@@ -340,7 +342,7 @@
         } else {
             state.foraGeofence = false;
             if (fabricaInfo) {
-                fabricaInfo.textContent = 'Localização ainda não disponível.';
+                fabricaInfo.textContent = 'A localização ainda não está disponível. Aguarde um instante.';
             }
             if (confirmarWrap) {
                 confirmarWrap.classList.add('hidden');
@@ -354,12 +356,12 @@
         }
         const fabricas = state.refs.fabricas || [];
         if (!fabricas.length) {
-            mostrarAvisoFabrica('Não existem fábricas ativas configuradas.');
+            mostrarAvisoFabrica('A central ainda não indicou nenhuma fábrica. Ligue-se à Internet e tente novamente.');
             return;
         }
         const mais = LTM.fabricaMaisProxima(state.gps.lat, state.gps.lng);
         if (!mais) {
-            mostrarAvisoFabrica('Não foi possível comparar a sua posição com as fábricas.');
+            mostrarAvisoFabrica('Não foi possível confirmar se está na área da fábrica. Tente novamente.');
             return;
         }
         const select = $('#selectFabrica');
@@ -382,8 +384,9 @@
                 fabricaNome.textContent = mais.fabrica.nome;
             }
             if (fabricaInfo) {
-                fabricaInfo.textContent = 'Deteção GPS · ' + Math.round(mais.distancia)
-                    + ' m do centro (raio ' + Math.round(mais.raio) + ' m)';
+                fabricaInfo.textContent = 'Está na área da fábrica. A '
+                    + Math.round(mais.distancia) + ' m da fábrica (distância máxima '
+                    + Math.round(mais.raio) + ' m)';
             }
             if (lock) {
                 lock.className = 'lock-pill';
@@ -413,11 +416,12 @@
         }
         if (lock) {
             lock.className = 'lock-pill manual';
-            lock.innerHTML = '<svg><use href="#i-pin"/></svg> GPS';
+            lock.innerHTML = '<svg><use href="#i-pin"/></svg> LOCALIZAÇÃO';
         }
-        mostrarAvisoFabrica('Está fora do raio de geofence. A fábrica mais próxima é '
+        mostrarAvisoFabrica('Está fora da área da fábrica. A fábrica mais próxima é '
             + mais.fabrica.nome + ', a ' + Math.round(mais.distancia)
-            + ' m (raio ' + Math.round(mais.raio) + ' m). Selecione a origem e confirme o registo.');
+            + ' m (distância máxima ' + Math.round(mais.raio)
+            + ' m). Escolha a origem e confirme para guardar o registo.');
         aplicarSelecaoManual();
     }
 
@@ -520,8 +524,8 @@
     async function iniciarCamera() {
         reiniciarUiCamera();
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            mostrarMensagemCamera('Câmara indisponível',
-                'Este dispositivo não permite acesso à câmara. Escolha uma fotografia da galeria.');
+            mostrarMensagemCamera('A câmara não está a funcionar',
+                'Este telemóvel não permite usar a câmara. Escolha uma fotografia guardada.');
             return;
         }
         try {
@@ -546,10 +550,10 @@
         } catch (e) {
             console.warn('Câmara indisponível', e);
             const negada = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
-            mostrarMensagemCamera('Câmara indisponível',
+            mostrarMensagemCamera('A câmara não está a funcionar',
                 negada
-                    ? 'Autorize o acesso à câmara nas definições do navegador ou escolha uma fotografia da galeria.'
-                    : 'Não foi possível abrir a câmara. Escolha uma fotografia da galeria.');
+                    ? 'Dê permissão à câmara nas definições do telemóvel ou escolha uma fotografia guardada.'
+                    : 'Não foi possível abrir a câmara. Escolha uma fotografia guardada.');
         }
     }
 
@@ -584,7 +588,7 @@
         canvas.height = altura;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-            throw new Error('Não foi possível processar a imagem.');
+            throw new Error('Não foi possível tratar a fotografia.');
         }
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, largura, altura);
@@ -626,7 +630,7 @@
                 previewWrap.classList.remove('hidden');
             }
             if (status) {
-                status.textContent = 'Fotografia pronta · '
+                status.textContent = 'Fotografia pronta para guardar · '
                     + state.foto.largura + '×' + state.foto.altura;
                 status.classList.add('ok');
             }
@@ -638,7 +642,7 @@
                 previewWrap.classList.add('hidden');
             }
             if (status) {
-                status.textContent = 'Fotografia obrigatória';
+                status.textContent = 'Falta a fotografia da guia';
                 status.classList.remove('ok');
             }
             if (textoBotao) {
@@ -690,7 +694,7 @@
     function capturarVideo() {
         const video = $('#cameraVideo');
         if (!video || !video.videoWidth || !video.videoHeight) {
-            LTM.toast('Câmara ainda a iniciar', 'Aguarde um instante e tente novamente.', 'warn');
+            LTM.toast('A câmara ainda está a abrir', 'Aguarde um instante e tente novamente.', 'warn');
             return;
         }
         const botao = $('#btnDisparar');
@@ -701,8 +705,8 @@
             const largura = video.videoWidth;
             const altura = video.videoHeight;
             if (Math.max(largura, altura) < MIN_LARGURA || Math.min(largura, altura) < MIN_ALTURA) {
-                LTM.toast('Resolução insuficiente',
-                    'A guia deve ter pelo menos 640×360 pixéis.', 'error');
+                LTM.toast('A fotografia é demasiado pequena',
+                    'A fotografia não serve. Tire outra com boa luz e o documento inteiro dentro da moldura.', 'error');
                 return;
             }
             const resultado = comprimirImagem(video, largura, altura);
@@ -710,7 +714,7 @@
             mostrarFotoCapturada(resultado);
             pararCamera();
         } catch (e) {
-            LTM.toast('Falha ao capturar', e.message || 'Tente novamente.', 'error');
+            LTM.toast('Não foi possível tirar a fotografia', e.message || 'Tente novamente.', 'error');
         } finally {
             if (botao) {
                 botao.disabled = false;
@@ -728,7 +732,7 @@
             };
             imagem.onerror = function () {
                 URL.revokeObjectURL(url);
-                reject(new Error('Não foi possível ler a imagem selecionada.'));
+                reject(new Error('Não foi possível ler a fotografia escolhida.'));
             };
             imagem.src = url;
         });
@@ -739,12 +743,12 @@
             return;
         }
         if (ficheiro.type && ficheiro.type.indexOf('image/') !== 0) {
-            LTM.toast('Ficheiro inválido', 'Escolha uma imagem JPEG ou PNG.', 'error');
+            LTM.toast('O ficheiro não serve', 'Escolha uma fotografia guardada no telemóvel.', 'error');
             return;
         }
         if (ficheiro.size > 12 * 1024 * 1024) {
-            LTM.toast('Fotografia demasiado grande',
-                'Escolha uma imagem com menos de 12 MB.', 'error');
+            LTM.toast('A fotografia é demasiado grande',
+                'Escolha uma fotografia com menos de 12 MB.', 'error');
             return;
         }
         try {
@@ -752,9 +756,8 @@
             const largura = imagem.naturalWidth || imagem.width;
             const altura = imagem.naturalHeight || imagem.height;
             if (Math.max(largura, altura) < MIN_LARGURA || Math.min(largura, altura) < MIN_ALTURA) {
-                LTM.toast('Resolução insuficiente',
-                    'A guia deve ter pelo menos 640×360 pixéis (recebido '
-                    + largura + '×' + altura + ').', 'error');
+                LTM.toast('A fotografia é demasiado pequena',
+                    'A fotografia não serve. Tire outra com boa luz e o documento inteiro dentro da moldura.', 'error');
                 return;
             }
             const resultado = comprimirImagem(imagem, largura, altura);
@@ -762,7 +765,7 @@
             mostrarFotoCapturada(resultado);
             pararCamera();
         } catch (e) {
-            LTM.toast('Fotografia inválida', e.message || 'Tente outra imagem.', 'error');
+            LTM.toast('A fotografia não serve', e.message || 'Tire outra com boa luz e o documento inteiro dentro da moldura.', 'error');
         } finally {
             const input = $('#inputFicheiro');
             if (input) {
@@ -782,13 +785,13 @@
 
     function usarFoto() {
         if (!state.foto) {
-            LTM.toast('Sem fotografia', 'Capture a guia antes de continuar.', 'warn');
+            LTM.toast('Falta a fotografia da guia', 'Fotografe a guia e tente novamente.', 'warn');
             return;
         }
         atualizarStatusFoto();
         pararCamera();
         LTApp.mostrarEcra('novo');
-        LTM.toast('Guia fotografada', 'A fotografia foi comprimida e está pronta a guardar.', 'success');
+        LTM.toast('Fotografia da guia pronta', 'A fotografia está guardada no formulário. Pode guardar o carregamento.', 'success');
     }
 
     /* ---------- Guardar carregamento ---------- */
@@ -804,20 +807,20 @@
         const quantidade = Number(valor('quantidade').replace(',', '.'));
 
         if (!guia) {
-            LTM.toast('Número da guia em falta', 'Introduza o número da guia de transporte.', 'error');
+            LTM.toast('Falta o número da guia', 'Escreva o número da guia de transporte.', 'error');
             $('#guiaNumero').focus();
             return null;
         }
         if (!veiculoId) {
-            LTM.toast('Veículo em falta', 'Selecione o veículo que está a utilizar.', 'error');
+            LTM.toast('Falta o veículo', 'Selecione o veículo que está a utilizar.', 'error');
             return null;
         }
         if (!tipo) {
-            LTM.toast('Tipo de carga em falta', 'Selecione o tipo de carga.', 'error');
+            LTM.toast('Falta o tipo de carga', 'Selecione o tipo de carga.', 'error');
             return null;
         }
         if (!isFinite(quantidade) || quantidade <= 0) {
-            LTM.toast('Quantidade inválida', 'Indique a quantidade em toneladas.', 'error');
+            LTM.toast('A quantidade não é válida', 'Escreva uma quantidade em toneladas, por exemplo 5.', 'error');
             return null;
         }
         const veiculoSelecionado = (state.refs && state.refs.veiculos || []).find(function (v) {
@@ -826,41 +829,43 @@
         const capacidade = veiculoSelecionado
             ? Number(veiculoSelecionado.capacidadeCargaToneladas) : NaN;
         if (!isFinite(capacidade) || capacidade <= 0) {
-            LTM.toast('Capacidade indisponível',
-                'O veículo selecionado não tem uma capacidade válida.', 'error');
+            LTM.toast('Não foi possível ver a capacidade',
+                'Não foi possível confirmar quantas toneladas este veículo leva.', 'error');
             return null;
         }
         if (quantidade > capacidade) {
-            LTM.toast('Capacidade excedida',
-                'A quantidade (' + quantidade + ' t) excede a capacidade do veículo '
-                + veiculoSelecionado.matricula + ' (' + capacidade + ' t).', 'error');
+            LTM.toast('A carga é superior ao permitido',
+                'A quantidade (' + quantidade + ' t) é maior do que o veículo '
+                + veiculoSelecionado.matricula + ' pode levar (' + capacidade
+                + ' t). Escolha uma quantidade menor.', 'error');
             return null;
         }
         if (!state.foto) {
-            LTM.toast('Fotografia em falta', 'Fotografe a guia de transporte.', 'error');
+            LTM.toast('Falta a fotografia da guia', 'Fotografe a guia e tente novamente.', 'error');
             return null;
         }
         if (!state.gps) {
-            LTM.toast('GPS em falta',
-                'Aguarde pela localização ou toque em atualizar. A validação exige GPS.', 'error');
+            LTM.toast('Falta a localização',
+                'Aguarde pela localização ou toque em atualizar. Precisa de localização para continuar.', 'error');
             return null;
         }
         const maximo = LTM.precisaMaxima();
         if (!isFinite(state.gps.precisao) || state.gps.precisao < 0
                 || state.gps.precisao > maximo) {
-            LTM.toast('GPS insuficiente', 'Precisão de GPS insuficiente para validação (Máx: '
-                + textoPrecisao(maximo) + 'm). Active o GPS e aguarde uma fix melhor.', 'error');
+            LTM.toast('A localização ainda não é precisa',
+                'A localização ainda não é precisa. Vá para um local aberto e tente novamente. '
+                + 'O limite é ' + textoPrecisao(maximo) + ' m.', 'error');
             return null;
         }
         if (!state.fabricaId) {
-            LTM.toast('Fábrica em falta',
-                'Selecione a fábrica de origem para validar o carregamento.', 'error');
+            LTM.toast('Falta a fábrica de origem',
+                'Escolha a fábrica de origem para continuar.', 'error');
             return null;
         }
         const confirmar = $('#confirmarFora');
         if (state.foraGeofence && (!confirmar || !confirmar.checked)) {
-            LTM.toast('Confirmação necessária',
-                'Está fora do raio de geofence. Confirme o registo para continuar.', 'error');
+            LTM.toast('Confirme o registo',
+                'Está fora da área da fábrica. Confirme no quadro acima para continuar.', 'error');
             return null;
         }
 
@@ -912,8 +917,8 @@
             state.fabricaId = null;
             state.fabricaNome = '';
             LTM.toast('Carregamento guardado',
-                'A guia ' + item.guiaNumero + ' ficou na fila do dispositivo. '
-                + 'A sincronização é automática quando houver rede.', 'success');
+                'A guia ' + item.guiaNumero + ' ficou guardada no telemóvel. '
+                + 'Será enviada à central quando houver ligação.', 'success');
             LTApp.mostrarEcra('dashboard');
             await LTApp.atualizarResumoFila();
             if (LTM.ligado()) {
@@ -922,7 +927,7 @@
                 }, 500);
             }
         } catch (e) {
-            LTM.toast('Não foi possível guardar', e.message, 'error');
+            LTM.toast('Não foi possível guardar o registo', e.message, 'error');
         } finally {
             botao.disabled = false;
         }

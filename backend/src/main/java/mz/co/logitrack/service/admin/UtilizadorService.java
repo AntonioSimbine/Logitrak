@@ -47,11 +47,12 @@ public class UtilizadorService {
     public UtilizadorResponse criar(UtilizadorRequest pedido) {
         if (pedido.senha() == null || pedido.senha().length() < 6) {
             throw ApiException.unprocessable(
-                    "A palavra-passe é obrigatória e deve ter pelo menos 6 caracteres");
+                    "A palavra-passe é obrigatória. Utilize pelo menos 6 caracteres para proteger a conta.");
         }
         String email = pedido.email().trim().toLowerCase();
         if (utilizadorRepository.existsByEmailIgnoreCase(email)) {
-            throw ApiException.unprocessable("Já existe um utilizador com este e-mail");
+            throw ApiException.unprocessable(
+                    "Já existe uma conta com este e-mail. Escolha outro e-mail para criar a conta.");
         }
         Utilizador utilizador = new Utilizador();
         utilizador.setNome(pedido.nome().trim());
@@ -68,7 +69,8 @@ public class UtilizadorService {
         Utilizador utilizador = entidade(id);
         String email = pedido.email().trim().toLowerCase();
         if (utilizadorRepository.existsByEmailIgnoreCaseAndIdNot(email, id)) {
-            throw ApiException.unprocessable("Já existe um utilizador com este e-mail");
+            throw ApiException.unprocessable(
+                    "Já existe uma conta com este e-mail. Escolha outro e-mail ou edite a conta existente.");
         }
         utilizador.setNome(pedido.nome().trim());
         utilizador.setEmail(email);
@@ -79,7 +81,7 @@ public class UtilizadorService {
         if (pedido.senha() != null && !pedido.senha().isBlank()) {
             if (pedido.senha().length() < 6) {
                 throw ApiException.unprocessable(
-                        "A palavra-passe deve ter pelo menos 6 caracteres");
+                        "A palavra-passe deve ter pelo menos 6 caracteres para proteger a conta.");
             }
             utilizador.setSenhaHash(passwordEncoder.encode(pedido.senha()));
         }
@@ -90,12 +92,14 @@ public class UtilizadorService {
     public UtilizadorResponse definirAtivo(Long id, boolean ativo, Long administradorId) {
         Utilizador utilizador = entidade(id);
         if (id.equals(administradorId) && !ativo) {
-            throw ApiException.unprocessable("Não pode desativar a sua própria conta");
+            throw ApiException.unprocessable(
+                    "Não pode desativar a sua própria conta. Peça a outro administrador para o fazer.");
         }
         if (!ativo && utilizador.getPerfil() == Role.ADMINISTRADOR
                 && utilizadorRepository.countByPerfilAndAtivoTrue(Role.ADMINISTRADOR) <= 1) {
             throw ApiException.unprocessable(
-                    "Deve existir pelo menos um administrador ativo");
+                    "A central precisa de pelo menos um administrador ativo. "
+                            + "Ative outra conta antes de continuar.");
         }
         utilizador.setAtivo(ativo);
         return toResponse(utilizadorRepository.save(utilizador));
@@ -112,22 +116,27 @@ public class UtilizadorService {
     public void eliminar(Long id, Long administradorId) {
         Utilizador utilizador = entidade(id);
         if (id.equals(administradorId)) {
-            throw ApiException.unprocessable("Não pode eliminar a sua própria conta");
+            throw ApiException.unprocessable(
+                    "Não pode eliminar a sua própria conta. Peça a outro administrador para o fazer.");
         }
         if (carregamentoRepository.countByMotoristaId(id) > 0) {
             throw ApiException.unprocessable(
-                    "O utilizador tem carregamentos associados. Desative a conta.");
+                    "Esta conta tem registos associados. Desative-a em vez de a eliminar, "
+                            + "para preservar o histórico.");
         }
         if (utilizador.getPerfil() == Role.ADMINISTRADOR
                 && utilizadorRepository.countByPerfil(Role.ADMINISTRADOR) <= 1) {
-            throw ApiException.unprocessable("Deve existir pelo menos um administrador");
+            throw ApiException.unprocessable(
+                    "A central precisa de pelo menos um administrador. "
+                            + "Crie outro administrador antes de continuar.");
         }
         utilizadorRepository.delete(utilizador);
     }
 
     public Utilizador entidade(Long id) {
         return utilizadorRepository.findById(id)
-                .orElseThrow(() -> ApiException.notFound("Utilizador não encontrado"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar a conta. Confirme os dados e tente novamente."));
     }
 
     private UtilizadorResponse toResponse(Utilizador u) {

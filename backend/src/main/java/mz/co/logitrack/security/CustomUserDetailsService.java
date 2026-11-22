@@ -22,6 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return utilizadorRepository.findByEmailIgnoreCase(username)
                 .map(AuthenticatedUser::new)
-                .orElseThrow(() -> new UsernameNotFoundException("Credenciais inválidas"));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Não foi possível entrar. Verifique o e-mail e a palavra-passe."));
     }
 }

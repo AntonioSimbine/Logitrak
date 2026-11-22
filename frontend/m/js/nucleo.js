@@ -17,7 +17,7 @@
     const LOJA_FILA = 'fila';
     const LOJA_CACHE = 'cache';
     const TEXTO_ONLINE = 'Ligação ativa';
-    const TEXTO_OFFLINE = 'Sem ligação — a aplicação funciona em modo offline';
+    const TEXTO_OFFLINE = 'Sem ligação. Os registos ficam guardados no telemóvel.';
     const PRECISAO_PADRAO = 15;
     const LIMITE_GPS_METROS = 15; // Teto fixo do RNF005
     const TAMANHO_FOTO_MAX = 1500000; // ~1,1 MB em Base64
@@ -25,6 +25,34 @@
     const MIN_ALTURA = 360;
 
     const LTM = window.LTM = window.LTM || {};
+
+    // A central pode devolver termos técnicos; a app mostra sempre linguagem simples.
+    LTM.textoSimples = function (texto) {
+        return String(texto === null || texto === undefined ? '' : texto)
+            .replace(/Pendente de sincronização/gi, 'Guardado no telemóvel. Aguarda envio.')
+            .replace(/Sincronizado/gi, 'Enviado à central')
+            .replace(/Fora do geofence/gi, 'Está fora da área da fábrica.')
+            .replace(/Precisão GPS insuficiente/gi,
+                'A localização ainda não é precisa. Vá para um local aberto e tente novamente.')
+            .replace(/SLA excedido/gi, 'O prazo definido para a viagem foi ultrapassado.')
+            .replace(/\bKPIs\b/gi, 'Resultados da operação');
+    };
+
+    LTM.textoEstado = function (estado, etiqueta) {
+        const valor = String(etiqueta || estado || '');
+        const simples = {
+            GUARDADO_LOCAL: 'Guardado no telemóvel. Aguarda envio.',
+            PENDENTE_SINCRONIZACAO: 'Guardado no telemóvel. Aguarda envio.',
+            PENDENTE: 'Aguarda envio',
+            SINCRONIZADO: 'Enviado à central',
+            REJEITADO: 'Não aceite',
+            'Guardado localmente': 'Guardado no telemóvel. Aguarda envio.',
+            'Pendente de sincronização': 'Guardado no telemóvel. Aguarda envio.',
+            'Sincronizado': 'Enviado à central',
+            'Rejeitado': 'Não aceite'
+        };
+        return simples[valor] || LTM.textoSimples(valor);
+    };
 
     const state = LTM.state = {
         token: '',
@@ -387,15 +415,15 @@
     LTM.verificarCredencialOffline = async function (email, senha) {
         const cred = LTM.lerCredencial();
         if (!cred) {
-            throw new Error('O primeiro acesso requer ligação à Internet. '
-                + 'Ligue-se uma vez para ativar o modo offline neste dispositivo.');
+            throw new Error('Na primeira vez, é preciso ligação à Internet. '
+                + 'Ligue-se uma vez para poder entrar sem ligação neste telemóvel.');
         }
         if (cred.email !== String(email).trim().toLowerCase()) {
-            throw new Error('Credenciais inválidas');
+            throw new Error('Não foi possível entrar. Verifique o e-mail e a palavra-passe.');
         }
         const hash = await LTM.derivarSenha(senha, cred.salt);
         if (hash !== cred.hash) {
-            throw new Error('Credenciais inválidas');
+            throw new Error('Não foi possível entrar. Verifique o e-mail e a palavra-passe.');
         }
         return true;
     };
@@ -461,8 +489,8 @@
         try {
             localStorage.setItem(chaveLoja(loja), JSON.stringify(registos));
         } catch (e) {
-            throw new Error('Armazenamento do dispositivo cheio. '
-                + 'Sincronize ou remova registos pendentes para continuar.');
+            throw new Error('Não há espaço livre no telemóvel. '
+                + 'Envie os registos à central ou apague registos antigos.');
         }
     }
 
@@ -489,10 +517,10 @@
                     resolve();
                 };
                 tx.onerror = function () {
-                    reject(tx.error || new Error('Falha ao gravar no dispositivo'));
+                    reject(tx.error || new Error('Não foi possível guardar o registo no telemóvel.'));
                 };
                 tx.onabort = function () {
-                    reject(tx.error || new Error('Gravação cancelada'));
+                    reject(tx.error || new Error('O registo não foi guardado. Tente novamente.'));
                 };
             } catch (e) {
                 reject(e);
@@ -668,21 +696,27 @@
 
     /* ---------- API ---------- */
     function mensagemErroCorpo(corpo, status) {
+        const indisponivel = 'A central não está a responder. '
+            + 'Os registos ficam guardados no telemóvel. Tente novamente dentro de instantes.';
         if (!corpo) {
+            if (status !== 0) {
+                console.info('[LogiTrack] Resposta da central sem explicação. Código:', status);
+            }
             return status === 0
-                ? 'Sem ligação à Internet.'
-                : 'Ocorreu um erro (' + status + ').';
+                ? 'Sem ligação. Os registos ficam guardados no telemóvel.'
+                : indisponivel;
         }
         if (typeof corpo === 'string') {
-            return corpo;
+            return LTM.textoSimples(corpo);
         }
-        let texto = corpo.error || corpo.message || ('Ocorreu um erro (' + status + ').');
+        console.info('[LogiTrack] Detalhe técnico da resposta da central:', status, corpo);
+        let texto = LTM.textoSimples(corpo.error || corpo.message || indisponivel);
         if (corpo.detalhes) {
             const detalhes = Object.keys(corpo.detalhes).map(function (k) {
                 return corpo.detalhes[k];
             }).filter(Boolean);
             if (detalhes.length) {
-                texto += ' — ' + detalhes.join(' ');
+                texto += ' — ' + LTM.textoSimples(detalhes.join(' '));
             }
         }
         return texto;
@@ -719,7 +753,8 @@
         } catch (e) {
             LTM.marcarRedeFalhou();
             throw new LTM.ErroApi(
-                'Sem ligação à Internet. O registo fica guardado neste dispositivo.',
+                'Sem ligação. O registo ficou guardado no telemóvel. '
+                + 'Será enviado à central quando a ligação voltar.',
                 0, null);
         }
 
@@ -862,8 +897,8 @@
                     if (!novo) return;
                     novo.addEventListener('statechange', function () {
                         if (novo.state === 'installed' && navigator.serviceWorker.controller) {
-                            LTM.toast('Actualização disponível',
-                                ' A nova versão será usada no próximo arranque da aplicação.',
+                            LTM.toast('Há uma nova versão da aplicação',
+                                'Feche e abra a aplicação para a usar.',
                                 'info');
                         }
                     });

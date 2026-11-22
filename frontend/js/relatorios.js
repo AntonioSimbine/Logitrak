@@ -49,7 +49,7 @@
 
     function minutosFase(linha, chave) {
         const valor = linha.fases ? linha.fases[chave] : null;
-        return valor === null || valor === undefined ? 'sem dados' : valor + ' min';
+        return valor === null || valor === undefined ? 'sem horário registado' : valor + ' min';
     }
 
     function comparar(a, b, campo, tipo) {
@@ -95,7 +95,7 @@
     function renderizarResumo(resumo) {
         const semFases = !resumo.registosComFases;
         const valorFase = function (horas) {
-            return semFases ? 'sem dados' : LT.fmt.numero(horas, 1) + ' h';
+            return semFases ? 'sem horário registado' : LT.fmt.numero(horas, 1) + ' h';
         };
         const valores = [
             LT.fmt.numero(resumo.total, 0),
@@ -153,7 +153,7 @@
         }
 
         document.getElementById('infoPaginaRelatorio').textContent = linhas.length
-            ? 'Página ' + (pagina + 1) + ' de ' + totalPaginas + ' · ' + linhas.length + ' registo(s)'
+            ? 'Página ' + (pagina + 1) + ' de ' + totalPaginas + ' · ' + linhas.length + ' carregamentos'
             : 'Sem registos';
         document.getElementById('btnAnterior').disabled = pagina === 0;
         document.getElementById('btnSeguinte').disabled = pagina >= totalPaginas - 1;
@@ -176,7 +176,7 @@
         renderizarResumo(dados.resumo);
         atualizarCabecalhos();
         renderizarTabela();
-        document.getElementById('chipTotal').textContent = dados.resumo.total + ' registo(s)';
+        document.getElementById('chipTotal').textContent = dados.resumo.total + ' carregamentos';
         document.getElementById('infoGeracao').textContent = 'Gerado às ' + LT.fmt.hora(new Date());
     }
 
@@ -186,8 +186,8 @@
         try {
             const resposta = await LT.api('/api/v1/relatorios?' + queryString());
             renderizar(resposta);
-            LT.toast('Relatório gerado',
-                resposta.resumo.total + ' carregamento(s) no período selecionado.', 'success');
+            LT.toast('Relatório pronto',
+                resposta.resumo.total + ' carregamentos no período escolhido.', 'success');
         } catch (e) {
             LT.erro(e);
         } finally {
@@ -199,8 +199,8 @@
         const caminho = '/api/v1/relatorios/exportar?' + queryString(formato);
         try {
             await LT.download(caminho);
-            LT.toast('Exportação iniciada',
-                'O ficheiro ' + formato.toUpperCase() + ' está a ser transferido.', 'success');
+            LT.toast('Download iniciado',
+                'O ficheiro ' + formato.toUpperCase() + ' está a ser guardado.', 'success');
         } catch (e) {
             LT.erro(e);
         }

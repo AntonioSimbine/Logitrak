@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="carregamentos" data-titulo="Detalhe do Carregamento"
-      data-subtitulo="Rastreio, guia digitalizada e ciclo de vida">
+      data-subtitulo="Onde está a carga, a guia e as fases da viagem">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -49,7 +49,7 @@
                     <div class="kpi-foot" id="infoToneladas">—</div>
                 </article>
                 <article class="kpi green">
-                    <div class="kpi-head"><span class="kpi-label">Limite SLA</span></div>
+                    <div class="kpi-head"><span class="kpi-label">Prazo da viagem</span></div>
                     <div class="kpi-value" id="infoLimite" style="font-size:20px">—</div>
                     <div class="kpi-foot" id="infoAtraso">—</div>
                 </article>
@@ -60,11 +60,11 @@
                     <section class="card">
                         <div class="card-head">
                             <div>
-                                <h3>Guia de transporte digitalizada</h3>
-                                <div class="sub" id="guideSub">Documento capturado na app do motorista</div>
+                                <h3>Guia da carga</h3>
+                                <div class="sub" id="guideSub">Fotografia tirada pelo motorista</div>
                             </div>
                             <div class="spacer"></div>
-                            <span class="chip" id="guideIntegridade">SHA-256</span>
+                            <span class="chip" id="guideIntegridade">Código de verificação</span>
                         </div>
                         <div class="card-body">
                             <div class="guide-viewer" id="guideViewer">
@@ -78,8 +78,8 @@
                     <section class="card">
                         <div class="card-head">
                             <div>
-                                <h3>Rastreio GPS</h3>
-                                <div class="sub">Origem, pontos intermédios e última posição conhecida</div>
+                                <h3>Localização</h3>
+                                <div class="sub">Fábrica de origem, pontos da rota e última posição recebida</div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -93,8 +93,8 @@
                     <section class="card">
                         <div class="card-head">
                             <div>
-                                <h3>Linha do tempo</h3>
-                                <div class="sub">Estado do ciclo de vida</div>
+                                <h3>Fases da viagem</h3>
+                                <div class="sub">Estado da viagem, ponto por ponto</div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -105,8 +105,8 @@
                     <section class="card" id="cardFases">
                         <div class="card-head">
                             <div>
-                                <h3>Fases operacionais</h3>
-                                <div class="sub">Registe os instantes reais; campos vazios mantêm o valor atual</div>
+                                <h3>Horas de cada fase</h3>
+                                <div class="sub">Escreva as horas reais. Se deixar um campo vazio, o valor atual é mantido.</div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -130,7 +130,7 @@
                             </div>
                             <div class="row mt-12">
                                 <button class="btn primary" id="btnGuardarFases" type="button">
-                                    Guardar fases
+                                    Guardar horas
                                 </button>
                             </div>
                         </div>
@@ -139,8 +139,8 @@
                     <section class="card">
                         <div class="card-head">
                             <div>
-                                <h3>Informação detalhada</h3>
-                                <div class="sub">Dados do registo central</div>
+                                <h3>Mais informação</h3>
+                                <div class="sub">Dados guardados na central</div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -157,8 +157,8 @@
     <div class="modal narrow">
         <div class="modal-head">
             <div>
-                <h3>Rejeitar carregamento</h3>
-                <p>O motivo é obrigatório e fica visível para o motorista.</p>
+                <h3>Não aceitar carregamento</h3>
+                <p>Tem de escrever o motivo. O motorista vai vê-lo.</p>
             </div>
             <div class="spacer"></div>
             <button class="icon-btn" type="button" onclick="LT.fecharModal('modalRejeitar')">×</button>
@@ -166,14 +166,14 @@
         <form id="formRejeitar">
             <div class="modal-body">
                 <div class="field">
-                    <label for="motivoRejeicao">Motivo da rejeição</label>
+                    <label for="motivoRejeicao">Porque não foi aceite</label>
                     <textarea class="textarea" id="motivoRejeicao" rows="4" required
-                              placeholder="Ex.: Guia ilegível — fotografia sem resolução mínima"></textarea>
+                              placeholder="Ex.: A foto da guia está ilegível"></textarea>
                 </div>
             </div>
             <div class="modal-foot">
                 <button class="btn ghost" type="button" onclick="LT.fecharModal('modalRejeitar')">Cancelar</button>
-                <button class="btn danger" type="submit">Confirmar rejeição</button>
+                <button class="btn danger" type="submit">Confirmar que não aceita</button>
             </div>
         </form>
     </div>

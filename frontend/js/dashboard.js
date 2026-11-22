@@ -93,7 +93,7 @@
             }).addTo(camadaFabrica);
             L.marker([f.latitude, f.longitude], {icon: iconeFabrica(), title: f.nome})
                 .bindPopup('<strong>' + LT.escape(f.nome) + '</strong><br>'
-                    + LT.escape(f.endereco) + '<br><span style="color:#6b7a90">Geofence: '
+                    + LT.escape(f.endereco) + '<br><span style="color:#6b7a90">Área da fábrica: '
                     + f.raioGeofenceMetros + ' m</span>')
                 .addTo(camadaFabrica);
         });
@@ -104,7 +104,7 @@
                 .bindPopup('<strong>' + LT.escape(v.guiaNumero) + '</strong><br>'
                     + LT.escape(v.matricula) + ' · ' + LT.escape(v.motorista || '—') + '<br>'
                     + '<span style="color:#6b7a90">' + LT.escape(v.fabrica || '') + '</span><br>'
-                    + 'Precisão: ' + LT.fmt.numero(v.precisaoMetros, 1) + ' m<br>'
+                    + 'Qualidade da localização: ' + LT.fmt.numero(v.precisaoMetros, 1) + ' m<br>'
                     + '<a href="' + LT.urlCarregamento(v.carregamentoId) + '">Abrir carregamento</a>')
                 .addTo(camadaVeiculos);
         });
@@ -137,7 +137,7 @@
         const abrangencia = document.getElementById('fasesAbrangencia');
         if (abrangencia) {
             abrangencia.textContent = comFases
-                ? comFases + ' registo(s) com fases' : 'Sem dados';
+                ? comFases + ' registos com horários' : 'Sem dados';
         }
         const valorFase = function (horas) {
             return comFases ? LT.fmt.numero(horas, 1) + ' h' : '—';
@@ -160,7 +160,7 @@
         }
         if (!lista.length) {
             contentor.innerHTML = '<div class="empty"><svg><use href="#i-bell"/></svg><br>'
-                + 'Sem alertas de atraso. A operação está dentro do SLA.</div>';
+                + 'Sem alertas de atraso. Os carregamentos estão dentro do prazo.</div>';
             return;
         }
         contentor.innerHTML = lista.slice(0, 14).map(function (a) {
@@ -168,7 +168,7 @@
                 + '" data-id="' + a.id + '" data-carregamento="' + a.carregamentoId + '">'
                 + '<div class="a-top"><span class="a-guia">' + LT.escape(a.guiaNumero || '—')
                 + '</span><span class="a-time">+' + (a.minutosExcedidos || 0) + ' min</span></div>'
-                + '<p>' + LT.escape(a.mensagem || '') + '</p>'
+                + '<p>' + LT.escape(LT.textoAlerta(a)) + '</p>'
                 + '<div class="a-meta">' + LT.escape(a.fabrica || '—') + ' · '
                 + LT.escape(a.motorista || '—') + ' · ' + LT.fmt.relativo(a.dataHoraEmissao)
                 + '</div></article>';
@@ -190,11 +190,12 @@
             if (!termo) {
                 return true;
             }
-            return [c.guiaNumero, c.fabricaNome, c.veiculoMatricula, c.motoristaNome, c.estadoEtiqueta]
+            return [c.guiaNumero, c.fabricaNome, c.veiculoMatricula, c.motoristaNome,
+                LT.textoEstado(c.estado, c.estadoEtiqueta)]
                 .join(' ').toLowerCase().indexOf(termo) >= 0;
         });
         if (!dados.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum carregamento encontrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum carregamento encontrado com estes filtros.</td></tr>';
             return;
         }
         tbody.innerHTML = dados.map(function (c) {

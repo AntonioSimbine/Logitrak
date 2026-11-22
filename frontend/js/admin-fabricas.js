@@ -134,7 +134,7 @@
                 + '<td><div class="table-actions">'
                 + '<button class="btn small ghost" type="button" data-acao="editar" data-id="' + f.id + '">Editar</button>'
                 + (ativa
-                    ? '<button class="btn small ghost" type="button" data-acao="eliminar" data-id="' + f.id + '">Eliminar</button>'
+                    ? '<button class="btn small ghost" type="button" data-acao="eliminar" data-id="' + f.id + '">Retirar</button>'
                     : '<button class="btn small ghost" type="button" data-acao="reativar" data-id="' + f.id + '">Reativar</button>')
                 + '</div></td>'
                 + '</tr>';
@@ -211,7 +211,7 @@
             }
             LT.fecharModal('modalFabrica');
             LT.toast('Fábrica guardada',
-                pedido.nome + ' foi gravada com sucesso.', 'success');
+                'Os dados de ' + pedido.nome + ' ficaram guardados.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -222,13 +222,13 @@
 
     async function eliminar(id) {
         const f = fabricas.find(function (item) { return item.id === id; });
-        if (!f || !window.confirm('Retirar "' + f.nome
-            + '" das unidades disponíveis na aplicação móvel? O histórico será preservado.')) {
+        if (!f || !window.confirm('Retirar a fábrica "' + f.nome
+            + '" da app do motorista? Os carregamentos antigos continuam guardados.')) {
             return;
         }
         try {
             await LT.api('/api/v1/fabricas/' + id, {method: 'DELETE'});
-            LT.toast('Unidade retirada', f.nome + ' já não estará disponível na aplicação móvel.', 'success');
+            LT.toast('Fábrica retirada', f.nome + ' já não aparece na app do motorista.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -246,7 +246,7 @@
         };
         try {
             await LT.api('/api/v1/fabricas/' + id, {method: 'PUT', body: pedido});
-            LT.toast('Unidade reativada', f.nome + ' voltou a estar disponível.', 'success');
+            LT.toast('Fábrica reativada', f.nome + ' voltou a aparecer na app do motorista.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);

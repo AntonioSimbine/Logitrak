@@ -42,7 +42,7 @@
                 + '<td>' + LT.chip(String(v.estado).toLowerCase(), v.estadoEtiqueta) + '</td>'
                 + '<td><div class="table-actions">'
                 + '<button class="btn small ghost" type="button" data-acao="editar" data-id="' + v.id + '">Editar</button>'
-                + '<button class="btn small ghost" type="button" data-acao="eliminar" data-id="' + v.id + '">Eliminar</button>'
+                + '<button class="btn small ghost" type="button" data-acao="eliminar" data-id="' + v.id + '">Retirar</button>'
                 + '</div></td>'
                 + '</tr>';
         }).join('');
@@ -103,7 +103,7 @@
             }
             LT.fecharModal('modalVeiculo');
             LT.toast('Veículo guardado',
-                pedido.matricula + ' foi gravado com sucesso.', 'success');
+                'Os dados do veículo ' + pedido.matricula + ' ficaram guardados.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -114,12 +114,13 @@
 
     async function eliminar(id) {
         const v = veiculos.find(function (item) { return item.id === id; });
-        if (!v || !window.confirm('Eliminar o veículo ' + v.matricula + '?')) {
+        if (!v || !window.confirm('Retirar o veículo ' + v.matricula
+            + ' da frota? Os registos antigos continuam guardados.')) {
             return;
         }
         try {
             await LT.api('/api/v1/veiculos/' + id, {method: 'DELETE'});
-            LT.toast('Veículo eliminado', v.matricula + ' foi removido da frota.', 'success');
+            LT.toast('Veículo retirado', v.matricula + ' já não faz parte da frota.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);

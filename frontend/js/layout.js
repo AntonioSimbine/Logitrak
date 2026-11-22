@@ -43,8 +43,8 @@
             banner.innerHTML = '<span class="role-dot"></span><strong>Perfil: '
               + (admin ? 'Administrador' : 'Operador da Central')
               + '</strong><small>'
-              + (admin ? 'Supervisão geral, acessos e gestão da operação'
-                       : 'Monitorização de carregamentos, frota e alertas em tempo real')
+              + (admin ? 'Configuração, acessos e acompanhamento da operação'
+                       : 'Acompanha carregamentos, veículos e alertas em tempo real')
               + '</small>';
             main.prepend(banner);
         });
@@ -169,7 +169,7 @@
            ${item('fabricas', url('app/admin/fabricas.html'), 'i-factory', 'Fábricas')}
            ${item('veiculos', url('app/admin/veiculos.html'), 'i-car', 'Veículos')}
            ${item('utilizadores', url('app/admin/utilizadores.html'), 'i-users', 'Utilizadores')}
-           ${item('parametros', url('app/admin/parametros.html'), 'i-settings', 'Parâmetros Globais')}`
+           ${item('parametros', url('app/admin/parametros.html'), 'i-settings', 'Regras da operação')}`
         : '';
 
     document.body.insertAdjacentHTML('afterbegin', ICONES);
@@ -192,7 +192,7 @@
                     '<span class="nav-badge hidden" id="navAlertBadge">0</span>')}
                 <div class="nav-section">Análise</div>
                 ${item('relatorios', url('app/relatorios.html'), 'i-report', 'Relatórios')}
-                ${item('kpis', url('app/kpis.html'), 'i-chart', 'Indicadores')}
+                ${item('kpis', url('app/kpis.html'), 'i-chart', 'Resultados da operação')}
                 ${adminNav}
             </nav>
             <div class="sidebar-footer">
@@ -218,7 +218,7 @@
             </button>
             <div class="topbar-perfil">
                 <span class="topbar-etiqueta">${etiquetaPerfil}</span>
-                <span class="sub">${subtitulo || 'Ambiente operacional Logitrack'}</span>
+                <span class="sub">${subtitulo || 'Painel da central Logitrack'}</span>
             </div>
             <div class="topbar-spacer"></div>
             <span class="live" id="liveIndicator"><i></i> Tempo real</span>

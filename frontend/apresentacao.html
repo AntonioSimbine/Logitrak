@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logitrack — Gestão e rastreabilidade de carregamentos</title>
-    <meta name="description" content="Logitrack liga a central, as fábricas e os motoristas num único fluxo digital: guia digitalizada, GPS, alertas de atraso, KPIs e relatórios — com funcionamento offline.">
+    <meta name="description" content="Logitrack liga a central, as fábricas e os motoristas num único fluxo digital: guia fotografada, localização no telemóvel, avisos de atraso, resultados da operação e relatórios — funciona mesmo sem ligação.">
     <meta name="theme-color" content="#0b1f3a">
     <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
     <link rel="stylesheet" href="css/site.css?v=20261122b">
@@ -46,9 +46,9 @@
 
                 <p class="lead">
                     O Logitrack liga a central, as fábricas e os motoristas num único
-                    fluxo digital. O motorista registra a guia e o GPS no telemóvel —
-                    mesmo sem rede — e a central acompanha o carregamento em tempo real,
-                    recebe alertas de atraso e exporta relatórios.
+                    fluxo digital. O motorista regista a guia e a localização no telemóvel —
+                    mesmo sem ligação — e a central acompanha o carregamento em tempo real,
+                    recebe avisos de atraso e exporta relatórios.
                 </p>
 
                 <div class="hero-actions">
@@ -57,9 +57,9 @@
                 </div>
 
                 <ul class="hero-facts">
-                    <li>Funciona offline</li>
-                    <li>GPS por carregamento</li>
-                    <li>Alertas de SLA</li>
+                    <li>Funciona sem ligação</li>
+                    <li>Localização de cada viagem</li>
+                    <li>Avisos quando a viagem se atrasa</li>
                     <li>Relatórios PDF e Excel</li>
                 </ul>
             </div>
@@ -72,12 +72,12 @@
                 </div>
                 <div class="mock-kpis">
                     <div class="mock-kpi"><b>128</b><small>Carregamentos</small></div>
-                    <div class="mock-kpi"><b>94%</b><small>Dentro do SLA</small></div>
+                    <div class="mock-kpi"><b>94%</b><small>Dentro do prazo</small></div>
                     <div class="mock-kpi"><b>12</b><small>Em trânsito</small></div>
                 </div>
                 <div class="mock-row">
                     <span class="dot"></span>
-                    <span>Matola → Zimpeto · guia digitalizada</span>
+                    <span>Matola → Zimpeto · guia fotografada</span>
                     <span class="tag">ok</span>
                 </div>
                 <div class="mock-row">
@@ -87,8 +87,8 @@
                 </div>
                 <div class="mock-row">
                     <span class="dot"></span>
-                    <span>Beira → Dondo · sincronizado agora</span>
-                    <span class="tag">gps</span>
+                    <span>Beira → Dondo · enviado à central agora</span>
+                    <span class="tag">localização</span>
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@
     <div class="wrap">
         <div class="section-head">
             <span class="section-kicker">O que é</span>
-            <h2>Um único sistema, do papel ao indicador.</h2>
+            <h2>Um único sistema, do papel ao resultado.</h2>
             <p class="sub">
                 O Logitrack cobre o ciclo completo de um carregamento: o registo no
                 local de carga, o acompanhamento pela central e a análise no fim do mês.
@@ -112,11 +112,11 @@
                 <div class="icon">
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
                 </div>
-                <h3>Guia digitalizada</h3>
+                <h3>Guia fotografada</h3>
                 <p>
                     Cada carregamento tem guia, fotografia, toneladas, veículo e
-                    motorista. O ficheiro é validado e guardado com hash SHA-256, com
-                    histórico de alterações.
+                    motorista. A fotografia é verificada e fica com histórico de
+                    alterações.
                 </p>
             </article>
 
@@ -126,7 +126,7 @@
                 </div>
                 <h3>Visibilidade total</h3>
                 <p>
-                    Mapa, posições GPS, tempos médios e cumprimento de prazos. A central
+                    Mapa, localizações registadas, tempos médios e cumprimento dos prazos. A central
                     vê o que está em trânsito, o que atrasou e o que já foi entregue.
                 </p>
             </article>
@@ -135,10 +135,10 @@
                 <div class="icon green">
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 12.5a10 10 0 0 1 20 0"/><circle cx="12" cy="18" r="2.2"/></svg>
                 </div>
-                <h3>Offline-first</h3>
+                <h3>Funciona sem ligação</h3>
                 <p>
-                    Sem rede no local de carga, o registo fica numa fila no telemóvel e
-                    sincroniza sozinho quando a ligação volta. Nada se perde.
+                    Sem ligação no local de carga, o registo fica guardado no telemóvel e
+                    é enviado à central quando a ligação volta. Nada se perde.
                 </p>
             </article>
         </div>
@@ -161,8 +161,9 @@
             <div class="step">
                 <h3>Administrador prepara a estrutura</h3>
                 <p>
-                    Cria fábricas com geofence, SLA e horário de acostagem, registra
-                    veículos e motoristas e define os parâmetros do sistema.
+                    Cria fábricas com a área da fábrica, o prazo da viagem
+                    e o horário de receção dos camiões, regista veículos e motoristas e
+                    define as regras da operação.
                 </p>
             </div>
             <div class="step">
@@ -173,30 +174,31 @@
                 </p>
             </div>
             <div class="step">
-                <h3>Motorista registra no local</h3>
+                <h3>Motorista regista no local</h3>
                 <p>
-                    Na app, escolhe o veículo, indica a guia e as toneladas, recolhe o
-                    GPS e fotografa a guia. Tudo com poucos toques.
+                    Na app, escolhe o veículo, indica a guia e as toneladas, confirma a
+                    localização e fotografa a guia. Tudo com poucos toques.
                 </p>
             </div>
             <div class="step">
-                <h3>App sincroniza automaticamente</h3>
+                <h3>A app envia os registos automaticamente</h3>
                 <p>
-                    Com rede, o registo sobe para a API. Sem rede, fica na fila local e
-                    sobe quando a ligação regressa — cada registo é idempotente.
+                    Com ligação, o registo é enviado de imediato. Sem ligação, fica
+                    guardado no telemóvel e é enviado quando a ligação regressa — cada
+                    registo é enviado uma só vez.
                 </p>
             </div>
             <div class="step">
                 <h3>Central recebe e reage</h3>
                 <p>
-                    O carregamento aparece no painel em tempo real. Se o SLA aperta, o
-                    motor de alertas avisa por WebSocket e o alerta fica registado.
+                    O carregamento aparece no painel em tempo real. Se o prazo da viagem
+                    estiver a chegar ao fim, a central avisa e o alerta fica registado.
                 </p>
             </div>
             <div class="step">
                 <h3>Gestão analisa e exporta</h3>
                 <p>
-                    KPIs por fábrica, tempos médios e cumprimento de prazos, com
+                    Resultados da operação por fábrica, tempos médios e cumprimento de prazos, com
                     exportação dos mesmos filtros em PDF e Excel.
                 </p>
             </div>
@@ -212,7 +214,7 @@
                 <h2>Três aplicações, uma base de dados.</h2>
                 <p>
                     O painel web e a app do motorista falam com a mesma API Spring Boot,
-                    que guarda tudo no MySQL. A app funciona offline e sincroniza depois.
+                    que guarda tudo na central. A app funciona sem ligação e envia os registos depois.
                 </p>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start">
@@ -242,12 +244,12 @@
             <article class="card">
                 <span class="num">W2 · DASHBOARD</span>
                 <h3>Visão do dia</h3>
-                <p>Indicadores em tempo real, mapa da operação e últimos carregamentos.</p>
+                <p>Resultados da operação em tempo real, mapa e últimos carregamentos.</p>
             </article>
             <article class="card">
                 <span class="num">W3 · CARREGAMENTOS</span>
                 <h3>Ciclo de cada carga</h3>
-                <p>Pesquisa e filtros, detalhe com timeline, GPS e guia digitalizada.</p>
+                <p>Pesquisa e filtros, detalhe com etapas, localização e guia fotografada.</p>
             </article>
             <article class="card">
                 <span class="num">W4 · ALERTAS</span>
@@ -260,14 +262,14 @@
                 <p>Filtros por período, fábrica, veículo, motorista e estado; PDF e Excel.</p>
             </article>
             <article class="card">
-                <span class="num">W6 · KPIs</span>
-                <h3>Indicadores de gestão</h3>
+                <span class="num">W6 · RESULTADOS</span>
+                <h3>Resultados da operação</h3>
                 <p>Volume por fábrica, tempos médios e cumprimento de prazos.</p>
             </article>
             <article class="card">
                 <span class="num">W7 · FÁBRICAS</span>
                 <h3>Locais de carga</h3>
-                <p>Geofence, SLA e horário de acostagem por fábrica.</p>
+                <p>Área da fábrica, prazo da viagem e horário de receção dos camiões.</p>
             </article>
             <article class="card">
                 <span class="num">W8 · UTILIZADORES</span>
@@ -282,7 +284,7 @@
             <article class="card">
                 <span class="num">W10 · PARÂMETROS</span>
                 <h3>Regras do sistema</h3>
-                <p>SLA, GPS e sincronização ajustáveis em tempo de execução.</p>
+                <p>Prazo da viagem, localização e envio de registos ajustáveis a qualquer momento.</p>
             </article>
         </div>
     </div>
@@ -294,8 +296,8 @@
             <span class="section-kicker">App do motorista</span>
             <h2>Feita para o local de carga.</h2>
             <p class="sub">
-                Disponível como PWA no browser e como APK Android. Interface simples,
-                pensada para uso com uma mão, com câmara e GPS integrados.
+                Disponível no browser e como APK Android. Interface simples,
+                pensada para uso com uma mão, com câmara e localização integradas.
             </p>
         </div>
 
@@ -303,17 +305,17 @@
             <article class="card">
                 <span class="num">M1 · LOGIN</span>
                 <h3>Entrar</h3>
-                <p>Login online com JWT e cache segura para continuar a trabalhar offline.</p>
+                <p>Entra com ligação à Internet e continua a trabalhar sem ligação neste telemóvel.</p>
             </article>
             <article class="card">
                 <span class="num">M2 · DASHBOARD</span>
                 <h3>Resumo pessoal</h3>
-                <p>Carregamentos recentes, pendentes de envio e estado da ligação.</p>
+                <p>Carregamentos recentes, registos guardados no telemóvel e estado da ligação.</p>
             </article>
             <article class="card">
                 <span class="num">M3 · NOVO REGISTO</span>
                 <h3>Registar carga</h3>
-                <p>Guia, tipo de carga, toneladas, veículo, GPS e fotografia.</p>
+                <p>Guia, tipo de carga, toneladas, veículo, localização e fotografia.</p>
             </article>
             <article class="card">
                 <span class="num">M4 · FOTOGRAFIA</span>
@@ -321,14 +323,14 @@
                 <p>Câmara com moldura, compressão automática e pré-visualização.</p>
             </article>
             <article class="card">
-                <span class="num">M5 · FILA OFFLINE</span>
-                <h3>Sem rede, sem problema</h3>
-                <p>Registos guardados no dispositivo, contagem de pendentes e reenvio.</p>
+                <span class="num">M5 · REGISTOS GUARDADOS</span>
+                <h3>Sem ligação, sem problema</h3>
+                <p>Registos guardados no telemóvel, contagem dos que aguardam envio e reenvio.</p>
             </article>
             <article class="card">
                 <span class="num">M6 · DETALHE</span>
                 <h3>Acompanhar envio</h3>
-                <p>Timeline, GPS, guia e estado de sincronização de cada registo.</p>
+                <p>Etapas, localização, guia e estado do envio de cada registo.</p>
             </article>
         </div>
     </div>
@@ -351,7 +353,7 @@
                 <span class="where">Painel web</span>
                 <ul>
                     <li>Configura fábricas, veículos e utilizadores</li>
-                    <li>Define parâmetros de SLA, GPS e sincronização</li>
+                    <li>Define o prazo da viagem, a localização e quando os registos são enviados</li>
                     <li>Acede a todos os carregamentos, alertas e relatórios</li>
                     <li>É o único perfil que cria e desativa contas</li>
                 </ul>
@@ -363,7 +365,7 @@
                 <ul>
                     <li>Acompanha carregamentos, posições e estados no mapa</li>
                     <li>Verifica guias e trata alertas de atraso</li>
-                    <li>Consulta KPIs, relatórios e referências dos filtros</li>
+                    <li>Consulta os resultados da operação, os relatórios e as listas dos filtros</li>
                     <li>Não regista cargas nem altera utilizadores, fábricas, veículos ou parâmetros</li>
                 </ul>
             </article>
@@ -372,9 +374,9 @@
                 <h3>Motorista</h3>
                 <span class="where">PWA ou APK Android</span>
                 <ul>
-                    <li>Registra cargas e fotografa a guia</li>
-                    <li>Recolhe a posição GPS do local de carga</li>
-                    <li>Trabalha offline e sincroniza depois</li>
+                    <li>Regista cargas e fotografa a guia</li>
+                    <li>Confirma a localização no local de carga</li>
+                    <li>Guarda os registos no telemóvel e envia-os depois</li>
                     <li>Vê apenas os seus próprios registos</li>
                 </ul>
             </article>
@@ -405,7 +407,7 @@
                 </tr>
                 <tr>
                     <td>Registar carregamento</td>
-                    <td class="yes">Sync</td>
+                    <td class="yes">Envia à central</td>
                     <td class="no">—</td>
                     <td class="yes">Sim</td>
                 </tr>
@@ -422,7 +424,7 @@
                     <td class="no">—</td>
                 </tr>
                 <tr>
-                    <td>KPIs</td>
+                    <td>Resultados da operação</td>
                     <td class="yes">Sim</td>
                     <td class="yes">Sim</td>
                     <td class="no">—</td>
@@ -452,7 +454,7 @@
                     <td class="no">—</td>
                 </tr>
                 <tr>
-                    <td>Forçar verificação de SLA</td>
+                    <td>Verificar o prazo das viagens</td>
                     <td class="yes">Sim</td>
                     <td class="no">—</td>
                     <td class="no">—</td>
@@ -484,28 +486,28 @@
 
         <div class="grid grid-3">
             <article class="card">
-                <h3>Autenticação por JWT</h3>
-                <p>Sessões sem estado, com expiração configurável e permissões por perfil no servidor.</p>
+                <h3>Entrar na app</h3>
+                <p>Cada pessoa entra com e-mail e palavra-passe. A sessão termina ao fim de algum tempo e cada perfil vê só o que lhe compete.</p>
             </article>
             <article class="card">
-                <h3>Palavras-passe com BCrypt</h3>
+                <h3>Palavras-passe protegidas</h3>
                 <p>Nenhuma palavra-passe é guardada em texto simples, nem aparece no repositório.</p>
             </article>
             <article class="card">
-                <h3>Guias com SHA-256</h3>
-                <p>Cada fotografia é validada e identificada por hash, para provar que não foi alterada.</p>
+                <h3>Guias protegidas</h3>
+                <p>Cada fotografia é verificada para provar que não foi alterada.</p>
             </article>
             <article class="card">
-                <h3>Fila offline idempotente</h3>
-                <p>Cada registo tem um identificador local: reenviar duas vezes não duplica nada.</p>
+                <h3>Registos guardados no telemóvel</h3>
+                <p>Cada registo tem um número no telemóvel: enviar duas vezes não cria duplicados.</p>
             </article>
             <article class="card">
                 <h3>HTTPS em todo o lado</h3>
-                <p>Câmara, GPS e instalação da PWA só funcionam em ligações seguras.</p>
+                <p>A câmara, a localização e a instalação da app só funcionam em ligações seguras.</p>
             </article>
             <article class="card">
-                <h3>Fotografias persistentes</h3>
-                <p>As imagens ficam em armazenamento próprio, fora do contentor da aplicação.</p>
+                <h3>Fotografias guardadas</h3>
+                <p>As fotografias ficam guardadas em segurança, mesmo depois de atualizar a app.</p>
             </article>
         </div>
     </div>

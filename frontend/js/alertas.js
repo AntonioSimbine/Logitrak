@@ -45,7 +45,7 @@
                 return '<tr>'
                     + '<td><a class="guia" href="' + LT.urlCarregamento(a.carregamentoId) + '">'
                     + LT.escape(a.guiaNumero || '—') + '</a>'
-                    + '<div class="sub">' + LT.escape(a.mensagem || '') + '</div></td>'
+                    + '<div class="sub">' + LT.escape(LT.textoAlerta(a)) + '</div></td>'
                     + '<td>' + LT.escape(a.fabrica || '—') + '</td>'
                     + '<td>' + LT.escape(a.motorista || '—')
                     + '<div class="sub">' + LT.escape(a.veiculo || '') + '</div></td>'
@@ -54,8 +54,8 @@
                     + (a.minutosExcedidos || 0) + ' min</span></td>'
                     + '<td>' + LT.fmt.dataHora(a.dataHoraEmissao) + '</td>'
                     + '<td>' + (a.lido
-                        ? '<span class="chip no">LIDO</span>'
-                        : '<span class="chip sim">NÃO LIDO</span>') + '</td>'
+                        ? '<span class="chip no">Lido</span>'
+                        : '<span class="chip sim">Por ler</span>') + '</td>'
                     + '<td><div class="table-actions">'
                     + '<a class="btn small" data-abrir-alerta="' + a.id + '" href="' + LT.urlCarregamento(a.carregamentoId) + '">'
                     + 'Abrir</a>'
@@ -99,14 +99,14 @@
                     }
                     renderizarKpis();
                     renderizarTabela();
-                    LT.toast('Alerta marcado como lido', 'O incidente foi reconhecido.', 'success');
+                    LT.toast('Aviso marcado como lido', 'O aviso foi marcado como lido.', 'success');
                 } catch (e) {
                     LT.erro(e);
                 }
             });
         });
         document.getElementById('infoAlertas').textContent = lista.length
-            + ' alerta(s) apresentados de ' + alertas.length;
+            + ' alertas apresentados de ' + alertas.length;
     }
 
     async function carregar() {
@@ -138,7 +138,7 @@
     document.getElementById('btnMarcarTodos').addEventListener('click', async function () {
         const naoLidos = alertas.filter(function (a) { return !a.lido; });
         if (!naoLidos.length) {
-            LT.toast('Nada a fazer', 'Todos os alertas já estão lidos.', 'success');
+            LT.toast('Tudo em dia', 'Todos os avisos já foram lidos.', 'success');
             return;
         }
         for (const alerta of naoLidos) {
@@ -153,7 +153,7 @@
         }
         renderizarKpis();
         renderizarTabela();
-        LT.toast('Alertas atualizados', naoLidos.length + ' alerta(s) marcados como lidos.', 'success');
+        LT.toast('Alertas atualizados', naoLidos.length + ' alertas marcados como lidos.', 'success');
     });
 
     LT.on('alerta', function (alerta) {

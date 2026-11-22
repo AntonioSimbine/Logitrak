@@ -104,7 +104,7 @@ public class RelatorioService {
         ExportadorRelatorio exportador = exportadores.get(chave);
         if (exportador == null) {
             throw ApiException.badRequest(
-                    "Formato de exportação não suportado. Utilize pdf ou xlsx.");
+                    "Não foi possível gerar o relatório nesse formato. Escolha PDF ou Excel.");
         }
         RelatorioResponse dados = gerar(filtro);
         return new Exportacao(exportador.gerar(dados),

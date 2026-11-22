@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="alertas" data-titulo="Alertas de Atraso"
-      data-subtitulo="Incidentes de SLA e acompanhamento operacional">
+      data-subtitulo="Atrasos das viagens e acompanhamento da operação">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -22,7 +22,7 @@
             <div class="page-head">
                 <div>
                     <h2>Alertas automáticos de atraso</h2>
-                    <p>Alertas emitidos pelo motor de SLA. Os novos alertas aparecem aqui em tempo real.</p>
+                    <p>Avisos automáticos quando uma viagem passa do prazo definido. Os avisos novos aparecem aqui logo.</p>
                 </div>
                 <div class="page-actions">
                     <button class="btn" id="btnMarcarTodos">Marcar todos como lidos</button>
@@ -37,12 +37,12 @@
                     <div class="kpi-head"><span class="kpi-label">Não lidos</span>
                         <span class="kpi-icon red"><svg><use href="#i-bell"/></svg></span></div>
                     <div class="kpi-value" id="kpiNaoLidos">—</div>
-                    <div class="kpi-foot">Requerem atenção da central</div>
+                    <div class="kpi-foot">Precisam de atenção da central</div>
                 </article>
                 <article class="kpi">
                     <div class="kpi-head"><span class="kpi-label">Total de alertas</span></div>
                     <div class="kpi-value" id="kpiTotal">—</div>
-                    <div class="kpi-foot">Incidentes registados</div>
+                    <div class="kpi-foot">Avisos registados</div>
                 </article>
                 <article class="kpi amber">
                     <div class="kpi-head"><span class="kpi-label">Maior atraso</span></div>
@@ -52,7 +52,7 @@
                 <article class="kpi">
                     <div class="kpi-head"><span class="kpi-label">Fábricas afetadas</span></div>
                     <div class="kpi-value" id="kpiFabricas">—</div>
-                    <div class="kpi-foot">Origens com incidentes</div>
+                    <div class="kpi-foot">Fábricas com avisos</div>
                 </article>
             </section>
 
@@ -77,8 +77,8 @@
                             <th>Fábrica</th>
                             <th>Motorista</th>
                             <th>Horário limite</th>
-                            <th>Tempo excedido</th>
-                            <th>Emitido</th>
+                            <th>Tempo de atraso</th>
+                            <th>Quando apareceu</th>
                             <th>Estado</th>
                             <th></th>
                         </tr>

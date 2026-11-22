@@ -19,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
-    private static final String CREDENCIAIS_INVALIDAS = "Credenciais inválidas";
+    private static final String CREDENCIAIS_INVALIDAS =
+            "Não foi possível entrar. Verifique o e-mail e a palavra-passe.";
 
     private final AuthenticationManager authenticationManager;
     private final UtilizadorRepository utilizadorRepository;

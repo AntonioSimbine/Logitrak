@@ -226,7 +226,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 b.ivFilaIcone.imageTintList = ColorStateList.valueOf(cor(R.color.amber))
             }
             rejeitados > 0 -> {
-                b.tvFilaTitulo.text = getString(R.string.queue_rejected_title, rejeitados)
+                b.tvFilaTitulo.text = resources.getQuantityString(
+                    R.plurals.queue_rejected_title, rejeitados, rejeitados
+                )
                 b.tvFilaTexto.setText(R.string.queue_rejected_text)
                 b.wrapFilaIcone.setBackgroundResource(R.drawable.bg_queue_icon_red)
                 b.ivFilaIcone.setImageResource(R.drawable.ic_alert)

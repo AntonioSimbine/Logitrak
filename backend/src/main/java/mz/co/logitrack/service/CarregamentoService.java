@@ -108,18 +108,19 @@ public class CarregamentoService {
                 && pedido.dataHoraFimCarregamento() == null
                 && pedido.dataHoraInicioTransporte() == null
                 && pedido.dataHoraFimTransporte() == null)) {
-            throw ApiException.badRequest("Indique pelo menos um instante operacional.");
+            throw ApiException.badRequest(
+                    "Faltam dados obrigatórios. Preencha os campos assinalados.");
         }
         Carregamento c = obterComRelacoes(id);
         verificarAcesso(c, principal);
         if (c.getEstado() == EstadoCarregamento.REJEITADO) {
             throw ApiException.unprocessable(
-                    "Não é possível registar fases de um carregamento rejeitado.");
+                    "A central não aceitou o registo. Corrija os dados e envie novamente.");
         }
         if (pedido.dataHoraFimTransporte() != null
                 && c.getEstado() != EstadoCarregamento.CONCLUIDO) {
             throw ApiException.unprocessable(
-                    "O fim do transporte só pode ser registado após a conclusão.");
+                    "Conclua o registo antes de indicar o fim do transporte.");
         }
 
         LocalDateTime inicioCarregamento = pedido.dataHoraInicioCarregamento() != null
@@ -161,21 +162,24 @@ public class CarregamentoService {
                                               AuthenticatedUser principal) {
         if (novoEstado == EstadoCarregamento.ATRASADO) {
             throw ApiException.unprocessable(
-                    "O estado ATRASADO é atribuído automaticamente pelo motor de SLA");
+                    "O prazo definido para a viagem foi ultrapassado. "
+                            + "A central atualiza este estado automaticamente.");
         }
         Carregamento c = obterComRelacoes(id);
         verificarAcesso(c, principal);
 
         if (!c.getEstado().podeTransitarPara(novoEstado)) {
-            throw ApiException.unprocessable(String.format(
-                    "Transição de estado inválida: %s -> %s",
-                    c.getEstado().getEtiqueta(), novoEstado.getEtiqueta()));
+            log.warn("Transição de estado inválida para o registo {}: {} -> {}",
+                    id, c.getEstado(), novoEstado);
+            throw ApiException.unprocessable(
+                    "Não é possível alterar o estado para " + novoEstado.getEtiqueta()
+                            + " neste momento.");
         }
 
         if (novoEstado == EstadoCarregamento.REJEITADO) {
             if (motivoRejeicao == null || motivoRejeicao.isBlank()) {
                 throw ApiException.unprocessable(
-                        "O motivo de rejeição é obrigatório ao rejeitar um carregamento");
+                        "Faltam dados obrigatórios. Preencha os campos assinalados.");
             }
             c.setMotivoRejeicao(motivoRejeicao.trim());
             c.setDataHoraFim(LocalDateTime.now());
@@ -245,9 +249,11 @@ public class CarregamentoService {
                 ? TipoNotificacao.REJEICAO : TipoNotificacao.CONCLUSAO;
         String titulo = rejeicao ? "Guia rejeitada" : "Carregamento concluído";
         String mensagem = rejeicao
-                ? "O carregamento da guia " + c.getGuiaNumero() + " foi rejeitado. Motivo: "
-                        + c.getMotivoRejeicao()
-                : "O carregamento da guia " + c.getGuiaNumero() + " foi concluído.";
+                ? "A central não aceitou o carregamento da guia " + c.getGuiaNumero()
+                        + ". Motivo: " + c.getMotivoRejeicao()
+                        + ". Corrija os dados e envie novamente."
+                : "O carregamento da guia " + c.getGuiaNumero()
+                        + " foi concluído. Já pode iniciar outro registo.";
         notificacaoService.registarAccaoManual(
                 principal, tipo, c.getMotorista().getId(), c.getId(), c.getGuiaNumero(),
                 titulo, mensagem,
@@ -263,10 +269,11 @@ public class CarregamentoService {
         if (c.getEstado() == EstadoCarregamento.CONCLUIDO
                 || c.getEstado() == EstadoCarregamento.REJEITADO) {
             throw ApiException.unprocessable(
-                    "Não é possível registar GPS num carregamento terminado");
+                    "Este registo já terminou. Não é possível enviar novas posições.");
         }
         if (c.getVeiculo() == null) {
-            throw ApiException.unprocessable("Carregamento sem veículo associado");
+            throw ApiException.unprocessable(
+                    "Faltam dados obrigatórios. Preencha os campos assinalados.");
         }
 
         LocalizacaoGPS localizacao = new LocalizacaoGPS(
@@ -312,7 +319,8 @@ public class CarregamentoService {
 
     public Carregamento obterComRelacoes(Long id) {
         return carregamentoRepository.findWithRelationsById(id)
-                .orElseThrow(() -> ApiException.notFound("Carregamento não encontrado"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar o registo. Confirme os dados e tente novamente."));
     }
 
     public void verificarAcesso(Carregamento c, AuthenticatedUser principal) {
@@ -322,7 +330,8 @@ public class CarregamentoService {
         if (principal.getPerfil() == Role.MOTORISTA
                 && (c.getMotorista() == null
                 || !c.getMotorista().getId().equals(principal.getId()))) {
-            throw ApiException.forbidden("Sem permissão para aceder a este carregamento");
+            throw ApiException.forbidden(
+                    "Não tem permissão para esta operação. Fale com a central.");
         }
     }
 

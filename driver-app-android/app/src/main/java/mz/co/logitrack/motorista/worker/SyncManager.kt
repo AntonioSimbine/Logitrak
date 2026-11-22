@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
+import mz.co.logitrack.motorista.R
 import mz.co.logitrack.motorista.data.dto.PosicaoRequest
 import mz.co.logitrack.motorista.data.dto.SyncRequest
 import mz.co.logitrack.motorista.data.local.AppDb
@@ -163,7 +164,7 @@ object SyncManager {
         )
         Idempotencia.consumir()
         return try {
-            // Impedir que o botão fique indefinidamente em "A sincronizar".
+            // Impedir que o botão fique indefinidamente em "Envio em curso".
             // O pedido continua pendente e pode ser repetido se o servidor não responder.
             val resp = withTimeout(45_000L) { api.syncCarregamento(pedido) }
             when {
@@ -186,29 +187,29 @@ object SyncManager {
                 }
                 resp.code() == 401 -> {
                     prefs.sessionExpired = true
-                    dao.atualizar(tentativa.copy(erro = ApiErrors.mensagem(resp)))
+                    dao.atualizar(tentativa.copy(erro = ApiErrors.mensagem(context, resp)))
                     Sessao.sinalizarExpiracao()
                     ResultadoItem.SESSAO
                 }
                 resp.code() == 400 || resp.code() == 422 || resp.code() == 409 -> {
                     dao.atualizar(
-                        tentativa.copy(estado = "REJEITADO", erro = ApiErrors.mensagem(resp))
+                        tentativa.copy(estado = "REJEITADO", erro = ApiErrors.mensagem(context, resp))
                     )
                     ResultadoItem.REJEITADO
                 }
                 else -> {
-                    dao.atualizar(tentativa.copy(erro = ApiErrors.mensagem(resp)))
+                    dao.atualizar(tentativa.copy(erro = ApiErrors.mensagem(context, resp)))
                     ResultadoItem.FALHA
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            dao.atualizar(tentativa.copy(erro = "Tempo limite excedido (45 s). O carregamento continua pendente e será tentado novamente."))
+            dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_timeout)))
             ResultadoItem.FALHA
         } catch (e: IOException) {
-            dao.atualizar(tentativa.copy(erro = "Sem ligação ao servidor. Será tentado novamente."))
+            dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_offline)))
             ResultadoItem.SEM_REDE
         } catch (e: Exception) {
-            dao.atualizar(tentativa.copy(erro = e.message ?: "Falha de comunicação."))
+            dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_generic)))
             ResultadoItem.FALHA
         }
     }
@@ -249,7 +250,7 @@ object SyncManager {
                         dao.atualizar(
                             ponto.copy(
                                 enviadoEm = System.currentTimeMillis(),
-                                erro = ApiErrors.mensagem(resp)
+                                erro = ApiErrors.mensagem(context, resp)
                             )
                         )
                     }
@@ -258,7 +259,7 @@ object SyncManager {
                             ponto.copy(
                                 tentativas = ponto.tentativas + 1,
                                 ultimaTentativa = System.currentTimeMillis(),
-                                erro = ApiErrors.mensagem(resp)
+                                erro = ApiErrors.mensagem(context, resp)
                             )
                         )
                     }
@@ -272,7 +273,7 @@ object SyncManager {
                     ponto.copy(
                         tentativas = ponto.tentativas + 1,
                         ultimaTentativa = System.currentTimeMillis(),
-                        erro = e.message ?: "Falha de comunicação."
+                        erro = context.getString(R.string.sync_error_position)
                     )
                 )
             }

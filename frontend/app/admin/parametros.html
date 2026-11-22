@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>Parâmetros Globais · Logitrack</title>
+    <title>Regras da operação · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../../img/favicon.svg">
     <link rel="stylesheet" href="../../css/app.css?v=20261122b">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="../../css/logitrack-blue.css?v=20261122b">
     <link rel="stylesheet" href="../../css/logitrack-complete.css?v=20261122b">
 </head>
-<body data-pagina="parametros" data-requer="ADMIN" data-titulo="Parâmetros Globais"
-      data-subtitulo="Constantes operacionais aplicadas em tempo de execução">
+<body data-pagina="parametros" data-requer="ADMIN" data-titulo="Regras da operação"
+      data-subtitulo="Valores que a central usa para verificar a operação">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -21,12 +21,12 @@
         <main class="content">
             <div class="page-head">
                 <div>
-                    <h2>Parâmetros globais</h2>
-                    <p>Altere as constantes do sistema sem reiniciar a aplicação. Os valores são lidos em cada ciclo operacional.</p>
+                    <h2>Regras da operação</h2>
+                    <p>Mude estes valores sem precisar de reiniciar o sistema. A central volta a lê-los de imediato.</p>
                 </div>
                 <div class="page-actions">
                     <button class="btn" id="btnAtualizar" type="button">
-                        <svg><use href="#i-refresh"/></svg> Recarregar
+                        <svg><use href="#i-refresh"/></svg> Atualizar
                     </button>
                 </div>
             </div>
@@ -38,11 +38,11 @@
                             <svg><use href="#i-settings"/></svg>
                         </div>
                         <div style="flex:1;min-width:240px">
-                            <strong style="font-size:13px">Aplicação imediata</strong>
+                            <strong style="font-size:13px">As mudanças valem de imediato</strong>
                             <p class="muted small" style="margin:4px 0 0;line-height:1.5">
-                                A tolerância de atraso e a precisão máxima do GPS são consultadas a cada
-                                validação e a cada ciclo do motor de SLA. A app móvel descarrega os
-                                parâmetros na sincronização seguinte.
+                                O tempo de tolerância e a qualidade da localização são
+                                verificados a cada registo e a cada verificação do prazo da viagem.
+                                As alterações chegam ao telemóvel do motorista no próximo envio à central.
                             </p>
                         </div>
                     </div>
@@ -51,7 +51,7 @@
 
             <div class="param-grid" id="listaParametros">
                 <div class="param-card">
-                    <div class="empty">A carregar parâmetros…</div>
+                    <div class="empty">A carregar as regras…</div>
                 </div>
             </div>
         </main>

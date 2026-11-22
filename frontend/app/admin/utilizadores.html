@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="../../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="utilizadores" data-requer="ADMIN" data-titulo="Utilizadores e Perfis"
-      data-subtitulo="Contas, papéis e políticas de acesso">
+      data-subtitulo="Quem entra, o que cada um pode fazer e regras de acesso">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -22,7 +22,7 @@
             <div class="page-head">
                 <div>
                     <h2>Utilizadores e perfis</h2>
-                    <p>Gerir administradores, operadores da central e motoristas. As contas inativas não conseguem autenticar-se.</p>
+                    <p>Gerir administradores, operadores da central e motoristas. As contas desativadas não conseguem entrar.</p>
                 </div>
                 <div class="page-actions">
                     <button class="btn" id="btnAtualizar" type="button">
@@ -54,7 +54,7 @@
                 <article class="kpi green">
                     <div class="kpi-head"><span class="kpi-label">Motoristas ativos</span></div>
                     <div class="kpi-value" id="kpiMotoristas">—</div>
-                    <div class="kpi-foot">Contas móveis habilitadas</div>
+                    <div class="kpi-foot">Contas que podem usar a app do motorista</div>
                 </article>
             </section>
 
@@ -62,7 +62,7 @@
                 <div class="card-head">
                     <div>
                         <h3>Contas do sistema</h3>
-                        <div class="sub">A alteração de perfil aplica-se no próximo início de sessão</div>
+                        <div class="sub">Se mudar o perfil, a alteração vale no próximo acesso</div>
                     </div>
                     <div class="spacer"></div>
                     <div class="input-icon" style="width:280px">
@@ -96,7 +96,7 @@
         <div class="modal-head">
             <div>
                 <h3 id="tituloModalUtilizador">Novo utilizador</h3>
-                <p>Defina o perfil de acesso e as credenciais iniciais.</p>
+                <p>Escolha o perfil de acesso e escreva a palavra-passe inicial.</p>
             </div>
             <div class="spacer"></div>
             <button class="icon-btn" type="button" data-fechar="modalUtilizador">×</button>
@@ -133,7 +133,7 @@
                         <label for="senhaUtilizador">Palavra-passe</label>
                         <input class="input" id="senhaUtilizador" type="password" minlength="6"
                                maxlength="72" autocomplete="new-password">
-                        <span class="hint" id="hintSenha">Obrigatória na criação (mínimo 6 caracteres).</span>
+                        <span class="hint" id="hintSenha">É obrigatória ao criar a conta (pelo menos 6 caracteres).</span>
                     </div>
                 </div>
             </div>
@@ -151,8 +151,8 @@
     <div class="modal narrow">
         <div class="modal-head">
             <div>
-                <h3>Redefinir palavra-passe</h3>
-                <p id="subtituloSenha">A nova palavra-passe será aplicada imediatamente.</p>
+                <h3>Mudar palavra-passe</h3>
+                <p id="subtituloSenha">A nova palavra-passe vale de imediato.</p>
             </div>
             <div class="spacer"></div>
             <button class="icon-btn" type="button" data-fechar="modalSenha">×</button>
@@ -173,7 +173,7 @@
             </div>
             <div class="modal-foot">
                 <button class="btn ghost" type="button" data-fechar="modalSenha">Cancelar</button>
-                <button class="btn primary" type="submit">Redefinir palavra-passe</button>
+                <button class="btn primary" type="submit">Guardar nova palavra-passe</button>
             </div>
         </form>
     </div>

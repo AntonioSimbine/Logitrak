@@ -38,6 +38,15 @@ object EstadoUi {
         else -> Chip(R.drawable.bg_chip_dark, Color.WHITE)
     }
 
-    fun etiqueta(estado: String?, etiqueta: String?): String =
-        etiqueta?.takeIf { it.isNotBlank() } ?: estado.orEmpty().takeIf { it.isNotBlank() } ?: "—"
+    fun etiqueta(context: Context, estado: String?, etiqueta: String?): String {
+        val valor = etiqueta?.takeIf { it.isNotBlank() }
+            ?: estado?.takeIf { it.isNotBlank() }
+            ?: return context.getString(R.string.not_available)
+        return when (chave(estado).takeIf { it.isNotBlank() } ?: chave(valor)) {
+            "pendente" -> context.getString(R.string.status_pending)
+            "sincronizado" -> context.getString(R.string.status_synced)
+            "rejeitado" -> context.getString(R.string.status_rejected)
+            else -> valor
+        }
+    }
 }

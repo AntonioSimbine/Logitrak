@@ -5,7 +5,7 @@ import mz.co.logitrack.domain.enums.EstadoCarregamento;
 
 /** Alteração de estado efetuada pelo painel web (ex.: concluir). */
 public record AtualizarEstadoRequest(
-        @NotNull(message = "O estado é obrigatório") EstadoCarregamento estado,
+        @NotNull(message = "Indique a acção a realizar com o registo.") EstadoCarregamento estado,
         String motivoRejeicao
 ) {
 }

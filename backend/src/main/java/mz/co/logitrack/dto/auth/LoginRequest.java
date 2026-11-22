@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 
 /** Credenciais de entrada (M1 móvel e W1 web). */
 public record LoginRequest(
-        @NotBlank(message = "O e-mail é obrigatório")
-        @Email(message = "E-mail inválido")
+        @NotBlank(message = "Introduza o e-mail")
+        @Email(message = "Verifique o e-mail introduzido")
         String email,
 
-        @NotBlank(message = "A palavra-passe é obrigatória")
+        @NotBlank(message = "Introduza a palavra-passe")
         String senha) {
 }

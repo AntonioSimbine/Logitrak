@@ -35,7 +35,7 @@ class RecentAdapter(
         val b = holder.b
         val contexto = b.root.context
         b.tvGuia.text = item.guiaNumero
-        b.tvEstado.text = EstadoUi.etiqueta(item.estado, item.estadoEtiqueta)
+        b.tvEstado.text = EstadoUi.etiqueta(contexto, item.estado, item.estadoEtiqueta)
         val chip = EstadoUi.chipClaro(contexto, item.estado)
         b.tvEstado.setBackgroundResource(chip.fundo)
         b.tvEstado.setTextColor(chip.corTexto)

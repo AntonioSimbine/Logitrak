@@ -3,16 +3,16 @@
     'use strict';
 
     const rotulos = {
-        dashboard: 'Centro de controlo',
+        dashboard: 'Painel da central',
         carregamentos: 'Gestão de carregamentos',
         'carregamento-detalhe': 'Detalhes do carregamento',
         alertas: 'Central de alertas',
-        kpis: 'Indicadores de desempenho',
+        kpis: 'Resultados da operação',
         relatorios: 'Relatórios operacionais',
         utilizadores: 'Gestão de utilizadores',
         veiculos: 'Gestão da frota',
         fabricas: 'Gestão de fábricas',
-        parametros: 'Parâmetros do sistema'
+        parametros: 'Regras da operação'
     };
 
     function render() {
@@ -50,7 +50,7 @@
         const rodape = document.createElement('footer');
         rodape.className = 'lt-footer';
         rodape.innerHTML = '<span>Logitrack · Gestão e Rastreabilidade de Carregamentos</span>'
-            + '<span>Ambiente web · ' + perfil + '</span>';
+            + '<span>Painel web · ' + perfil + '</span>';
         main.append(rodape);
     }
 

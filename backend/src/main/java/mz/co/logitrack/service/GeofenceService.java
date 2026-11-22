@@ -67,16 +67,20 @@ public class GeofenceService {
 
         if (fabricaId != null) {
             Fabrica fabrica = fabricaRepository.findById(fabricaId)
-                    .orElseThrow(() -> ApiException.unprocessable("Fábrica não encontrada"));
+                    .orElseThrow(() -> ApiException.unprocessable(
+                            "Não foi possível encontrar a fábrica selecionada. "
+                                    + "Confirme os dados e tente novamente."));
             if (!Boolean.TRUE.equals(fabrica.getAtiva())) {
-                throw ApiException.unprocessable("A fábrica selecionada está inativa");
+                throw ApiException.unprocessable(
+                        "A fábrica selecionada não está disponível. Escolha outra fábrica e tente novamente.");
             }
             double distancia = GeoUtils.distanciaMetros(
                     latitude, longitude, fabrica.getLatitude(), fabrica.getLongitude());
             if (distancia > fabrica.getRaioGeofenceMetros() && !confirmarForaGeofence) {
                 throw ApiException.unprocessable(String.format(
-                        "Fora do raio de geofence de %s (distância %s; raio %d m). "
-                                + "Confirme o registo para continuar.",
+                        "Está fora da área da fábrica. Fábrica %s: distância %s, "
+                                + "distância máxima %d m. "
+                                + "Aproxime-se da fábrica ou confirme o registo para continuar.",
                         fabrica.getNome(),
                         GeoUtils.formatarDistancia(distancia),
                         fabrica.getRaioGeofenceMetros()));
@@ -93,17 +97,18 @@ public class GeofenceService {
             return maisProxima(latitude, longitude)
                     .map(Deteccao::fabrica)
                     .orElseThrow(() -> ApiException.unprocessable(
-                            "Não existem fábricas ativas configuradas"));
+                            "A central ainda não tem fábricas disponíveis. "
+                                    + "Tente novamente dentro de instantes."));
         }
 
         String detalhe = maisProxima(latitude, longitude)
-                .map(d -> String.format(" A mais próxima é %s, a %s (raio %d m).",
+                .map(d -> String.format(" A fábrica mais próxima é %s, a %s (distância máxima %d m).",
                         d.fabrica().getNome(),
                         GeoUtils.formatarDistancia(d.distanciaMetros()),
                         d.fabrica().getRaioGeofenceMetros()))
                 .orElse("");
         throw ApiException.unprocessable(
-                "Nenhuma fábrica dentro do raio de geofence." + detalhe
-                        + " Aproxime-se da fábrica ou confirme o registo manualmente.");
+                "Está fora da área da fábrica." + detalhe
+                        + " Aproxime-se da fábrica ou confirme o registo para continuar.");
     }
 }

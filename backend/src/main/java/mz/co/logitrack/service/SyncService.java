@@ -46,6 +46,8 @@ public class SyncService {
 
     private static final Logger log = LoggerFactory.getLogger(SyncService.class);
     private static final int TAMANHO_MAXIMO_FOTO = 10 * 1024 * 1024;
+    private static final String FOTOGRAFIA_INVALIDA =
+            "A fotografia não serve. Tire outra com boa luz e o documento inteiro dentro da moldura.";
 
     private final CarregamentoRepository carregamentoRepository;
     private final VeiculoRepository veiculoRepository;
@@ -104,7 +106,7 @@ public class SyncService {
             ResultadoSincronizacao resultado =
                     transacao.execute(status -> criarCarregamento(requisicao, motorista));
             if (resultado == null) {
-                throw new IllegalStateException("Não foi possível sincronizar o carregamento");
+                throw new IllegalStateException("Não foi possível enviar o registo à central");
             }
             return resultado;
         } catch (DataIntegrityViolationException ex) {
@@ -149,7 +151,8 @@ public class SyncService {
             log.warn("Acesso negado a carregamento de outro motorista: uuidLocal={} "
                             + "proprietarioId={} autenticadoId={}",
                     carregamento.getUuidLocal(), proprietarioId, autenticadoId);
-            throw ApiException.forbidden("Este carregamento pertence a outro motorista.");
+            throw ApiException.forbidden(
+                    "Não tem permissão para esta operação. Fale com a central.");
         }
     }
 
@@ -162,14 +165,19 @@ public class SyncService {
 
         // 3) Veículo e motorista.
         Veiculo veiculo = veiculoRepository.findByIdForUpdate(requisicao.veiculoId())
-                .orElseThrow(() -> ApiException.unprocessable("Veículo não encontrado"));
+                .orElseThrow(() -> ApiException.unprocessable(
+                        "Não foi possível encontrar o veículo selecionado. "
+                                + "Confirme os dados e tente novamente."));
         if (veiculo.getEstado() == EstadoVeiculo.MANUTENCAO) {
+            log.warn("Veículo {} em manutenção ao enviar registo {}",
+                    veiculo.getMatricula(), requisicao.uuidLocal());
             throw ApiException.unprocessable(
-                    "O veículo " + veiculo.getMatricula() + " está em manutenção");
+                    "O veículo selecionado está em manutenção. Escolha outro veículo e tente novamente.");
         }
         vehicleOperations.validarNovaOperacao(veiculo, requisicao.quantidadeToneladas());
         Utilizador motoristaEntidade = utilizadorRepository.findById(motorista.getId())
-                .orElseThrow(() -> ApiException.unauthorized("Credenciais inválidas"));
+                .orElseThrow(() -> ApiException.unauthorized(
+                        "Não foi possível entrar. Verifique o e-mail e a palavra-passe."));
 
         // 4) Geofence / fábrica de origem (RN03).
         Fabrica fabrica = geofenceService.resolver(
@@ -234,13 +242,14 @@ public class SyncService {
 
     private byte[] descodificarFotografia(String fotoBase64) {
         if (fotoBase64 == null || fotoBase64.isBlank()) {
-            throw ApiException.unprocessable("A fotografia da guia é obrigatória");
+            throw ApiException.unprocessable("Falta a fotografia da guia.");
         }
         String conteudo = fotoBase64.trim();
         if (conteudo.startsWith("data:")) {
             int virgula = conteudo.indexOf(',');
             if (virgula < 0) {
-                throw ApiException.unprocessable("Fotografia inválida");
+                log.warn("Fotografia enviada com cabeçalho de dados inválido");
+                throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
             }
             conteudo = conteudo.substring(virgula + 1);
         }
@@ -248,15 +257,17 @@ public class SyncService {
         try {
             byte[] bytes = Base64.getDecoder().decode(conteudo);
             if (bytes.length == 0) {
-                throw ApiException.unprocessable("A fotografia da guia está vazia");
+                throw ApiException.unprocessable("Falta a fotografia da guia.");
             }
             if (bytes.length > TAMANHO_MAXIMO_FOTO) {
-                throw ApiException.unprocessable(
-                        "A fotografia excede o tamanho máximo de 10 MB");
+                log.warn("Fotografia com {} bytes excede o limite de {} bytes",
+                        bytes.length, TAMANHO_MAXIMO_FOTO);
+                throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
             }
             return bytes;
         } catch (IllegalArgumentException ex) {
-            throw ApiException.unprocessable("Fotografia inválida (Base64 malformado)");
+            log.warn("Fotografia com codificação Base64 malformada", ex);
+            throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
         }
     }
 

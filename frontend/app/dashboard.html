@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>Painel de Operações · Logitrack</title>
+    <title>Painel da central · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
     <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
     <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
-<body data-pagina="dashboard" data-titulo="Painel de Operações"
-      data-subtitulo="Visão em tempo real da operação">
+<body data-pagina="dashboard" data-titulo="Painel da central"
+      data-subtitulo="O que está a acontecer agora">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -22,8 +22,8 @@
         <main class="content">
             <div class="page-head">
                 <div>
-                    <h2>Central de Operações</h2>
-                    <p>Carregamentos, frota e alertas de SLA num único ecrã.
+                    <h2>Painel da central</h2>
+                    <p>Carregamentos, veículos e avisos de atraso num só ecrã.
                         <span class="muted" id="atualizadoEm"></span></p>
                 </div>
                 <div class="page-actions">
@@ -51,7 +51,7 @@
                         <span class="kpi-icon red"><svg><use href="#i-clock"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiAtrasados">—</div>
-                    <div class="kpi-foot">Fora do SLA da fábrica de origem</div>
+                    <div class="kpi-foot">Passaram do prazo da fábrica de origem</div>
                 </article>
                 <article class="kpi green">
                     <div class="kpi-head">
@@ -59,7 +59,7 @@
                         <span class="kpi-icon green"><svg><use href="#i-check"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiConcluidos">—</div>
-                    <div class="kpi-foot">Carregamentos fechados nas últimas 24h</div>
+                    <div class="kpi-foot">Carregamentos terminados nas últimas 24 horas</div>
                 </article>
                 <article class="kpi amber">
                     <div class="kpi-head">
@@ -67,15 +67,15 @@
                         <span class="kpi-icon amber"><svg><use href="#i-chart"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiTempo">—</div>
-                    <div class="kpi-foot">Registo → início do carregamento</div>
+                    <div class="kpi-foot">Do registo ao início da carga</div>
                 </article>
             </section>
 
             <section class="card fases-card">
                 <div class="card-head">
                     <div>
-                        <h3>Tempos por fase</h3>
-                        <div class="sub">Média dos carregamentos com instantes operacionais registados</div>
+                        <h3>Tempo de cada fase</h3>
+                        <div class="sub">Média dos carregamentos com horas registadas</div>
                     </div>
                     <div class="spacer"></div>
                     <span class="chip" id="fasesAbrangencia">Sem dados</span>
@@ -92,7 +92,7 @@
                     <div class="card-head">
                         <div>
                             <h3>Mapa em tempo real</h3>
-                            <div class="sub">Posição dos veículos em rota e raios de geofence</div>
+                            <div class="sub">Onde estão os veículos e as áreas das fábricas</div>
                         </div>
                         <div class="spacer"></div>
                         <span class="chip em_transito" id="chipVeiculos">0 em rota</span>
@@ -106,7 +106,7 @@
                             </div>
                         </div>
                         <div class="map-legend">
-                            <span><i class="dot"></i> Fábrica / geofence</span>
+                            <span><i class="dot"></i> Fábrica e área da fábrica</span>
                             <span><i class="dot blue"></i> Veículo em rota</span>
                             <span><i class="dot red"></i> Atrasado</span>
                         </div>

@@ -35,7 +35,8 @@ public class VeiculoService {
     public VeiculoDTO criar(VeiculoRequest pedido) {
         String matricula = normalizar(pedido.matricula());
         if (veiculoRepository.existsByMatriculaIgnoreCase(matricula)) {
-            throw ApiException.unprocessable("Já existe um veículo com esta matrícula");
+            throw ApiException.unprocessable(
+                    "Já existe um veículo com esta matrícula. Confirme a matrícula antes de guardar.");
         }
         Veiculo veiculo = new Veiculo();
         aplicar(veiculo, pedido, matricula);
@@ -47,7 +48,8 @@ public class VeiculoService {
         Veiculo veiculo = entidade(id);
         String matricula = normalizar(pedido.matricula());
         if (veiculoRepository.existsByMatriculaIgnoreCaseAndIdNot(matricula, id)) {
-            throw ApiException.unprocessable("Já existe um veículo com esta matrícula");
+            throw ApiException.unprocessable(
+                    "Já existe um veículo com esta matrícula. Confirme a matrícula antes de guardar.");
         }
         aplicar(veiculo, pedido, matricula);
         return toDTO(veiculoRepository.save(veiculo));
@@ -58,14 +60,16 @@ public class VeiculoService {
         Veiculo veiculo = entidade(id);
         if (carregamentoRepository.countByVeiculoId(id) > 0) {
             throw ApiException.unprocessable(
-                    "O veículo tem carregamentos associados. Altere o estado para manutenção.");
+                    "Este veículo tem registos associados. Coloque-o em manutenção para o "
+                            + "retirar da lista sem apagar o histórico.");
         }
         veiculoRepository.delete(veiculo);
     }
 
     public Veiculo entidade(Long id) {
         return veiculoRepository.findById(id)
-                .orElseThrow(() -> ApiException.notFound("Veículo não encontrado"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar o veículo. Confirme os dados e tente novamente."));
     }
 
     private void aplicar(Veiculo veiculo, VeiculoRequest pedido, String matricula) {

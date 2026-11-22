@@ -107,7 +107,8 @@ class AuthAndSyncApiTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(corpo))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.error").value("Credenciais inválidas"));
+                    .andExpect(jsonPath("$.error").value(
+                            "Não foi possível entrar. Verifique o e-mail e a palavra-passe."));
         }
     }
 
@@ -136,11 +137,12 @@ class AuthAndSyncApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.error").value("Dados inválidos"))
+                .andExpect(jsonPath("$.error").value(
+                        "Faltam dados obrigatórios. Preencha os campos assinalados."))
                 .andExpect(jsonPath("$.detalhes.precisaoMetros").value(
-                        org.hamcrest.Matchers.containsString("Máx: 15m")))
+                        org.hamcrest.Matchers.containsString("A localização ainda não é precisa")))
                 .andExpect(jsonPath("$.detalhes.precisaoMetros").value(
-                        org.hamcrest.Matchers.containsString("aguarde uma fix melhor")));
+                        org.hamcrest.Matchers.containsString("Vá para um local aberto")));
     }
 
     @Test
@@ -155,7 +157,7 @@ class AuthAndSyncApiTest {
                         .content(payload))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error").value(
-                        org.hamcrest.Matchers.containsString("Fora do raio de geofence")));
+                        org.hamcrest.Matchers.containsString("Está fora da área da fábrica.")));
     }
 
     @Test
@@ -226,7 +228,7 @@ class AuthAndSyncApiTest {
                         .content(payload))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value(
-                        "Este carregamento pertence a outro motorista."));
+                        "Não tem permissão para esta operação. Fale com a central."));
 
         // O proprietário continua a reenviar sem duplicar.
         mockMvc.perform(post("/api/v1/carregamentos")

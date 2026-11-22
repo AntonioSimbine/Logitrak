@@ -7,19 +7,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Payload de sincronização enviado pela app móvel. O {@code uuidLocal} é a
+ * Payload de envio enviado pela app móvel. O {@code uuidLocal} é a
  * chave de idempotência e a fotografia segue comprimida em Base64.
  */
 public record SyncCarregamentoRequest(
-        @NotNull(message = "uuidLocal é obrigatório")
+        @NotNull(message = "O identificador do registo é obrigatório")
         UUID uuidLocal,
 
         @NotBlank(message = "O número da guia é obrigatório")
-        @Size(max = 60)
+        @Size(max = 60, message = "O número da guia é demasiado longo.")
         String guiaNumero,
 
         @NotBlank(message = "O tipo de carga é obrigatório")
-        @Size(max = 80)
+        @Size(max = 80, message = "O tipo de carga é demasiado longo.")
         String tipoCarga,
 
         @NotNull(message = "A quantidade é obrigatória")
@@ -32,20 +32,20 @@ public record SyncCarregamentoRequest(
         Long veiculoId,
 
         @NotNull(message = "A latitude é obrigatória")
-        @DecimalMin("-90.0")
-        @DecimalMax("90.0")
+        @DecimalMin(value = "-90.0", message = "A latitude indicada não é válida.")
+        @DecimalMax(value = "90.0", message = "A latitude indicada não é válida.")
         Double latitude,
 
         @NotNull(message = "A longitude é obrigatória")
-        @DecimalMin("-180.0")
-        @DecimalMax("180.0")
+        @DecimalMin(value = "-180.0", message = "A longitude indicada não é válida.")
+        @DecimalMax(value = "180.0", message = "A longitude indicada não é válida.")
         Double longitude,
 
-        @NotNull(message = "A precisão do GPS é obrigatória")
-        @DecimalMin(value = "0.0", message = "A precisão do GPS não pode ser negativa")
+        @NotNull(message = "A localização é obrigatória.")
+        @DecimalMin(value = "0.0",
+                message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
         @DecimalMax(value = "15.0",
-                message = "Precisão de GPS insuficiente para validação (Máx: 15m). "
-                        + "Active o GPS e aguarde uma fix melhor antes de registar.")
+                message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
         Double precisaoMetros,
 
         LocalDateTime dataHoraInicio,
@@ -56,7 +56,7 @@ public record SyncCarregamentoRequest(
 
         LocalDateTime dataHoraInicioTransporte,
 
-        @NotBlank(message = "A fotografia da guia é obrigatória")
+        @NotBlank(message = "Falta a fotografia da guia.")
         String fotoBase64,
 
         Boolean confirmarForaGeofence

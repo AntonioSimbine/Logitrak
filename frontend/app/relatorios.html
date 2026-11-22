@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>Relatórios Operacionais · Logitrack</title>
+    <title>Relatórios da operação · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
     <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
     <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
-<body data-pagina="relatorios" data-titulo="Relatórios Operacionais"
-      data-subtitulo="Filtros avançados, pré-visualização e exportação">
+<body data-pagina="relatorios" data-titulo="Relatórios da operação"
+      data-subtitulo="Escolha os dados, veja o resumo e descarregue o ficheiro">
 <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
@@ -21,8 +21,8 @@
         <main class="content">
             <div class="page-head">
                 <div>
-                    <h2>Relatórios operacionais</h2>
-                    <p>Combine filtros, confirme os totais na pré-visualização e exporte em PDF ou Excel.</p>
+                    <h2>Relatórios da operação</h2>
+                    <p>Escolha os filtros, confirme os totais e descarregue em PDF ou Excel.</p>
                 </div>
                 <div class="page-actions">
                     <button class="btn" id="btnExportarXlsx" type="button">
@@ -39,8 +39,8 @@
             <section class="card" style="margin-bottom:16px">
                 <div class="card-head">
                     <div>
-                        <h3>Filtros avançados</h3>
-                        <div class="sub">Os filtros aplicam-se à pré-visualização e às exportações</div>
+                        <h3>Escolher filtros</h3>
+                        <div class="sub">Os filtros valem para o resumo e para o ficheiro descarregado</div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -73,13 +73,13 @@
                                 <option value="EM_TRANSITO">Em trânsito</option>
                                 <option value="ATRASADO">Atrasado</option>
                                 <option value="CONCLUIDO">Concluído</option>
-                                <option value="REJEITADO">Rejeitado</option>
+                                <option value="REJEITADO">Não aceite</option>
                             </select>
                         </div>
                     </div>
                     <div class="row mt-16 wrap">
                         <button class="btn primary" id="btnGerar" type="button">
-                            <svg><use href="#i-search"/></svg> Gerar pré-visualização
+                            <svg><use href="#i-search"/></svg> Ver resumo
                         </button>
                         <button class="btn ghost" id="btnLimpar" type="button">
                             <svg><use href="#i-rotate"/></svg> Limpar filtros
@@ -93,8 +93,8 @@
             <section class="card">
                 <div class="card-head">
                     <div>
-                        <h3>Pré-visualização</h3>
-                        <div class="sub">Clique nos cabeçalhos para ordenar os dados</div>
+                        <h3>Resumo</h3>
+                        <div class="sub">Clique no nome de uma coluna para ordenar</div>
                     </div>
                     <div class="spacer"></div>
                     <span class="chip" id="chipTotal">0 registos</span>
@@ -132,7 +132,7 @@
                             </tr>
                             </thead>
                             <tbody id="tabelaRelatorioCorpo">
-                            <tr><td colspan="14" class="empty">Defina os filtros e gere a pré-visualização.</td></tr>
+                            <tr><td colspan="14" class="empty">Escolha os filtros e clique em Ver resumo.</td></tr>
                             </tbody>
                         </table>
                     </div>

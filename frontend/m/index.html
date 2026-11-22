@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0b1f3a">
-    <meta name="description" content="Logitrack — aplicação do motorista, offline-first">
+    <meta name="description" content="Logitrack · Motorista — registe os carregamentos no telemóvel e envie-os à central quando houver ligação.">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -103,7 +103,7 @@
                     <div class="art-pin"><svg><use href="#i-pin"/></svg></div>
                 </div>
                 <h1>Bem-vindo de volta</h1>
-                <p>Registe carregamentos e sincronize quando houver rede.</p>
+                <p>Registe os carregamentos no telemóvel. Os registos são enviados à central quando houver ligação.</p>
             </div>
 
             <form class="login-card" id="formLogin" novalidate>
@@ -127,12 +127,12 @@
                 </button>
                 <p class="offline-hint">
                     <svg><use href="#i-cloud-off"/></svg>
-                    O primeiro acesso requer ligação. Depois pode iniciar sessão offline neste dispositivo.
+                    Na primeira vez, é preciso ligação à Internet. Depois pode entrar sem ligação neste telemóvel.
                 </p>
             </form>
 
             <details class="demo-box">
-                <summary>Credenciais de demonstração</summary>
+                <summary>Dados para testar a entrada</summary>
                 <div class="demo-row">
                     <span>Motorista</span>
                     <code>motorista@logitrack.co.mz</code>
@@ -158,7 +158,7 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button class="icon-btn" type="button" id="btnSincronizarTopo" title="Sincronizar" aria-label="Sincronizar">
+                <button class="icon-btn" type="button" id="btnSincronizarTopo" title="Enviar registos à central" aria-label="Enviar registos à central">
                     <svg><use href="#i-sync"/></svg>
                 </button>
                 <button class="icon-btn" type="button" id="btnSair" title="Terminar sessão" aria-label="Terminar sessão">
@@ -183,7 +183,7 @@
                 <span class="cta-icon"><svg><use href="#i-plus"/></svg></span>
                 <span>
                     <strong>+ NOVO CARREGAMENTO</strong>
-                    <small>Registar carga em 3 passos</small>
+                    <small>Preencha os dados e guarde o registo.</small>
                 </span>
                 <svg class="cta-arrow"><use href="#i-chevron"/></svg>
             </button>
@@ -193,8 +193,8 @@
                     <svg><use href="#i-cloud-off"/></svg>
                 </span>
                 <span class="queue-body">
-                    <strong id="dashboardFilaTitulo">Sem carregamentos pendentes</strong>
-                    <small id="dashboardFilaTexto">Todos os registos estão atualizados.</small>
+                    <strong id="dashboardFilaTitulo">Sem registos para enviar</strong>
+                    <small id="dashboardFilaTexto">Todos os registos foram enviados à central.</small>
                 </span>
                 <svg class="chev"><use href="#i-chevron"/></svg>
             </button>
@@ -221,7 +221,7 @@
             <div class="recent-list" id="listaRecentes">
                 <div class="empty-state">
                     <div class="spinner"></div>
-                    <span>A carregar carregamentos…</span>
+                    <span>A carregar a lista de carregamentos…</span>
                 </div>
             </div>
         </main>
@@ -258,7 +258,7 @@
                         <li><span class="route-stop-number">4</span><span><strong>Universidade Joaquim Chissano (UJC)</strong><small>Campus do Zimpeto</small></span></li>
                     </ol>
                     <a class="route-map-link" href="https://www.google.com/maps/dir/?api=1&origin=-25.815556%2C32.625000&waypoints=-25.790000%2C32.650000%7C-25.835000%2C32.574000&destination=-25.820660%2C32.579230&travelmode=driving" target="_blank" rel="noopener">Abrir rota no mapa</a>
-                    <p class="route-note">Percurso operacional entre os pontos de recolha de Marracuene e Zimpeto. A posição do motorista e a validação do geofence são obtidas pelo GPS do dispositivo.</p>
+                    <p class="route-note">Caminho entre os pontos de recolha de Marracuene e Zimpeto. A localização do telemóvel mostra se está na área da fábrica.</p>
                 </section>
 
                 <div class="factory-card" id="fabricaCard">
@@ -266,17 +266,17 @@
                         <span class="factory-icon"><svg><use href="#i-pin"/></svg></span>
                         <div class="factory-text">
                             <span class="lbl">Fábrica de origem</span>
-                            <strong id="fabricaNome">A detetar por GPS…</strong>
-                            <small id="fabricaInfo">Ative a localização para detetar a fábrica.</small>
+                            <strong id="fabricaNome">A procurar a fábrica pela localização…</strong>
+                            <small id="fabricaInfo">Ative a localização no telemóvel para encontrar a fábrica.</small>
                         </div>
-                        <span class="lock-pill" id="fabricaLock"><svg><use href="#i-lock"/></svg> GPS</span>
+                        <span class="lock-pill" id="fabricaLock"><svg><use href="#i-lock"/></svg> LOCALIZAÇÃO</span>
                     </div>
                     <div class="factory-alert hidden" id="fabricaAviso">
                         <svg><use href="#i-alert"/></svg>
                         <span id="fabricaAvisoTexto"></span>
                     </div>
                     <div class="field hidden" id="fabricaManualWrap">
-                        <label for="selectFabrica">Selecionar fábrica manualmente</label>
+                        <label for="selectFabrica">Escolher a fábrica na lista</label>
                         <select class="select" id="selectFabrica"></select>
                     </div>
                 </div>
@@ -310,11 +310,11 @@
                         <span class="photo-icon"><svg><use href="#i-image"/></svg></span>
                         <div>
                             <strong>Guia de transporte</strong>
-                            <small id="photoStatus">Fotografia obrigatória</small>
+                            <small id="photoStatus">Falta a fotografia da guia</small>
                         </div>
                     </div>
                     <div class="photo-preview hidden" id="photoPreviewWrap">
-                        <img id="photoPreview" alt="Pré-visualização da guia">
+                        <img id="photoPreview" alt="Fotografia da guia">
                     </div>
                     <button class="btn photo-btn" type="button" id="btnFotografar">
                         <svg><use href="#i-camera"/></svg>
@@ -326,10 +326,10 @@
                     <div class="gps-top">
                         <span class="gps-icon"><svg><use href="#i-pin"/></svg></span>
                         <div>
-                            <span class="lbl">Localização GPS</span>
-                            <strong id="gpsPrecisao">A obter sinal…</strong>
+                            <span class="lbl">Localização do telemóvel</span>
+                            <strong id="gpsPrecisao">A procurar a localização…</strong>
                         </div>
-                        <button class="icon-btn" type="button" id="btnAtualizarGps" aria-label="Atualizar GPS">
+                        <button class="icon-btn" type="button" id="btnAtualizarGps" aria-label="Atualizar localização">
                             <svg><use href="#i-refresh"/></svg>
                         </button>
                     </div>
@@ -341,13 +341,13 @@
 
                 <label class="confirm-outside hidden" id="confirmarWrap">
                     <input type="checkbox" id="confirmarFora">
-                    <span>Confirmo que estou fora do raio de geofence e pretendo registar mesmo assim.</span>
+                    <span>Estou fora da área da fábrica e quero guardar o registo mesmo assim.</span>
                 </label>
 
                 <button class="btn primary block save-btn" type="submit" id="btnGuardar">
                     <svg><use href="#i-check"/></svg> GUARDAR CARREGAMENTO
                 </button>
-                <p class="save-hint">O registo é guardado no dispositivo e sincronizado automaticamente.</p>
+                <p class="save-hint">O registo fica guardado no telemóvel e é enviado à central quando houver ligação.</p>
             </form>
         </main>
     </section>
@@ -375,12 +375,12 @@
             </div>
             <div class="camera-message hidden" id="cameraMensagem">
                 <svg><use href="#i-camera"/></svg>
-                <strong id="cameraMsgTitulo">Câmara indisponível</strong>
-                <span id="cameraMsgTexto">Autorize o acesso à câmara ou escolha uma fotografia da galeria.</span>
+                <strong id="cameraMsgTitulo">A câmara não está a funcionar</strong>
+                <span id="cameraMsgTexto">Dê permissão à câmara nas definições do telemóvel ou escolha uma fotografia guardada.</span>
                 <button class="btn light sm" type="button" id="btnEscolherFicheiro">Escolher fotografia</button>
                 <input type="file" id="inputFicheiro" accept="image/*" capture="environment" hidden>
             </div>
-            <div class="camera-tip" id="cameraTip">Mantenha o documento plano e com boa iluminação.</div>
+            <div class="camera-tip" id="cameraTip">Deixe a guia estendida e com boa luz.</div>
         </div>
 
         <div class="camera-controls">
@@ -396,33 +396,33 @@
         </div>
     </section>
 
-    <!-- M5 — Pendentes e sincronização -->
+    <!-- M5 — Registos à espera de envio e envio à central -->
     <section class="screen" id="screen-pendentes">
         <header class="app-header compact">
             <button class="icon-btn" type="button" data-voltar aria-label="Voltar">
                 <svg><use href="#i-arrow-left"/></svg>
             </button>
             <div class="header-title">
-                <strong>Pendentes</strong>
-                <span>Fila offline do dispositivo</span>
+                <strong>Aguarda envio</strong>
+                <span>Registos guardados no telemóvel</span>
             </div>
             <div class="header-actions"></div>
         </header>
 
         <main class="app-main">
             <button class="btn primary block sync-btn" type="button" id="btnSincronizar">
-                <svg><use href="#i-sync"/></svg> SINCRONIZAR AGORA
+                <svg><use href="#i-sync"/></svg> ENVIAR REGISTOS À CENTRAL
             </button>
             <div class="sync-summary" id="syncResumo">—</div>
 
             <div class="segmented-tabs" id="filtroFila">
-                <button class="active" type="button" data-filtro="PENDENTE">Pendentes <span id="badgePendentes">0</span></button>
-                <button type="button" data-filtro="SINCRONIZADO">Sincronizados <span id="badgeSincronizados">0</span></button>
-                <button type="button" data-filtro="REJEITADO">Rejeitados <span id="badgeRejeitados">0</span></button>
+                <button class="active" type="button" data-filtro="PENDENTE">Aguarda envio <span id="badgePendentes">0</span></button>
+                <button type="button" data-filtro="SINCRONIZADO">Enviados à central <span id="badgeSincronizados">0</span></button>
+                <button type="button" data-filtro="REJEITADO">Não aceites <span id="badgeRejeitados">0</span></button>
             </div>
 
             <div class="queue-list" id="listaFila">
-                <div class="empty-state"><div class="spinner"></div><span>A carregar fila…</span></div>
+                <div class="empty-state"><div class="spinner"></div><span>A procurar os seus registos…</span></div>
             </div>
         </main>
     </section>
@@ -445,7 +445,7 @@
         </header>
 
         <main class="app-main" id="detalheConteudo">
-            <div class="empty-state"><div class="spinner"></div><span>A carregar detalhe…</span></div>
+            <div class="empty-state"><div class="spinner"></div><span>A carregar o detalhe…</span></div>
         </main>
     </section>
 
@@ -456,7 +456,7 @@
         </button>
         <button class="nav-btn" type="button" data-nav="pendentes">
             <svg><use href="#i-list"/></svg>
-            <span>Pendentes</span>
+            <span>Aguarda envio</span>
             <em class="nav-badge hidden" id="navBadge">0</em>
         </button>
     </nav>

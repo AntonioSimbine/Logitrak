@@ -14,7 +14,7 @@ public final class ValidacaoGps {
             String limite = Math.abs(maxima - Math.rint(maxima)) < 0.0001
                     ? String.format("%.0f", maxima) : String.format("%.1f", maxima);
             throw ApiException.badRequest(
-                    "Precisão de GPS insuficiente para validação (Máx: " + limite + "m). "
+                    "A localização ainda não é precisa (máximo " + limite + "m). "
                             + ParametroService.ORIENTACAO_GPS);
         }
     }

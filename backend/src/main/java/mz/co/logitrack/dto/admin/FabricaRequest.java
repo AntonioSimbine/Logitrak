@@ -4,13 +4,31 @@ import jakarta.validation.constraints.*;
 
 /** Formulário W7. */
 public record FabricaRequest(
-        @NotBlank @Size(max = 160) String nome,
-        @NotBlank @Size(max = 255) String endereco,
-        @NotNull @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
-        @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
-        @NotNull @Min(10) @Max(50000) Integer raioGeofenceMetros,
-        @NotNull @Min(1) @Max(720) Integer slaLimiteHoras,
-        @NotBlank @Size(max = 50) String horarioAcostagem,
+        @NotBlank(message = "Introduza o nome da fábrica.")
+        @Size(max = 160, message = "O nome é demasiado longo.")
+        String nome,
+        @NotBlank(message = "Introduza o endereço da fábrica.")
+        @Size(max = 255, message = "O endereço é demasiado longo.")
+        String endereco,
+        @NotNull(message = "A latitude é obrigatória.")
+        @DecimalMin(value = "-90.0", message = "A latitude indicada não é válida.")
+        @DecimalMax(value = "90.0", message = "A latitude indicada não é válida.")
+        Double latitude,
+        @NotNull(message = "A longitude é obrigatória.")
+        @DecimalMin(value = "-180.0", message = "A longitude indicada não é válida.")
+        @DecimalMax(value = "180.0", message = "A longitude indicada não é válida.")
+        Double longitude,
+        @NotNull(message = "Indique o tamanho da área da fábrica.")
+        @Min(value = 10, message = "O tamanho da área indicado não é válido.")
+        @Max(value = 50000, message = "O tamanho da área indicado não é válido.")
+        Integer raioGeofenceMetros,
+        @NotNull(message = "Indique o prazo definido para as viagens a partir desta fábrica.")
+        @Min(value = 1, message = "O prazo indicado não é válido.")
+        @Max(value = 720, message = "O prazo indicado não é válido.")
+        Integer slaLimiteHoras,
+        @NotBlank(message = "Indique o horário de acostagem.")
+        @Size(max = 50, message = "O horário de acostagem é demasiado longo.")
+        String horarioAcostagem,
         Boolean ativa
 ) {
 }

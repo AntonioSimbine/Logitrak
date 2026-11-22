@@ -41,7 +41,7 @@
         <span class="eyebrow">Acesso e download</span>
         <h1 style="font-size:clamp(30px,4.4vw,46px)">Instala a app.<br><em>Entra no painel.</em></h1>
         <p class="lead">
-            Descarrega a app do motorista para Android ou instala-a como PWA.
+            Descarrega a app do motorista para Android ou instala-a pelo browser.
             O painel web é usado pelo administrador e pelo operador da central,
             no browser, sem instalar nada.
         </p>
@@ -59,7 +59,7 @@
             <h2>Download e instalação.</h2>
             <p class="sub">
                 Há duas formas de usar a app: instalar o ficheiro APK no Android ou
-                instalar a PWA diretamente pelo browser. As duas funcionam offline.
+                instalar a app diretamente pelo browser (PWA). As duas guardam os registos no telemóvel quando não há ligação.
             </p>
         </div>
 
@@ -67,14 +67,14 @@
             <article class="access-card">
                 <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--orange);margin-bottom:10px">OPÇÃO A · ANDROID</span>
                 <h2>Instalar o APK</h2>
-                <p>Ficheiro Android pronto a instalar, já apontado para o servidor do Logitrack.</p>
+                <p>Ficheiro Android pronto a instalar, já ligado à central do Logitrack.</p>
 
                 <ol>
                     <li>Abre esta página no telemóvel Android.</li>
                     <li>Toca em <strong>Descarregar o APK</strong>.</li>
                     <li>Quando o telemóvel avisar, permite <strong>instalar de fontes desconhecidas</strong> para o browser ou gestor de ficheiros.</li>
                     <li>Abre o ficheiro descarregado e confirma <strong>Instalar</strong>.</li>
-                    <li>Abre a app <strong>Logitrack</strong> e inicia sessão com a conta de motorista.</li>
+                    <li>Abre a app <strong>Logitrack</strong> e entra com a conta de motorista.</li>
                 </ol>
 
                 <div class="actions">
@@ -96,7 +96,7 @@
             </article>
 
             <article class="access-card">
-                <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--blue);margin-bottom:10px">OPÇÃO B · PWA</span>
+                <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--blue);margin-bottom:10px">OPÇÃO B · APP PELO BROWSER</span>
                 <h2>Instalar pelo browser</h2>
                 <p>Sem APK e sem loja de aplicações. Funciona em Android e iPhone.</p>
 
@@ -104,7 +104,7 @@
                     <li>Abre a app do motorista em <code>/m/</code> no Chrome, Edge ou Safari.</li>
                     <li>No menu do browser, escolhe <strong>Instalar aplicação</strong> ou <strong>Adicionar ao ecrã inicial</strong>.</li>
                     <li>Abre o ícone <strong>Logitrack</strong> que aparece no telemóvel.</li>
-                    <li>Inicia sessão e permite o acesso à <strong>localização</strong> e à <strong>câmara</strong>.</li>
+                    <li>Entra e permite o acesso à <strong>localização</strong> e à <strong>câmara</strong>.</li>
                 </ol>
 
                 <div class="actions">
@@ -113,7 +113,7 @@
                 </div>
 
                 <div class="note info">
-                    A câmara, o GPS e a instalação da PWA exigem uma ligação segura
+                    A câmara, a localização e a instalação da aplicação exigem uma ligação segura
                     (<strong>HTTPS</strong>). Por isso usa o endereço publicado, não um
                     endereço local por HTTP.
                 </div>
@@ -121,9 +121,9 @@
         </div>
 
         <div class="note" style="margin-top:22px">
-            <strong>Sem rede no local de carga?</strong> A app guarda o registo numa fila
-            no telemóvel e envia automaticamente quando a ligação voltar. Podes também
-            forçar o envio no ecrã da fila.
+            <strong>Sem rede no local de carga?</strong> A app guarda o registo no telemóvel
+            e envia automaticamente quando a ligação voltar. Podes também enviar os registos
+            à central no ecrã "Enviar registos".
         </div>
     </div>
 </section>
@@ -135,8 +135,8 @@
             <h2>Entrar no painel.</h2>
             <p class="sub">
                 O painel abre no browser, no computador ou no telemóvel. Não precisa de
-                instalação. O mesmo login serve administradores e operadores — o que
-                aparece depois depende do perfil da conta.
+                instalação. A mesma conta de e-mail e palavra-passe serve administradores
+                e operadores — o que aparece depois depende do perfil.
             </p>
         </div>
 
@@ -145,14 +145,14 @@
                 <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--orange);margin-bottom:10px">ACESSO TOTAL</span>
                 <h2>Administrador</h2>
                 <p>
-                    Configura fábricas, veículos, utilizadores e parâmetros, além de
-                    acompanhar toda a operação, alertas, KPIs e relatórios.
+                    Configura fábricas, veículos, utilizadores e as regras da operação, além de
+                    acompanhar a operação, os avisos, os resultados e os relatórios.
                 </p>
 
                 <ol>
-                    <li>Abre a página de login do painel.</li>
+                    <li>Abre a página de entrada do painel.</li>
                     <li>Escreve o e-mail e a palavra-passe do administrador.</li>
-                    <li>Entras no dashboard com acesso a todos os módulos.</li>
+                    <li>Entras no painel com acesso a todas as áreas.</li>
                 </ol>
 
                 <div class="actions">
@@ -165,19 +165,19 @@
                 <span class="num" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--blue);margin-bottom:10px">OPERAÇÃO DIÁRIA</span>
                 <h2>Operador da central</h2>
                 <p>
-                    Acompanha carregamentos, mapa, alertas de atraso, KPIs e relatórios.
-                    Não altera utilizadores, fábricas, veículos nem parâmetros.
+                    Acompanha carregamentos, mapa, avisos de atraso, resultados e relatórios.
+                    Não altera utilizadores, fábricas, veículos nem as regras da operação.
                 </p>
 
                 <ol>
-                    <li>Abre a página de login do painel.</li>
+                    <li>Abre a página de entrada do painel.</li>
                     <li>Escreve o e-mail e a palavra-passe do operador.</li>
-                    <li>Entras no dashboard da central.</li>
+                    <li>Entras no painel da central.</li>
                 </ol>
 
                 <div class="actions">
                     <a class="btn btn-primary" href="login.html">Entrar como operador</a>
-                    <a class="btn btn-outline" href="apresentacao.html#painel">Ver módulos</a>
+                    <a class="btn btn-outline" href="apresentacao.html#painel">Ver áreas do painel</a>
                 </div>
             </article>
         </div>
@@ -185,21 +185,21 @@
         <div class="access-card" id="perfis" style="margin-top:18px">
             <h2>Como obter acesso</h2>
             <p>
-                As credenciais não são publicadas nesta página. O acesso é sempre
-                criado e comunicado pelo administrador do sistema.
+                O e-mail e a palavra-passe não são publicados nesta página. O acesso é sempre
+                criado e comunicado pelo administrador.
             </p>
 
             <ol>
                 <li>Pede ao administrador do Logitrack que crie a tua conta.</li>
                 <li>Indica o perfil pretendido: administrador, operador da central ou motorista.</li>
                 <li>Recebes o e-mail e a palavra-passe inicial por um canal privado.</li>
-                <li>Entra pela página de login e altera a palavra-passe, se o administrador o pedir.</li>
+                <li>Entra pela página de entrada e altera a palavra-passe, se o administrador o pedir.</li>
             </ol>
 
             <div class="note info">
                 <strong>Já tens conta?</strong> Usa o botão <strong>Entrar</strong> no topo
                 da página. Se esqueceste a palavra-passe, pede ao administrador para a
-                repor no módulo de utilizadores.
+                repor na área de utilizadores.
             </div>
         </div>
     </div>
@@ -217,7 +217,7 @@
                 <h3>O download do APK não começa</h3>
                 <p>
                     Confirma que abriste o link no telemóvel e que tens espaço livre.
-                    Se o browser bloquear, abre o link no Chrome ou usa a opção PWA.
+                    Se o browser bloquear, abre o link no Chrome ou instala a app pelo browser.
                 </p>
             </div>
             <div class="step">
@@ -228,30 +228,30 @@
                 </p>
             </div>
             <div class="step">
-                <h3>A câmara ou o GPS não abrem</h3>
+                <h3>A câmara ou a localização não abrem</h3>
                 <p>
                     Verifica se a app tem permissão de câmara e localização e se estás a
-                    usar o endereço HTTPS. Em localhost também funciona.
+                    usar o endereço HTTPS publicado.
                 </p>
             </div>
             <div class="step">
-                <h3>O login diz “Failed to fetch”</h3>
+                <h3>A central não responde</h3>
                 <p>
-                    O servidor não está acessível a partir do teu dispositivo. Confirma a
-                    ligação à internet e tenta novamente dentro de alguns segundos.
+                    A central não está a responder. Os registos ficam guardados no
+                    telemóvel. Tente novamente dentro de instantes.
                 </p>
             </div>
             <div class="step">
-                <h3>Os registos ficaram pendentes</h3>
+                <h3>Os registos ainda não foram enviados</h3>
                 <p>
-                    Estão guardados no telemóvel. Abre a fila offline na app e toca em
-                    sincronizar quando tiveres rede; nada é perdido entretanto.
+                    Estão guardados no telemóvel. Abre "Enviar registos à central" e toca em
+                    "Enviar agora" quando houver ligação. Nada se perde.
                 </p>
             </div>
             <div class="step">
                 <h3>Esqueci a palavra-passe</h3>
                 <p>
-                    Pede ao administrador para repor a palavra-passe no módulo de
+                    Pede ao administrador para repor a palavra-passe na área de
                     utilizadores. O acesso é sempre gerido pela própria organização.
                 </p>
             </div>
@@ -265,8 +265,8 @@
             <div>
                 <h2>Ainda com dúvidas sobre o sistema?</h2>
                 <p>
-                    A página de apresentação explica o fluxo completo, os módulos do
-                    painel, os ecrãs da app e a matriz de acessos por perfil.
+                    A página de apresentação explica o percurso completo, as áreas do
+                    painel, os ecrãs da app e o que cada perfil pode ver.
                 </p>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:12px">
@@ -296,7 +296,7 @@
             <div>
                 <h4>App</h4>
                 <a href="#download">Download do APK</a>
-                <a href="m/">Abrir a PWA</a>
+                <a href="m/">Abrir a app do motorista</a>
                 <a href="apresentacao.html#app">Ecrãs da app</a>
             </div>
             <div>

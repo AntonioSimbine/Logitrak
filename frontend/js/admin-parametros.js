@@ -4,7 +4,7 @@
 
     const META = {
         TOLERANCIA_ATRASO_MINUTOS: {
-            titulo: 'Tolerância de atraso',
+            titulo: 'Tolerância antes do aviso',
             unidade: 'minutos',
             tipo: 'number',
             min: 0,
@@ -12,7 +12,7 @@
             step: 1
         },
         FREQUENCIA_RECOLHA_GPS_SEGUNDOS: {
-            titulo: 'Frequência de recolha GPS',
+            titulo: 'Intervalo de localização',
             unidade: 'segundos',
             tipo: 'number',
             min: 10,
@@ -20,7 +20,7 @@
             step: 1
         },
         INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS: {
-            titulo: 'Sincronização automática',
+            titulo: 'Envio automático',
             unidade: 'minutos',
             tipo: 'number',
             min: 1,
@@ -28,7 +28,7 @@
             step: 1
         },
         PRECISAO_MAXIMA_GPS_METROS: {
-            titulo: 'Precisão máxima do GPS (teto fixo de 15 m)',
+            titulo: 'Qualidade mínima da localização',
             unidade: 'metros',
             tipo: 'number',
             min: 0.1,
@@ -36,13 +36,26 @@
             step: 0.1
         },
         INTERVALO_VERIFICACAO_SLA_MINUTOS: {
-            titulo: 'Verificação do motor SLA',
+            titulo: 'Verificação do prazo',
             unidade: 'minutos',
             tipo: 'number',
             min: 1,
             max: 1440,
             step: 1
         }
+    };
+
+    const DESCRICOES_SIMPLES = {
+        TOLERANCIA_ATRASO_MINUTOS:
+            'Margem de espera antes de avisar que a viagem está atrasada.',
+        FREQUENCIA_RECOLHA_GPS_SEGUNDOS:
+            'De quantos em quantos segundos o telemóvel envia a localização.',
+        INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS:
+            'De quantos em quantos minutos os registos guardados no telemóvel são enviados à central.',
+        PRECISAO_MAXIMA_GPS_METROS:
+            'A localização só é aceite quando for precisa até este valor. O limite é 15 m.',
+        INTERVALO_VERIFICACAO_SLA_MINUTOS:
+            'De quantos em quantos minutos o sistema verifica se alguma viagem ultrapassou o prazo.'
     };
 
     let parametros = [];
@@ -62,7 +75,7 @@
         const contentor = document.getElementById('listaParametros');
         if (!parametros.length) {
             contentor.innerHTML = '<div class="param-card"><div class="empty">'
-                + 'Nenhum parâmetro configurado.</div></div>';
+                + 'Ainda não existem regras configuradas.</div></div>';
             return;
         }
         contentor.innerHTML = parametros.map(function (p) {
@@ -75,10 +88,10 @@
             return '<article class="param-card">'
                 + '<span class="key">' + LT.escape(p.chave) + '</span>'
                 + '<h4>' + LT.escape(titulo) + (m.unidade ? ' (' + LT.escape(m.unidade) + ')' : '') + '</h4>'
-                + '<p>' + LT.escape(p.descricao || 'Parâmetro operacional do sistema.') + '</p>'
+                + '<p>' + LT.escape(DESCRICOES_SIMPLES[p.chave] || p.descricao || 'Regra usada na operação.') + '</p>'
                 + '<div class="row">'
                 + '<input class="input" type="' + m.tipo + '" value="' + LT.escape(p.valor) + '"'
-                + atributos + ' aria-label="' + LT.escape(p.chave) + '">'
+                + atributos + ' aria-label="' + LT.escape(titulo) + '">'
                 + '<button class="btn primary" type="button" data-chave="' + LT.escape(p.chave) + '">'
                 + '<svg><use href="#i-save"/></svg> Guardar</button>'
                 + '</div>'
@@ -104,7 +117,7 @@
         const botao = card.querySelector('button');
         const valor = input.value.trim();
         if (!valor) {
-            LT.toast('Valor obrigatório', 'Introduza um valor para ' + chave + '.', 'error');
+            LT.toast('Falta o valor', 'Escreva um valor para ' + meta(chave).titulo + '.', 'error');
             return;
         }
         botao.disabled = true;
@@ -117,8 +130,9 @@
             if (indice >= 0) {
                 parametros[indice] = atualizado;
             }
-            LT.toast('Parâmetro atualizado',
-                chave + ' = ' + atualizado.valor, 'success');
+            LT.toast('Regra atualizada',
+                'A regra ' + meta(chave).titulo + ' passou a ter o valor '
+                + atualizado.valor + '.', 'success');
         } catch (e) {
             LT.erro(e);
         } finally {

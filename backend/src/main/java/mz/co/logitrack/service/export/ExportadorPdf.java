@@ -197,7 +197,7 @@ public class ExportadorPdf implements ExportadorRelatorio {
         }
         return switch (estado) {
             case "Concluído" -> VERDE;
-            case "Atrasado", "Rejeitado" -> VERMELHO;
+            case "Atrasado", "Não aceite" -> VERMELHO;
             default -> AZUL;
         };
     }

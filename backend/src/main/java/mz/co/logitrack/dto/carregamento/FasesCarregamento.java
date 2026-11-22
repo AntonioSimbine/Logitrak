@@ -52,8 +52,9 @@ public record FasesCarregamento(
         for (int i = 0; i < pontos.length; i++) {
             for (int j = i + 1; j < pontos.length; j++) {
                 if (pontos[i] != null && pontos[j] != null && pontos[i].isAfter(pontos[j])) {
-                    throw ApiException.unprocessable("Sequência inválida: " + nomes[i]
-                            + " não pode ser posterior a " + nomes[j] + ".");
+                    throw ApiException.unprocessable("O horário de " + nomes[i]
+                            + " não pode ser posterior ao de " + nomes[j]
+                            + ". Corrija os dados e envie novamente.");
                 }
             }
         }

@@ -221,13 +221,13 @@ class LoginActivity : AppCompatActivity() {
             if (!resp.isSuccessful) {
                 val corpo = resp.body()
                 if (resp.code() == 401 || resp.code() == 400 || resp.code() == 403) {
-                    mostrarErro(ApiErrors.mensagem(resp))
+                    mostrarErro(getString(R.string.error_invalid_credentials))
                     true
                 } else if (corpo != null) {
                     concluirSessao(corpo, email, senha, false)
                     true
                 } else {
-                    mostrarErro(ApiErrors.mensagem(resp))
+                    mostrarErro(ApiErrors.mensagem(this, resp))
                     true
                 }
             } else {

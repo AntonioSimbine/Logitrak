@@ -45,6 +45,8 @@ public class DocumentoService {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentoService.class);
     private static final DateTimeFormatter PASTA_DATA = DateTimeFormatter.ofPattern("yyyy/MM");
+    private static final String FOTOGRAFIA_INVALIDA =
+            "A fotografia não serve. Tire outra com boa luz e o documento inteiro dentro da moldura.";
 
     private final DocumentoGuiaRepository documentoRepository;
 
@@ -76,13 +78,13 @@ public class DocumentoService {
     public DocumentoGuia salvarFoto(Carregamento carregamento, byte[] bytes,
                                     String mimeRecebido, LocalDateTime captura) {
         if (bytes == null || bytes.length == 0) {
-            throw ApiException.unprocessable("A fotografia da guia está vazia");
+            throw ApiException.unprocessable("Falta a fotografia da guia.");
         }
 
         String formato = detetarFormato(bytes);
         if (!"jpeg".equals(formato) && !"png".equals(formato)) {
-            throw ApiException.unprocessable(
-                    "Formato de imagem não suportado. Utilize JPEG ou PNG.");
+            log.warn("Formato de imagem não suportado: {}", formato);
+            throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
         }
 
         validarDimensoes(bytes);
@@ -154,7 +156,8 @@ public class DocumentoService {
         String caminhoAntigo = existente.getCaminhoFotografia();
         String formato = detetarFormato(bytes);
         if (!"jpeg".equals(formato) && !"png".equals(formato)) {
-            throw ApiException.unprocessable("Formato de imagem não suportado");
+            log.warn("Formato de imagem não suportado na substituição: {}", formato);
+            throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
         }
         validarDimensoes(bytes);
         String extensao = "jpeg".equals(formato) ? "jpg" : "png";
@@ -180,14 +183,14 @@ public class DocumentoService {
     @Transactional(readOnly = true)
     public DocumentoGuia obter(Long id) {
         return documentoRepository.findById(id)
-                .orElseThrow(() -> ApiException.notFound("Documento não encontrado"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar a fotografia da guia. Confirme os dados e tente novamente."));
     }
 
     @Transactional(readOnly = true)
     public DocumentoGuia obterPorCarregamento(Long carregamentoId) {
         return documentoRepository.findByCarregamentoId(carregamentoId)
-                .orElseThrow(() -> ApiException.notFound(
-                        "Este carregamento ainda não tem guia digitalizada"));
+                .orElseThrow(() -> ApiException.notFound("Falta a fotografia da guia."));
     }
 
     @Transactional(readOnly = true)
@@ -212,7 +215,8 @@ public class DocumentoService {
         Carregamento carregamento = documento.getCarregamento();
         if (carregamento == null || carregamento.getMotorista() == null
                 || !carregamento.getMotorista().getId().equals(solicitante.getId())) {
-            throw ApiException.forbidden("Sem permissão para aceder a esta guia");
+            throw ApiException.forbidden(
+                    "Não tem permissão para esta operação. Fale com a central.");
         }
     }
 
@@ -225,7 +229,9 @@ public class DocumentoService {
         DocumentoGuia documento = obterComAcesso(id, solicitante);
         Path caminho = resolver(documento.getCaminhoFotografia());
         if (!Files.exists(caminho)) {
-            throw ApiException.notFound("Ficheiro da guia não encontrado no armazenamento");
+            log.warn("Fotografia da guia {} não encontrada em {}", id, caminho);
+            throw ApiException.notFound(
+                    "A fotografia da guia não está disponível. Tente novamente dentro de instantes.");
         }
         String guia = documento.getCarregamento() != null
                 ? documento.getCarregamento().getGuiaNumero() : "documento-" + id;
@@ -251,7 +257,9 @@ public class DocumentoService {
     private Path resolver(String caminhoRelativo) {
         Path caminho = raiz.resolve(caminhoRelativo).normalize();
         if (!caminho.startsWith(raiz)) {
-            throw ApiException.badRequest("Caminho de documento inválido");
+            log.warn("Caminho de documento fora da raiz: {}", caminho);
+            throw ApiException.badRequest(
+                    "Não foi possível abrir a fotografia da guia. Tente novamente.");
         }
         return caminho;
     }
@@ -260,19 +268,18 @@ public class DocumentoService {
         try {
             BufferedImage imagem = ImageIO.read(new ByteArrayInputStream(bytes));
             if (imagem == null) {
-                throw ApiException.unprocessable(
-                        "Guia ilegível — não foi possível interpretar a fotografia");
+                log.warn("Não foi possível interpretar a fotografia da guia");
+                throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
             }
             int largura = imagem.getWidth();
             int altura = imagem.getHeight();
             if (Math.max(largura, altura) < 640 || Math.min(largura, altura) < 360) {
-                throw ApiException.unprocessable(
-                        "Guia ilegível — resolução mínima 640×360 (recebido "
-                                + largura + "×" + altura + ")");
+                log.warn("Fotografia da guia com resolução {}x{} abaixo do mínimo", largura, altura);
+                throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
             }
         } catch (IOException ex) {
-            throw ApiException.unprocessable(
-                    "Guia ilegível — não foi possível validar a imagem");
+            log.warn("Não foi possível validar a imagem da guia", ex);
+            throw ApiException.unprocessable(FOTOGRAFIA_INVALIDA);
         }
     }
 

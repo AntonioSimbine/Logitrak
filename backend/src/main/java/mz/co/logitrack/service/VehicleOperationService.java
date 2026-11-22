@@ -58,12 +58,17 @@ public class VehicleOperationService {
         Double capacidade = veiculo.getCapacidadeCargaToneladas();
         if (capacidade == null || Double.isNaN(capacidade) || Double.isInfinite(capacidade)
                 || capacidade <= 0) {
+            log.warn("Veículo {} com capacidade inválida: {}", veiculo.getMatricula(), capacidade);
             throw ApiException.unprocessable(
-                    "O veículo " + veiculo.getMatricula() + " não tem capacidade válida");
+                    "O veículo selecionado não tem capacidade configurada. "
+                            + "Peça à central para corrigir os dados do veículo.");
         }
         if (quantidadeToneladas > capacidade) {
+            log.warn("Quantidade {} t excede a capacidade {} t do veículo {}",
+                    quantidadeToneladas, capacidade, veiculo.getMatricula());
             throw ApiException.unprocessable(String.format(
-                    "A quantidade (%.2f t) excede a capacidade do veículo %s (%.2f t).",
+                    "A quantidade indicada (%.2f t) excede a capacidade do veículo %s (%.2f t). "
+                            + "Reduza a quantidade ou escolha outro veículo.",
                     quantidadeToneladas, veiculo.getMatricula(), capacidade));
         }
 
@@ -78,8 +83,11 @@ public class VehicleOperationService {
         double acumulado = carregamentoRepository.somarToneladasAtivas(
                 veiculo.getId(), ESTADOS_ATIVOS, carregamentoAtual);
         if (acumulado + quantidadeToneladas > capacidade + 1e-9) {
+            log.warn("Cargas activas {} t excedem a capacidade {} t do veículo {}",
+                    acumulado + quantidadeToneladas, capacidade, veiculo.getMatricula());
             throw ApiException.unprocessable(String.format(
-                    "A soma das cargas activas (%.2f t) excede a capacidade do veículo %s (%.2f t).",
+                    "A soma das cargas em curso (%.2f t) excede a capacidade do veículo %s (%.2f t). "
+                            + "Reduza a quantidade ou escolha outro veículo.",
                     acumulado + quantidadeToneladas, veiculo.getMatricula(), capacidade));
         }
     }
@@ -122,7 +130,7 @@ public class VehicleOperationService {
     private void validarQuantidade(double quantidade) {
         if (Double.isNaN(quantidade) || Double.isInfinite(quantidade) || quantidade <= 0) {
             throw ApiException.unprocessable(
-                    "A quantidade deve ser um número superior a zero");
+                    "A quantidade deve ser superior a zero. Corrija o valor e tente novamente.");
         }
     }
 

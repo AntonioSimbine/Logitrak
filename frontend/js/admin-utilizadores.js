@@ -52,7 +52,7 @@
                 + '<td>' + LT.fmt.data(u.dataCriacao) + '</td>'
                 + '<td><div class="table-actions">'
                 + '<button class="btn small ghost" type="button" data-acao="editar" data-id="' + u.id + '">Editar</button>'
-                + '<button class="btn small ghost" type="button" data-acao="senha" data-id="' + u.id + '">Senha</button>'
+                + '<button class="btn small ghost" type="button" data-acao="senha" data-id="' + u.id + '">Palavra-passe</button>'
                 + '<button class="btn small ghost" type="button" data-acao="estado" data-id="' + u.id + '">'
                 + (u.ativo ? 'Desativar' : 'Ativar') + '</button>'
                 + '<button class="btn small ghost" type="button" data-acao="eliminar" data-id="' + u.id + '">Eliminar</button>'
@@ -81,7 +81,7 @@
         document.getElementById('tituloModalUtilizador').textContent = 'Novo utilizador';
         document.getElementById('senhaUtilizador').required = true;
         document.getElementById('hintSenha').textContent =
-            'Obrigatória na criação (mínimo 6 caracteres).';
+            'É obrigatória ao criar a conta (pelo menos 6 caracteres).';
         document.getElementById('perfilUtilizador').value = 'OPERADOR_CENTRAL';
         document.getElementById('ativoUtilizador').value = 'true';
         LT.abrirModal('modalUtilizador');
@@ -133,7 +133,7 @@
                 await LT.api('/api/v1/utilizadores', {method: 'POST', body: pedido});
             }
             LT.fecharModal('modalUtilizador');
-            LT.toast('Utilizador guardado', pedido.nome + ' foi gravado com sucesso.', 'success');
+            LT.toast('Utilizador guardado', 'Os dados de ' + pedido.nome + ' ficaram guardados.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -148,8 +148,8 @@
             return;
         }
         const novoEstado = !u.ativo;
-        const accao = novoEstado ? 'ativar' : 'desativar';
-        if (!window.confirm('Pretende ' + accao + ' a conta de ' + u.nome + '?')) {
+        const accao = novoEstado ? 'Ativar' : 'Desativar';
+        if (!window.confirm(accao + ' a conta de ' + u.nome + '?')) {
             return;
         }
         try {
@@ -158,7 +158,7 @@
                 body: {ativo: novoEstado}
             });
             LT.toast('Conta atualizada',
-                u.nome + ' está agora ' + (novoEstado ? 'ativa' : 'inativa') + '.', 'success');
+                u.nome + (novoEstado ? ' já pode entrar.' : ' já não pode entrar.'), 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -167,12 +167,12 @@
 
     async function eliminar(id) {
         const u = utilizadores.find(function (item) { return item.id === id; });
-        if (!u || !window.confirm('Eliminar definitivamente a conta de ' + u.nome + '?')) {
+        if (!u || !window.confirm('Apagar a conta de ' + u.nome + '? Esta ação não pode ser anulada.')) {
             return;
         }
         try {
             await LT.api('/api/v1/utilizadores/' + id, {method: 'DELETE'});
-            LT.toast('Conta eliminada', u.nome + ' foi removido do sistema.', 'success');
+            LT.toast('Conta apagada', 'A conta de ' + u.nome + ' foi apagada.', 'success');
             await carregar();
         } catch (e) {
             LT.erro(e);
@@ -187,7 +187,7 @@
         document.getElementById('formSenha').reset();
         document.getElementById('senhaUtilizadorId').value = u.id;
         document.getElementById('subtituloSenha').textContent =
-            'Definir uma nova palavra-passe para ' + u.nome + '.';
+            'Escolher nova palavra-passe para ' + u.nome + '.';
         LT.abrirModal('modalSenha');
     }
 
@@ -208,7 +208,7 @@
             });
             LT.fecharModal('modalSenha');
             LT.toast('Palavra-passe redefinida',
-                'O utilizador pode iniciar sessão com a nova palavra-passe.', 'success');
+                'O utilizador já pode entrar com a nova palavra-passe.', 'success');
         } catch (e) {
             LT.erro(e);
         }

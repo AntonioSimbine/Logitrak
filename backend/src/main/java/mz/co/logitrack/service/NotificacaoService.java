@@ -130,7 +130,8 @@ public class NotificacaoService {
     public NotificacaoResponse marcarLida(Long id, Long destinatarioId, boolean lido) {
         Notificacao notificacao = notificacaoRepository
                 .findByIdAndDestinatarioId(id, destinatarioId)
-                .orElseThrow(() -> ApiException.notFound("Notificação não encontrada"));
+                .orElseThrow(() -> ApiException.notFound(
+                        "Não foi possível encontrar a notificação. Confirme os dados e tente novamente."));
         notificacao.setLido(lido);
         notificacao.setDataHoraLeitura(lido ? LocalDateTime.now() : null);
         Notificacao guardada = notificacaoRepository.save(notificacao);

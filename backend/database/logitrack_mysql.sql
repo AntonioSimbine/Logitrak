@@ -243,15 +243,15 @@ CREATE TABLE `parametros_globais` (
 -- Parâmetros globais
 INSERT INTO `parametros_globais` (`id`, `chave`, `valor`, `descricao`) VALUES
     (1, 'TOLERANCIA_ATRASO_MINUTOS', '30',
-        'Margem de tolerância, em minutos, antes de disparar o alerta de SLA.'),
+        'Margem de espera, em minutos, antes de avisar que a viagem está atrasada.'),
     (2, 'FREQUENCIA_RECOLHA_GPS_SEGUNDOS', '60',
-        'Intervalo, em segundos, de transmissão do GPS pela app móvel.'),
+        'De quantos em quantos segundos o telemóvel envia a localização à central.'),
     (3, 'INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS', '5',
-        'Intervalo, em minutos, da sincronização automática da fila offline.'),
+        'De quantos em quantos minutos a app envia à central os registos guardados no telemóvel.'),
     (4, 'PRECISAO_MAXIMA_GPS_METROS', '15.0',
-        'Precisão máxima aceite para validar a localização GPS (metros).'),
+        'Define quão exata deve ser a localização, em metros, para o registo ser aceite. Quanto menor o valor, mais rigorosa a verificação.'),
     (5, 'INTERVALO_VERIFICACAO_SLA_MINUTOS', '1',
-        'Intervalo, em minutos, entre execuções do motor de verificação de SLA.');
+        'De quantos em quantos minutos a central verifica se alguma viagem ultrapassou o prazo.');
 
 -- Fábricas (Maputo, Sofala e Nampula)
 INSERT INTO `fabricas`

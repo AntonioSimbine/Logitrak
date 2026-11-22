@@ -36,7 +36,8 @@ public class GlobalExceptionHandler {
             detalhes.putIfAbsent(erro.getField(), erro.getDefaultMessage());
         }
         return ResponseEntity.unprocessableEntity()
-                .body(new ApiError("Dados inválidos", detalhes));
+                .body(new ApiError("Faltam dados obrigatórios. Preencha os campos assinalados.",
+                        detalhes));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -44,29 +45,33 @@ public class GlobalExceptionHandler {
         Map<String, String> detalhes = new LinkedHashMap<>();
         ex.getConstraintViolations().forEach(v ->
                 detalhes.put(v.getPropertyPath().toString(), v.getMessage()));
-        return ResponseEntity.unprocessableEntity().body(new ApiError("Dados inválidos", detalhes));
+        return ResponseEntity.unprocessableEntity().body(new ApiError(
+                "Faltam dados obrigatórios. Preencha os campos assinalados.", detalhes));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> tratarJson(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest().body(ApiError.of("Corpo do pedido inválido"));
+        return ResponseEntity.badRequest().body(ApiError.of(
+                "Faltam dados obrigatórios. Preencha os campos assinalados."));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> tratarParametro(MethodArgumentTypeMismatchException ex) {
-        return ResponseEntity.badRequest()
-                .body(ApiError.of("Parâmetro inválido: " + ex.getName()));
+        log.warn("Parâmetro inválido no pedido: {}", ex.getName());
+        return ResponseEntity.badRequest().body(ApiError.of(
+                "Não foi possível interpretar um filtro. Verifique os dados e tente novamente."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> tratarAcessoNegado(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiError.of("Sem permissão"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiError.of(
+                "Não tem permissão para esta operação. Fale com a central."));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> tratarErroInterno(Exception ex) {
         log.error("Erro inesperado na API", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiError.of("Erro interno do servidor"));
+                .body(ApiError.of("A central não está a responder. Tente novamente dentro de instantes."));
     }
 }

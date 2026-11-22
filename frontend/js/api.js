@@ -53,18 +53,32 @@
         });
     };
 
+    // A central pode devolver termos técnicos; o painel mostra sempre linguagem simples.
+    LT.textoSimples = function (texto) {
+        return String(texto === null || texto === undefined ? '' : texto)
+            .replace(/Pendente de sincronização/gi, 'Guardado no telemóvel. Aguarda envio.')
+            .replace(/Sincronizado/gi, 'Enviado à central')
+            .replace(/Fora do geofence/gi, 'Está fora da área da fábrica.')
+            .replace(/Precisão GPS insuficiente/gi,
+                'A localização ainda não é precisa. Vá para um local aberto e tente novamente.')
+            .replace(/SLA excedido/gi, 'O prazo definido para a viagem foi ultrapassado.')
+            .replace(/\bKPIs\b/gi, 'Resultados da operação');
+    };
+
     function mensagemErro(corpo, status) {
+        const indisponivel = 'A central não está a responder. '
+            + 'Os registos ficam guardados no telemóvel. Tente novamente dentro de instantes.';
         if (!corpo) {
-            return 'Ocorreu um erro (' + status + ').';
+            return indisponivel;
         }
         if (typeof corpo === 'string') {
-            return corpo;
+            return LT.textoSimples(corpo);
         }
-        let texto = corpo.error || corpo.message || 'Ocorreu um erro (' + status + ').';
+        let texto = LT.textoSimples(corpo.error || corpo.message || indisponivel);
         if (corpo.detalhes) {
             const detalhes = Object.values(corpo.detalhes).filter(Boolean);
             if (detalhes.length) {
-                texto += ' — ' + detalhes.join(' ');
+                texto += ' — ' + LT.textoSimples(detalhes.join(' '));
             }
         }
         return texto;
@@ -230,7 +244,8 @@
             LT.terminarSessao();
         }
         if (!resposta.ok) {
-            throw new Error('Não foi possível carregar o ficheiro (' + resposta.status + ').');
+            throw new Error('Não foi possível abrir a fotografia da guia. '
+                + 'Verifique a ligação e tente novamente.');
         }
         return URL.createObjectURL(await resposta.blob());
     };
@@ -277,10 +292,11 @@
         console.error('Falha ao carregar ' + nome, e);
         let mensagem = e && e.message ? e.message : String(e);
         if (e && e.status === 403) {
-            mensagem = 'Sem permissão para consultar ' + nome
-                + '. O perfil Operador pode consultar; peça ao Administrador se o acesso persistir.';
+            mensagem = 'Não tem permissão para ver ' + nome
+                + '. Peça ao administrador para confirmar o seu perfil de acesso.';
         } else if (e && (e.status === 0 || !e.status)) {
-            mensagem = 'Sem ligação ao servidor ao carregar ' + nome + '. Tente novamente.';
+            mensagem = 'Sem ligação. Não foi possível carregar ' + nome
+                + '. Verifique a ligação à Internet e tente novamente.';
         } else {
             mensagem = 'Não foi possível carregar ' + nome + '. ' + mensagem;
         }
@@ -290,7 +306,7 @@
             alvo.setAttribute('role', 'alert');
             alvo.classList.remove('hidden');
         }
-        LT.toast('Filtros indisponíveis', mensagem, 'error');
+        LT.toast('Não foi possível carregar as listas', mensagem, 'error');
     };
 
     const dataFmt = new Intl.DateTimeFormat('pt-PT', {
@@ -373,10 +389,39 @@
             .replace(/'/g, '&#39;');
     };
 
+    LT.textoEstado = function (estado, etiqueta) {
+        const valor = String(etiqueta || estado || '');
+        const simples = {
+            GUARDADO_LOCAL: 'Guardado no telemóvel. Aguarda envio.',
+            PENDENTE_SINCRONIZACAO: 'Guardado no telemóvel. Aguarda envio.',
+            PENDENTE: 'Aguarda envio',
+            SINCRONIZADO: 'Enviado à central',
+            REJEITADO: 'Não aceite',
+            'Guardado localmente': 'Guardado no telemóvel. Aguarda envio.',
+            'Pendente de sincronização': 'Guardado no telemóvel. Aguarda envio.',
+            'Sincronizado': 'Enviado à central',
+            'Rejeitado': 'Não aceite'
+        };
+        return simples[valor] || LT.textoSimples(valor);
+    };
+
     LT.chip = function (estado, etiqueta) {
         const chave = String(estado || '').toLowerCase();
         return '<span class="chip ' + LT.escape(chave) + '">'
-            + LT.escape(etiqueta || estado || '—') + '</span>';
+            + LT.escape(LT.textoEstado(estado, etiqueta) || '—') + '</span>';
+    };
+
+    // Texto simples dos alertas: diz o que aconteceu e o que fazer a seguir.
+    LT.textoAlerta = function (alerta) {
+        const dados = [];
+        if (alerta.guiaNumero) dados.push('Guia ' + alerta.guiaNumero);
+        if (alerta.fabrica) dados.push('Fábrica ' + alerta.fabrica);
+        if (alerta.motorista) dados.push('Motorista ' + alerta.motorista);
+        const minutos = Number(alerta.minutosExcedidos) > 0
+            ? ' O prazo foi ultrapassado por ' + alerta.minutosExcedidos + ' minutos.' : '';
+        return 'O prazo definido para a viagem foi ultrapassado.' + minutos
+            + (dados.length ? ' ' + dados.join(' · ') : '')
+            + ' Abra a ocorrência para ver o motivo.';
     };
 
     LT.debounce = function (fn, ms) {
@@ -476,7 +521,7 @@
             return;
         }
         if (estado === 'reconectar') {
-            indicador.innerHTML = '<i style="background:#c0392b"></i> A reconectar…';
+            indicador.innerHTML = '<i style="background:#c0392b"></i> A ligar novamente…';
             indicador.style.color = '#c0392b';
             indicador.style.background = '#fdecea';
             return;
@@ -548,7 +593,7 @@
                     LT.atualizarBadge((parseInt(document.getElementById('navAlertBadge')
                         ? document.getElementById('navAlertBadge').textContent : '0', 10) || 0) + 1);
                     LT.beep();
-                    LT.toast('Alerta de atraso', alerta.mensagem, 'warn');
+                    LT.toast('Alerta de atraso', LT.textoAlerta(alerta), 'warn');
                 });
                 stompClient.subscribe('/topic/alertas-contador', function (msg) {
                     const total = Number(JSON.parse(msg.body));
@@ -621,8 +666,8 @@
             // Consulta periódica: assinala no indicador sem repetir toast a cada minuto.
             const badge = document.getElementById('navAlertBadge');
             if (badge) {
-                badge.title = 'Alertas indisponíveis: '
-                    + (e && e.message ? e.message : 'falha na consulta');
+                badge.title = 'Não foi possível atualizar os alertas: '
+                    + (e && e.message ? e.message : 'a consulta falhou');
             }
             console.warn('Falha ao actualizar contador de alertas', e);
         });
@@ -690,7 +735,7 @@
         {valor: 'EM_TRANSITO', etiqueta: 'Em trânsito'},
         {valor: 'ATRASADO', etiqueta: 'Atrasado'},
         {valor: 'CONCLUIDO', etiqueta: 'Concluído'},
-        {valor: 'REJEITADO', etiqueta: 'Rejeitado'}
+        {valor: 'REJEITADO', etiqueta: 'Não aceite'}
     ];
 
     LT.preencherSelect = function (select, itens, opcaoVazia, valor, etiqueta) {

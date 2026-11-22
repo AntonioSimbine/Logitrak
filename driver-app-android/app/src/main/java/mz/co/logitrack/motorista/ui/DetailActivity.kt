@@ -171,7 +171,7 @@ class DetailActivity : AppCompatActivity() {
         val chip = EstadoUi.chipEscuro(dados.estado)
         b.tvEstado.setBackgroundResource(chip.fundo)
         b.tvEstado.setTextColor(chip.corTexto)
-        b.tvEstado.text = EstadoUi.etiqueta(dados.estado, dados.estadoEtiqueta).uppercase()
+        b.tvEstado.text = EstadoUi.etiqueta(this, dados.estado, dados.estadoEtiqueta).uppercase()
 
         b.tvTipo.text = dados.tipoCarga
         b.tvQtd.text = getString(R.string.quantity_value, Formato.numero(dados.quantidadeToneladas, 1))
@@ -283,7 +283,7 @@ class DetailActivity : AppCompatActivity() {
         val gravacao = local?.tempoGravacaoLocalMs ?: 0L
         b.tvGravacaoLocal.visibility = if (gravacao > 0L) View.VISIBLE else View.GONE
         if (gravacao > 0L) {
-            b.tvGravacaoLocal.text = getString(R.string.phase_recorded_local, gravacao)
+            b.tvGravacaoLocal.text = getString(R.string.phase_recorded_local)
         }
         b.btnFaseInicioCarregamento.isEnabled =
             fases?.inicioCarregamento.isNullOrBlank() && local?.dataHoraInicioCarregamento == null
