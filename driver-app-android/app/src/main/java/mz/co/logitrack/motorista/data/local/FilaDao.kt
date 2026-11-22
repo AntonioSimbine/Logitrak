@@ -27,14 +27,39 @@ interface FilaDao {
     )
     fun documentos(motoristaId: Long): Flow<List<DocumentoResumo>>
 
-    @Query("SELECT uuidLocal FROM fila WHERE estado = 'PENDENTE' ORDER BY criadoEm ASC")
-    suspend fun pendentesUuids(): List<String>
+    @Query("SELECT uuidLocal FROM fila WHERE estado = 'PENDENTE' AND motoristaId = :motoristaId ORDER BY criadoEm ASC")
+    suspend fun pendentesUuids(motoristaId: Long): List<String>
 
-    @Query("SELECT * FROM fila WHERE uuidLocal = :uuid LIMIT 1")
-    suspend fun porUuid(uuid: String): FilaEntity?
+    @Query("SELECT * FROM fila WHERE uuidLocal = :uuid AND motoristaId = :motoristaId LIMIT 1")
+    suspend fun porUuid(uuid: String, motoristaId: Long): FilaEntity?
 
-    @Query("SELECT * FROM fila WHERE estado = 'PENDENTE'")
-    suspend fun pendentes(): List<FilaEntity>
+    @Query("SELECT * FROM fila WHERE estado = 'PENDENTE' AND motoristaId = :motoristaId ORDER BY criadoEm ASC")
+    suspend fun pendentes(motoristaId: Long): List<FilaEntity>
+
+    @Query("SELECT * FROM fila WHERE motoristaId = :motoristaId AND carregamentoId = :carregamentoId LIMIT 1")
+    suspend fun porCarregamento(carregamentoId: Long, motoristaId: Long): FilaEntity?
+
+    @Query(
+        """
+        SELECT * FROM fila
+        WHERE motoristaId = :motoristaId AND carregamentoId IS NOT NULL AND carregamentoId > 0
+        ORDER BY criadoEm DESC LIMIT 1
+        """
+    )
+    suspend fun ultimoCarregamento(motoristaId: Long): FilaEntity?
+
+    @Query(
+        """
+        SELECT * FROM fila
+        WHERE motoristaId = :motoristaId AND carregamentoId IS NOT NULL AND carregamentoId > 0
+          AND fasesSincronizadasEm IS NULL
+          AND (dataHoraInicioCarregamento IS NOT NULL
+            OR dataHoraFimCarregamento IS NOT NULL
+            OR dataHoraInicioTransporte IS NOT NULL)
+        ORDER BY criadoEm ASC
+        """
+    )
+    suspend fun fasesPendentes(motoristaId: Long): List<FilaEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun inserir(entity: FilaEntity)

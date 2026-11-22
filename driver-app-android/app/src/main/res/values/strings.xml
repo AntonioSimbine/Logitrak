@@ -500,4 +500,21 @@
     <string name="notif_late_title">Guia %1$s atrasada</string>
     <string name="notif_late_text">Está %1$d minutos acima do limite de SLA.</string>
     <string name="notif_late_text_generic">Está fora do limite de SLA definido para o carregamento.</string>
+
+    <!-- Fases operacionais e capacidade -->
+    <string name="capacity_exceeded">A quantidade excede a capacidade do veículo (%1$s t).</string>
+    <string name="detail_phases">Fases operacionais</string>
+    <string name="phase_wait">Espera na fábrica</string>
+    <string name="phase_loading">Carregamento</string>
+    <string name="phase_transport">Transporte</string>
+    <string name="phase_no_data">sem dados</string>
+    <string name="phase_minutes">%1$d min</string>
+    <string name="phase_start_loading">Iniciar carregamento</string>
+    <string name="phase_finish_loading">Concluir carregamento</string>
+    <string name="phase_start_transport">Iniciar transporte</string>
+    <string name="phase_recorded_local">Gravado localmente em %1$d ms</string>
+    <string name="phase_already_recorded">Já registado — o instante original foi preservado.</string>
+    <string name="phase_saved_local">Instante gravado no dispositivo. Será enviado automaticamente.</string>
+    <string name="phase_sync_failed">Não foi possível enviar o instante. Será tentado novamente.</string>
+    <string name="phase_not_found">Abra este carregamento a partir da fila do dispositivo para registar fases.</string>
 </resources>

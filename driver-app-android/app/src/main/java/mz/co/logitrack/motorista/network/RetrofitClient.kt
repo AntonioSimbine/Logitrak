@@ -33,18 +33,28 @@ object RetrofitClient {
 
         val authInterceptor = Interceptor { chain ->
             val req = chain.request()
-            val builder = req.newBuilder().addHeader("Accept", "application/json")
+            val builder = req.newBuilder().header("Accept", "application/json")
             val atual = Prefs(context).token
-            if (!atual.isNullOrBlank()) {
-                builder.addHeader("Authorization", "Bearer $atual")
+            // A confirmação de perfil no login envia o token recém-recebido;
+            // nunca deve coexistir com o token antigo guardado no dispositivo.
+            if (req.header("Authorization").isNullOrBlank() && !atual.isNullOrBlank()) {
+                builder.header("Authorization", "Bearer $atual")
             }
             chain.proceed(builder.build())
+        }
+        val idempotenteInterceptor = Interceptor { chain ->
+            val resp = chain.proceed(chain.request())
+            val duplicado = resp.header("X-Idempotente")
+                ?.equals("true", ignoreCase = true) == true
+            Idempotencia.sinalizar(duplicado)
+            resp
         }
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .addInterceptor(idempotenteInterceptor)
             .addInterceptor(logging)
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(45, TimeUnit.SECONDS)

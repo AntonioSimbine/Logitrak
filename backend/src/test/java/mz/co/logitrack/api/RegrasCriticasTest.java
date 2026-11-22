@@ -233,6 +233,46 @@ class RegrasCriticasTest {
     }
 
     @Test
+    @DisplayName("O motorista regista fases apenas nos seus carregamentos pela API móvel")
+    void motoristaRegistaFasesPelaApiMobile() throws Exception {
+        Veiculo veiculo = veiculoRepository.findAll().get(0);
+        Carregamento proprio = criarCarregamentoAtivo(veiculo, 1.0);
+        LocalDateTime inicio = proprio.getDataHoraInicio().withNano(0);
+        proprio.setDataHoraInicio(inicio);
+        proprio.setDataHoraFim(inicio.plusHours(3));
+        carregamentoRepository.saveAndFlush(proprio);
+
+        String tokenMotorista = obterToken("motorista@logitrack.co.mz");
+        String corpo = objectMapper.writeValueAsString(Map.of(
+                "dataHoraInicioCarregamento", inicio.plusMinutes(10),
+                "dataHoraFimCarregamento", inicio.plusMinutes(30),
+                "dataHoraInicioTransporte", inicio.plusMinutes(40)));
+
+        mockMvc.perform(patch("/api/v1/mobile/carregamentos/" + proprio.getId() + "/fases")
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fases.esperaMinutos").value(10))
+                .andExpect(jsonPath("$.fases.carregamentoMinutos").value(20))
+                .andExpect(jsonPath("$.fases.transporteMinutos").value(140));
+
+        Carregamento alheio = criarCarregamentoAtivo(veiculo, 1.0);
+        alheio.setMotorista(utilizadorRepository.findByEmailIgnoreCase("admin@logitrack.co.mz")
+                .orElseThrow());
+        alheio.setDataHoraFim(alheio.getDataHoraInicio().plusHours(3));
+        carregamentoRepository.saveAndFlush(alheio);
+
+        mockMvc.perform(patch("/api/v1/mobile/carregamentos/" + alheio.getId() + "/fases")
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "dataHoraInicioCarregamento",
+                                alheio.getDataHoraInicio().plusMinutes(5)))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("Registos antigos não inventam durações para as fases")
     void fasesAntigasSemDados() {
         Carregamento antigo = carregamentoRepository.findByUuidLocal(UUID.fromString(

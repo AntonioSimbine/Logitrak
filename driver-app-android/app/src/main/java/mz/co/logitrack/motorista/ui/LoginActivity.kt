@@ -39,7 +39,7 @@ class LoginActivity : AppCompatActivity() {
 
         val mensagemInicial = intent?.getStringExtra(MainActivity.EXTRA_MENSAGEM)
         if (mensagemInicial.isNullOrBlank() && prefs.sessaoValida()) {
-            entrarNaApp(null)
+            validarSessaoOnline()
             return
         }
         if (!mensagemInicial.isNullOrBlank()) {
@@ -94,10 +94,12 @@ class LoginActivity : AppCompatActivity() {
                 if (valor.isEmpty()) {
                     valor = Prefs.BASE_PADRAO
                 }
-                if (!valor.startsWith("http://") && !valor.startsWith("https://")) {
+                if (valor.startsWith("http://")) {
+                    valor = "https://" + valor.removePrefix("http://")
+                } else if (!valor.startsWith("https://")) {
                     valor = "https://$valor"
                 }
-                if (!Regex("^https?://[^\\s]+$").matches(valor)) {
+                if (!Regex("^https://[^\\s]+$").matches(valor)) {
                     Toast.makeText(this, R.string.server_invalid, Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
@@ -233,7 +235,11 @@ class LoginActivity : AppCompatActivity() {
                 if (corpo == null || corpo.token.isBlank()) {
                     mostrarErro(getString(R.string.error_generic))
                     true
-                } else if (!perfilMotorista(corpo.utilizador.perfil, corpo.utilizador.perfilEtiqueta)) {
+                } else if (!perfilMotorista(corpo.utilizador.perfil, corpo.utilizador.perfilEtiqueta)
+                    || !perfilConfirmadoOnline(corpo.token)
+                ) {
+                    prefs.limparTudo()
+                    RetrofitClient.invalidar()
                     mostrarErro(getString(R.string.error_driver_only))
                     true
                 } else {
@@ -247,6 +253,45 @@ class LoginActivity : AppCompatActivity() {
         } catch (e: Exception) {
             false
         }
+    }
+
+    /** Confirma o perfil no arranque; a sessão guardada não basta para RBAC. */
+    private fun validarSessaoOnline() {
+        if (!NetworkUtils.estaLigado(this)) {
+            entrarNaApp(null)
+            return
+        }
+        lifecycleScope.launch {
+            try {
+                val resp = RetrofitClient.getApi(this@LoginActivity).me()
+                when {
+                    resp.code() == 401 -> {
+                        prefs.limparSessao()
+                        RetrofitClient.invalidar()
+                        mostrarErro(getString(R.string.session_expired_message))
+                    }
+                    resp.isSuccessful && resp.body()?.let {
+                        perfilMotorista(it.perfil, it.perfilEtiqueta)
+                    } != true -> {
+                        prefs.limparTudo()
+                        RetrofitClient.invalidar()
+                        mostrarErro(getString(R.string.error_driver_only))
+                    }
+                    else -> entrarNaApp(null)
+                }
+            } catch (e: Exception) {
+                entrarNaApp(null)
+            }
+        }
+    }
+
+    private suspend fun perfilConfirmadoOnline(token: String): Boolean = try {
+        val resp = RetrofitClient.getApi(this).meComToken("Bearer $token")
+        resp.isSuccessful && resp.body()?.let {
+            perfilMotorista(it.perfil, it.perfilEtiqueta)
+        } == true
+    } catch (e: Exception) {
+        false
     }
 
     private fun perfilMotorista(perfil: String?, etiqueta: String?): Boolean {

@@ -288,7 +288,7 @@ class QueueFragment : Fragment(R.layout.fragment_queue) {
         val contexto = requireContext().applicationContext
         lifecycleScope.launch {
             val resultado = SyncManager.sincronizarUm(contexto, item.uuidLocal)
-            val atualizado = AppDb.get(contexto).filaDao().porUuid(item.uuidLocal)
+            val atualizado = AppDb.get(contexto).filaDao().porUuid(item.uuidLocal, prefs.userId)
             when (resultado) {
                 ResultadoItem.ENVIADO ->
                     Toast.makeText(
@@ -325,7 +325,7 @@ class QueueFragment : Fragment(R.layout.fragment_queue) {
                         Toast.LENGTH_SHORT
                     ).show()
                     ResultadoItem.REJEITADO -> {
-                        val atualizado = AppDb.get(contexto).filaDao().porUuid(item.uuidLocal)
+                        val atualizado = AppDb.get(contexto).filaDao().porUuid(item.uuidLocal, prefs.userId)
                         Toast.makeText(
                             requireContext(),
                             getString(

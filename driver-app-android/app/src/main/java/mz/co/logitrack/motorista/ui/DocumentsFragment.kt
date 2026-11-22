@@ -98,7 +98,7 @@ class DocumentsFragment : Fragment(R.layout.fragment_documents) {
     private suspend fun carregarMiniatura(uuid: String): Bitmap? {
         val contexto = requireContext().applicationContext
         return withContext(Dispatchers.IO) {
-            val foto = AppDb.get(contexto).filaDao().porUuid(uuid)?.fotoBase64
+            val foto = AppDb.get(contexto).filaDao().porUuid(uuid, prefs.userId)?.fotoBase64
             Imagem.deBase64Miniatura(foto)
         }
     }

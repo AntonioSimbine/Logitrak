@@ -7,10 +7,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
+import mz.co.logitrack.motorista.data.dto.PosicaoRequest
 import mz.co.logitrack.motorista.data.dto.SyncRequest
 import mz.co.logitrack.motorista.data.local.AppDb
 import mz.co.logitrack.motorista.data.local.FilaEntity
 import mz.co.logitrack.motorista.network.ApiErrors
+import mz.co.logitrack.motorista.network.Idempotencia
 import mz.co.logitrack.motorista.network.NetworkUtils
 import mz.co.logitrack.motorista.network.RetrofitClient
 import mz.co.logitrack.motorista.util.Prefs
@@ -23,10 +25,18 @@ data class SyncResultado(
     val falhas: Int = 0,
     val semRede: Boolean = false,
     val sessaoExpirada: Boolean = false,
-    val nadaPorEnviar: Boolean = false
+    val nadaPorEnviar: Boolean = false,
+    val duplicados: Int = 0,
+    val posicoesEnviadas: Int = 0
 )
 
 enum class ResultadoItem { ENVIADO, REJEITADO, FALHA, SESSAO, SEM_REDE }
+
+private data class EnvioPosicoes(
+    val enviados: Int = 0,
+    val semRede: Boolean = false,
+    val sessaoExpirada: Boolean = false
+)
 
 /**
  * Motor de sincronização partilhado pelo ecrã Pendentes, pelo painel e pelo
@@ -47,38 +57,47 @@ object SyncManager {
         if (!NetworkUtils.estaLigado(context)) {
             return@withLock SyncResultado(semRede = true)
         }
+        val motoristaId = prefs.userId
         val dao = AppDb.get(context).filaDao()
+
+        val posicoes = enviarPosicoes(context, motoristaId)
         val uuids = try {
-            dao.pendentesUuids()
+            dao.pendentesUuids(motoristaId)
         } catch (e: Exception) {
             return@withLock SyncResultado(falhas = 1)
         }
-        if (uuids.isEmpty()) {
+        if (uuids.isEmpty() && posicoes.enviados == 0 && !posicoes.semRede && !posicoes.sessaoExpirada) {
             return@withLock SyncResultado(nadaPorEnviar = true)
         }
 
-        var enviados = 0
+        var enviados = posicoes.enviados
         var rejeitados = 0
         var falhas = 0
-        var sessao = false
+        var duplicados = 0
+        var sessao = posicoes.sessaoExpirada
         for (uuid in uuids) {
-            val item = dao.porUuid(uuid) ?: continue
-            when (enviar(context, item)) {
-                ResultadoItem.ENVIADO -> enviados++
+            val item = dao.porUuid(uuid, motoristaId) ?: continue
+            when (val resultado = enviar(context, item)) {
+                ResultadoItem.ENVIADO -> {
+                    enviados++
+                    if (Idempotencia.consumir()) duplicados++
+                }
                 ResultadoItem.REJEITADO -> rejeitados++
                 ResultadoItem.SESSAO -> {
                     sessao = true
                     break
                 }
                 ResultadoItem.SEM_REDE -> {
-                    val resultado = SyncResultado(
+                    val resultadoFinal = SyncResultado(
                         enviados = enviados,
                         rejeitados = rejeitados,
                         falhas = falhas,
-                        semRede = true
+                        semRede = true,
+                        duplicados = duplicados,
+                        posicoesEnviadas = posicoes.enviados
                     )
-                    if (enviados > 0 || rejeitados > 0) _eventos.tryEmit(resultado)
-                    return@withLock resultado
+                    _eventos.tryEmit(resultadoFinal)
+                    return@withLock resultadoFinal
                 }
                 ResultadoItem.FALHA -> falhas++
             }
@@ -90,7 +109,9 @@ object SyncManager {
             enviados = enviados,
             rejeitados = rejeitados,
             falhas = falhas,
-            sessaoExpirada = sessao
+            sessaoExpirada = sessao,
+            duplicados = duplicados,
+            posicoesEnviadas = posicoes.enviados
         )
         if (enviados > 0 || rejeitados > 0 || falhas > 0) {
             _eventos.tryEmit(resultado)
@@ -100,7 +121,9 @@ object SyncManager {
 
     suspend fun sincronizarUm(context: Context, uuid: String): ResultadoItem = mutex.withLock {
         if (!NetworkUtils.estaLigado(context)) return@withLock ResultadoItem.SEM_REDE
-        val item = AppDb.get(context).filaDao().porUuid(uuid) ?: return@withLock ResultadoItem.FALHA
+        val motoristaId = Prefs(context).userId
+        val item = AppDb.get(context).filaDao().porUuid(uuid, motoristaId)
+            ?: return@withLock ResultadoItem.FALHA
         enviar(context, item).also { resultado ->
             if (resultado == ResultadoItem.ENVIADO) {
                 Prefs(context).ultimaSync = System.currentTimeMillis()
@@ -128,6 +151,9 @@ object SyncManager {
             longitude = item.longitude,
             precisaoMetros = item.precisaoMetros,
             dataHoraInicio = item.dataHoraInicio,
+            dataHoraInicioCarregamento = item.dataHoraInicioCarregamento,
+            dataHoraFimCarregamento = item.dataHoraFimCarregamento,
+            dataHoraInicioTransporte = item.dataHoraInicioTransporte,
             fotoBase64 = item.fotoBase64,
             confirmarForaGeofence = item.confirmarForaGeofence
         )
@@ -135,6 +161,7 @@ object SyncManager {
             tentativas = item.tentativas + 1,
             ultimaTentativa = System.currentTimeMillis()
         )
+        Idempotencia.consumir()
         return try {
             // Impedir que o botão fique indefinidamente em "A sincronizar".
             // O pedido continua pendente e pode ser repetido se o servidor não responder.
@@ -142,12 +169,17 @@ object SyncManager {
             when {
                 resp.isSuccessful && resp.body() != null -> {
                     val body = resp.body()!!
+                    val temFases = item.dataHoraInicioCarregamento != null ||
+                        item.dataHoraFimCarregamento != null ||
+                        item.dataHoraInicioTransporte != null
                     dao.atualizar(
                         tentativa.copy(
                             estado = "SINCRONIZADO",
                             erro = null,
                             carregamentoId = body.id,
-                            sincronizadoEm = System.currentTimeMillis()
+                            sincronizadoEm = System.currentTimeMillis(),
+                            // As fases enviadas no sync não precisam de PATCH posterior.
+                            fasesSincronizadasEm = if (temFases) System.currentTimeMillis() else null
                         )
                     )
                     ResultadoItem.ENVIADO
@@ -179,5 +211,72 @@ object SyncManager {
             dao.atualizar(tentativa.copy(erro = e.message ?: "Falha de comunicação."))
             ResultadoItem.FALHA
         }
+    }
+
+    /** Envia os pontos de GPS guardados com o timestamp original da captura. */
+    private suspend fun enviarPosicoes(context: Context, motoristaId: Long): EnvioPosicoes {
+        val dao = AppDb.get(context).posicaoDao()
+        val pendentes = try {
+            dao.pendentes(motoristaId)
+        } catch (e: Exception) {
+            return EnvioPosicoes()
+        }
+        if (pendentes.isEmpty()) return EnvioPosicoes()
+
+        val api = RetrofitClient.getApi(context)
+        var enviados = 0
+        for (ponto in pendentes) {
+            val pedido = PosicaoRequest(
+                latitude = ponto.latitude,
+                longitude = ponto.longitude,
+                precisaoMetros = ponto.precisaoMetros,
+                timestamp = ponto.timestamp
+            )
+            try {
+                val resp = withTimeout(30_000L) { api.registarPosicao(ponto.carregamentoId, pedido) }
+                when {
+                    resp.isSuccessful || resp.code() == 409 -> {
+                        dao.atualizar(ponto.copy(enviadoEm = System.currentTimeMillis()))
+                        enviados++
+                    }
+                    resp.code() == 401 -> {
+                        Prefs(context).sessionExpired = true
+                        Sessao.sinalizarExpiracao()
+                        return EnvioPosicoes(enviados = enviados, sessaoExpirada = true)
+                    }
+                    resp.code() == 400 || resp.code() == 422 -> {
+                        // Instante inválido não pode bloquear a fila para sempre.
+                        dao.atualizar(
+                            ponto.copy(
+                                enviadoEm = System.currentTimeMillis(),
+                                erro = ApiErrors.mensagem(resp)
+                            )
+                        )
+                    }
+                    else -> {
+                        dao.atualizar(
+                            ponto.copy(
+                                tentativas = ponto.tentativas + 1,
+                                ultimaTentativa = System.currentTimeMillis(),
+                                erro = ApiErrors.mensagem(resp)
+                            )
+                        )
+                    }
+                }
+            } catch (e: IOException) {
+                return EnvioPosicoes(enviados = enviados, semRede = true)
+            } catch (_: TimeoutCancellationException) {
+                return EnvioPosicoes(enviados = enviados, semRede = true)
+            } catch (e: Exception) {
+                dao.atualizar(
+                    ponto.copy(
+                        tentativas = ponto.tentativas + 1,
+                        ultimaTentativa = System.currentTimeMillis(),
+                        erro = e.message ?: "Falha de comunicação."
+                    )
+                )
+            }
+        }
+        return EnvioPosicoes(enviados = enviados)
     }
 }

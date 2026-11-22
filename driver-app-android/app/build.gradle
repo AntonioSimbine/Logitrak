@@ -14,14 +14,14 @@ android {
         applicationId "mz.co.logitrack.motorista"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Endereço inicial da API. Pode ser trocado na app (ecrã de login > Servidor)
         // ou no build: gradlew assembleDebug -PapiBase=https://a-tua-api.exemplo.com
-        def apiBase = (project.findProperty('apiBase') ?: 'http://192.168.137.1:8080').toString()
+        def apiBase = (project.findProperty('apiBase') ?: 'https://api-production-938e6a7a.up.railway.app').toString()
         buildConfigField 'String', 'API_BASE_PADRAO', "\"${apiBase}\""
     }
 

@@ -7,9 +7,14 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [FilaEntity::class], version = 2, exportSchema = false)
+@Database(
+    entities = [FilaEntity::class, PosicaoEntity::class],
+    version = 3,
+    exportSchema = false
+)
 abstract class AppDb : RoomDatabase() {
     abstract fun filaDao(): FilaDao
+    abstract fun posicaoDao(): PosicaoDao
 
     companion object {
         @Volatile private var INSTANCE: AppDb? = null
@@ -23,15 +28,46 @@ abstract class AppDb : RoomDatabase() {
             }
         }
 
+        private val MIGRACAO_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE fila ADD COLUMN dataHoraInicioCarregamento TEXT")
+                db.execSQL("ALTER TABLE fila ADD COLUMN dataHoraFimCarregamento TEXT")
+                db.execSQL("ALTER TABLE fila ADD COLUMN dataHoraInicioTransporte TEXT")
+                db.execSQL("ALTER TABLE fila ADD COLUMN fasesSincronizadasEm INTEGER")
+                db.execSQL("ALTER TABLE fila ADD COLUMN tempoGravacaoLocalMs INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS posicoes (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        carregamentoId INTEGER NOT NULL,
+                        motoristaId INTEGER NOT NULL,
+                        latitude REAL NOT NULL,
+                        longitude REAL NOT NULL,
+                        precisaoMetros REAL NOT NULL,
+                        timestamp TEXT NOT NULL,
+                        criadoEm INTEGER NOT NULL,
+                        tentativas INTEGER NOT NULL DEFAULT 0,
+                        ultimaTentativa INTEGER,
+                        erro TEXT,
+                        enviadoEm INTEGER
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS idx_posicoes_pendentes " +
+                        "ON posicoes(motoristaId, enviadoEm, criadoEm)"
+                )
+            }
+        }
+
         fun get(context: Context): AppDb {
             return INSTANCE ?: synchronized(this) {
-                Room.databaseBuilder(
+                INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDb::class.java,
                     "logitrack_motorista.db"
                 )
-                    .addMigrations(MIGRACAO_1_2)
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3)
                     .build()
                     .also { INSTANCE = it }
             }

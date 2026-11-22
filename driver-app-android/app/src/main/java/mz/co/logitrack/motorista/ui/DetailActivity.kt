@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mz.co.logitrack.motorista.R
 import mz.co.logitrack.motorista.data.dto.CarregamentoDto
+import mz.co.logitrack.motorista.data.local.FilaEntity
 import mz.co.logitrack.motorista.databinding.ActivityDetailBinding
 import mz.co.logitrack.motorista.databinding.ItemTimelineBinding
 import mz.co.logitrack.motorista.network.NetworkUtils
@@ -23,6 +24,8 @@ import mz.co.logitrack.motorista.util.Animacoes
 import mz.co.logitrack.motorista.util.Formato
 import mz.co.logitrack.motorista.util.Prefs
 import mz.co.logitrack.motorista.util.Sessao
+import mz.co.logitrack.motorista.worker.FaseOperacional
+import mz.co.logitrack.motorista.worker.FasesManager
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailBinding
@@ -50,10 +53,26 @@ class DetailActivity : AppCompatActivity() {
         binding.btnVoltar.setOnClickListener { finish() }
         binding.btnAtualizar.setOnClickListener { carregar(forcar = true) }
         binding.btnTentar.setOnClickListener { carregar(forcar = true) }
+        binding.btnFaseInicioCarregamento.setOnClickListener {
+            registarFase(FaseOperacional.INICIO_CARREGAMENTO)
+        }
+        binding.btnFaseFimCarregamento.setOnClickListener {
+            registarFase(FaseOperacional.FIM_CARREGAMENTO)
+        }
+        binding.btnFaseInicioTransporte.setOnClickListener {
+            registarFase(FaseOperacional.INICIO_TRANSPORTE)
+        }
 
         Animacoes.surgir(binding.root.getChildAt(0), atraso = 40L, deslocamentoY = 14f)
         Animacoes.cascata(binding.detailContent, atraso = 150L, intervalo = 60L)
-        Animacoes.pressionar(binding.btnVoltar, binding.btnAtualizar, binding.btnTentar)
+        Animacoes.pressionar(
+            binding.btnVoltar,
+            binding.btnAtualizar,
+            binding.btnTentar,
+            binding.btnFaseInicioCarregamento,
+            binding.btnFaseFimCarregamento,
+            binding.btnFaseInicioTransporte
+        )
 
         carregar(forcar = false)
     }
@@ -180,6 +199,7 @@ class DetailActivity : AppCompatActivity() {
         }
 
         renderTimeline(dados)
+        renderFases(dados)
 
         val posicao = dados.ultimaPosicao ?: dados.posicoes?.lastOrNull()
         if (posicao != null) {
@@ -235,6 +255,65 @@ class DetailActivity : AppCompatActivity() {
         if (!animouTimeline && etapas.isNotEmpty()) {
             animouTimeline = true
             Animacoes.cascata(b.timelineContainer, atraso = 260L, intervalo = 45L, deslocamentoY = 10f)
+        }
+    }
+
+    /* ------------------------- Fases operacionais ------------------------- */
+
+    private fun renderFases(dados: CarregamentoDto) {
+        val b = binding
+        val fases = dados.fases
+        b.tvFaseEspera.text = duracao(fases?.esperaMinutos)
+        b.tvFaseCarregamento.text = duracao(fases?.carregamentoMinutos)
+        b.tvFaseTransporte.text = duracao(fases?.transporteMinutos)
+
+        lifecycleScope.launch {
+            val local = FasesManager.local(this@DetailActivity, dados.id)
+            withContext(Dispatchers.Main) { aplicarEstadoLocal(dados, local) }
+        }
+    }
+
+    private fun duracao(minutos: Long?): String =
+        if (minutos == null) getString(R.string.phase_no_data)
+        else getString(R.string.phase_minutes, minutos)
+
+    private fun aplicarEstadoLocal(dados: CarregamentoDto, local: FilaEntity?) {
+        val b = binding
+        val fases = dados.fases
+        val gravacao = local?.tempoGravacaoLocalMs ?: 0L
+        b.tvGravacaoLocal.visibility = if (gravacao > 0L) View.VISIBLE else View.GONE
+        if (gravacao > 0L) {
+            b.tvGravacaoLocal.text = getString(R.string.phase_recorded_local, gravacao)
+        }
+        b.btnFaseInicioCarregamento.isEnabled =
+            fases?.inicioCarregamento.isNullOrBlank() && local?.dataHoraInicioCarregamento == null
+        b.btnFaseFimCarregamento.isEnabled =
+            fases?.fimCarregamento.isNullOrBlank() && local?.dataHoraFimCarregamento == null
+        b.btnFaseInicioTransporte.isEnabled =
+            fases?.inicioTransporte.isNullOrBlank() && local?.dataHoraInicioTransporte == null
+    }
+
+    private fun registarFase(fase: FaseOperacional) {
+        lifecycleScope.launch {
+            val local = FasesManager.local(this@DetailActivity, id)
+            if (local == null) {
+                avisar(R.string.phase_not_found)
+                return@launch
+            }
+            val gravado = FasesManager.registar(
+                this@DetailActivity,
+                carregamentoId = id,
+                uuidLocal = local.uuidLocal,
+                fase = fase
+            )
+            if (!gravado) {
+                avisar(R.string.phase_already_recorded)
+                return@launch
+            }
+            avisar(R.string.phase_saved_local)
+            detalheAtual?.let { renderFases(it) }
+            FasesManager.sincronizar(this@DetailActivity)
+            carregar(forcar = true)
         }
     }
 

@@ -48,7 +48,9 @@ object Geo {
             ?.replace(',', '.')
             ?.trim()
         val valor = bruto?.toDoubleOrNull() ?: return PRECISAO_PADRAO
-        return if (valor <= 0) PRECISAO_PADRAO else valor
+        // O backend aceita no máximo 15 m; um parâmetro mal configurado não pode
+        // fazer a app validar com uma tolerância maior e o servidor rejeitar depois.
+        return if (valor <= 0) PRECISAO_PADRAO else minOf(valor, PRECISAO_PADRAO)
     }
 
     fun intervaloMinutos(refs: ReferenciasDto?): Long {

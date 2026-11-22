@@ -250,6 +250,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
             ?: 0.0
         val tipo = tipoSelecionado.ifBlank { b.actvTipo.text?.toString()?.trim().orEmpty() }
         val veiculo = veiculos.firstOrNull { it.id == veiculoId }
+        val capacidade = veiculo?.capacidadeCargaToneladas
         limparErroFormulario()
 
         return when (passo) {
@@ -269,6 +270,13 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
                 }
                 quantidade <= 0.0 -> {
                     erroFormulario(R.string.invalid_quantity)
+                    b.etQtd.requestFocus()
+                    false
+                }
+                capacidade != null && quantidade > capacidade -> {
+                    erroFormulario(
+                        getString(R.string.capacity_exceeded, Formato.numero(capacidade, 1))
+                    )
                     b.etQtd.requestFocus()
                     false
                 }
@@ -815,6 +823,16 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
                 b.etQtd.requestFocus()
                 return
             }
+            veiculo.capacidadeCargaToneladas?.let { quantidade > it } == true -> {
+                erroFormulario(
+                    getString(
+                        R.string.capacity_exceeded,
+                        Formato.numero(veiculo.capacidadeCargaToneladas!!, 1)
+                    )
+                )
+                b.etQtd.requestFocus()
+                return
+            }
             fotoBase64 == null -> {
                 erroFormulario(R.string.missing_photo)
                 return
@@ -862,7 +880,11 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                AppDb.get(requireContext()).filaDao().inserir(entidade)
+                val dao = AppDb.get(requireContext()).filaDao()
+                val inicioGravacao = System.nanoTime()
+                dao.inserir(entidade)
+                val milissegundos = (System.nanoTime() - inicioGravacao) / 1_000_000L
+                dao.atualizar(entidade.copy(tempoGravacaoLocalMs = milissegundos))
                 agendarSincronizacao()
                 val activity = requireActivity()
                 val intent = Intent(activity, SuccessActivity::class.java)

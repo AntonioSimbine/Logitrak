@@ -12,6 +12,9 @@ interface Api {
     @GET("auth/me")
     suspend fun me(): Response<UtilizadorDto>
 
+    @GET("auth/me")
+    suspend fun meComToken(@Header("Authorization") autorizacao: String): Response<UtilizadorDto>
+
     @GET("mobile/dashboard")
     suspend fun dashboard(): Response<DashboardDto>
 
@@ -26,6 +29,18 @@ interface Api {
 
     @POST("carregamentos")
     suspend fun syncCarregamento(@Body req: SyncRequest): Response<RecenteDto>
+
+    @POST("carregamentos/{id}/posicoes")
+    suspend fun registarPosicao(
+        @Path("id") id: Long,
+        @Body req: PosicaoRequest
+    ): Response<PosicaoDto>
+
+    @PATCH("mobile/carregamentos/{id}/fases")
+    suspend fun registarFases(
+        @Path("id") id: Long,
+        @Body req: RegistarFasesRequest
+    ): Response<RecenteDto>
 
     @Streaming
     @GET("documentos/{id}/ficheiro")

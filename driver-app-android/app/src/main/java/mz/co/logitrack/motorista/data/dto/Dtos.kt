@@ -99,7 +99,19 @@ data class CarregamentoDto(
     val posicoes: List<PosicaoDto>?,
     val ultimaPosicao: PosicaoDto?,
     val timeline: List<TimelineDto>?,
-    val alertasAbertos: Int
+    val alertasAbertos: Int,
+    val fases: FasesDto?
+)
+
+data class FasesDto(
+    val inicioEspera: String?,
+    val inicioCarregamento: String?,
+    val fimCarregamento: String?,
+    val inicioTransporte: String?,
+    val fimTransporte: String?,
+    val esperaMinutos: Long?,
+    val carregamentoMinutos: Long?,
+    val transporteMinutos: Long?
 )
 
 data class FabricaDetalheDto(
@@ -160,8 +172,25 @@ data class SyncRequest(
     val longitude: Double,
     val precisaoMetros: Double,
     val dataHoraInicio: String?,
+    val dataHoraInicioCarregamento: String? = null,
+    val dataHoraFimCarregamento: String? = null,
+    val dataHoraInicioTransporte: String? = null,
     val fotoBase64: String,
     val confirmarForaGeofence: Boolean
+)
+
+data class PosicaoRequest(
+    val latitude: Double,
+    val longitude: Double,
+    val precisaoMetros: Double,
+    val timestamp: String? = null
+)
+
+/** Contrato do PATCH /mobile/carregamentos/{id}/fases. */
+data class RegistarFasesRequest(
+    val dataHoraInicioCarregamento: String? = null,
+    val dataHoraFimCarregamento: String? = null,
+    val dataHoraInicioTransporte: String? = null
 )
 
 data class ApiErrorDto(val error: String?, val detalhes: Map<String, String>?)

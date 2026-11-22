@@ -8,12 +8,17 @@ import com.google.gson.Gson
 import mz.co.logitrack.motorista.BuildConfig
 import mz.co.logitrack.motorista.data.dto.DashboardDto
 import mz.co.logitrack.motorista.data.dto.ReferenciasDto
+import android.util.Log
 import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Base64
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
 
 /**
- * Preferências da sessão. Usa armazenamento cifrado quando o dispositivo o
- * permite e recorre a SharedPreferences normal caso o keystore falhe, para que
- * a aplicação nunca rebente no arranque.
+ * Preferências da sessão. Usa sempre AES/Keystore; se o dispositivo não o
+ * permitir, mantém os dados apenas em memória. Nunca grava token, sessão ou
+ * credencial em SharedPreferences normais (texto claro).
  */
 class Prefs(context: Context) {
     private val appContext = context.applicationContext
@@ -32,7 +37,8 @@ class Prefs(context: Context) {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (t: Throwable) {
-            appContext.getSharedPreferences("logitrack_secure_fallback", Context.MODE_PRIVATE)
+            Log.w("LogitrackPrefs", "Keystore indisponível; sessão apenas em memória.", t)
+            MemoriaSharedPreferences.INSTANCIA
         }
     }
 
@@ -162,7 +168,19 @@ class Prefs(context: Context) {
 
     fun credencialValida(email: String, senha: String): Boolean {
         val guardado = credencialHash ?: return false
-        return guardado == hashCredencial(email, senha)
+        val valido = if (guardado.startsWith(PBKDF2_PREFIX)) {
+            verificarCredencial(guardado, email, senha)
+        } else {
+            // Migração do formato antigo: o valor guardado é um SHA-256, nunca a senha.
+            MessageDigest.isEqual(
+                guardado.toByteArray(Charsets.UTF_8),
+                hashSha256(email, senha).toByteArray(Charsets.UTF_8)
+            )
+        }
+        if (valido && !guardado.startsWith(PBKDF2_PREFIX)) {
+            guardarCredencial(email, senha)
+        }
+        return valido
     }
 
     fun sessaoValida(): Boolean {
@@ -239,12 +257,16 @@ class Prefs(context: Context) {
         val BASE_PADRAO: String = BuildConfig.API_BASE_PADRAO
         private const val CHAVE_NOTIF_LIDAS = "notif_lidas"
         private const val MAX_NOTIF_LIDAS = 300
+        private const val PBKDF2_PREFIX = "pbkdf2"
+        private const val ITERACOES_PBKDF2 = 120_000
 
         fun normalizarBase(valor: String): String {
             var base = valor.trim()
             if (base.isEmpty()) return BASE_PADRAO
-            if (!base.startsWith("http://") && !base.startsWith("https://")) {
-                base = "http://$base"
+            if (base.startsWith("http://")) {
+                base = "https://" + base.removePrefix("http://")
+            } else if (!base.startsWith("https://")) {
+                base = "https://$base"
             }
             base = base.trimEnd('/')
             if (base.endsWith("/api/v1")) base = base.removeSuffix("/api/v1")
@@ -253,6 +275,46 @@ class Prefs(context: Context) {
         }
 
         fun hashCredencial(email: String, senha: String): String {
+            val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
+            val chave = derivarChave(email, senha, salt, ITERACOES_PBKDF2)
+            return listOf(
+                PBKDF2_PREFIX,
+                ITERACOES_PBKDF2.toString(),
+                Base64.getEncoder().encodeToString(salt),
+                Base64.getEncoder().encodeToString(chave)
+            ).joinToString(":")
+        }
+
+        private fun verificarCredencial(guardado: String, email: String, senha: String): Boolean {
+            val partes = guardado.split(":")
+            if (partes.size != 4 || partes[0] != PBKDF2_PREFIX) return false
+            return try {
+                val iteracoes = partes[1].toInt()
+                val salt = Base64.getDecoder().decode(partes[2])
+                val esperado = Base64.getDecoder().decode(partes[3])
+                MessageDigest.isEqual(derivarChave(email, senha, salt, iteracoes), esperado)
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        private fun derivarChave(
+            email: String,
+            senha: String,
+            salt: ByteArray,
+            iteracoes: Int
+        ): ByteArray {
+            val especificacao = PBEKeySpec(
+                "${email.trim().lowercase()}:$senha".toCharArray(),
+                salt,
+                iteracoes,
+                256
+            )
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+                .generateSecret(especificacao).encoded
+        }
+
+        private fun hashSha256(email: String, senha: String): String {
             val digest = MessageDigest.getInstance("SHA-256")
             val bytes = digest.digest("${email.trim().lowercase()}:$senha".toByteArray(Charsets.UTF_8))
             return bytes.joinToString("") { "%02x".format(it) }
