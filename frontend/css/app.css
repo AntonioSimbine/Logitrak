@@ -544,9 +544,22 @@ h1, h2, h3, h4 {
 }
 
 .topbar .sub {
-    font-size: 11.5px;
-    color: var(--muted);
+    font-size: 12.5px;
+    color: #526780;
     margin-top: 1px;
+}
+
+.topbar-perfil {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.topbar-etiqueta {
+    font-size: 15px;
+    font-weight: 750;
+    color: #08395d;
+    line-height: 1.2;
 }
 
 .topbar-spacer {
@@ -600,9 +613,51 @@ h1, h2, h3, h4 {
 }
 
 .page-head p {
-    color: var(--muted);
+    color: #526780;
     margin: 5px 0 0;
-    font-size: 12.5px;
+    font-size: 13.5px;
+}
+
+.fases-card {
+    margin-bottom: 16px;
+}
+
+.fases-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.fases-grid > div {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid #dce6f1;
+    border-radius: 10px;
+    background: #f8fbfe;
+}
+
+.fases-grid span {
+    font-size: 12px;
+    color: #526780;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.fases-grid strong {
+    font-size: 20px;
+    color: #08395d;
+}
+
+.inline-alert {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-radius: 9px;
+    border: 1px solid #f2c1bb;
+    background: #fff5f4;
+    color: #9c2b1f;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .page-actions {
@@ -986,11 +1041,11 @@ table.data .sub {
     gap: 5px;
     padding: 3px 9px;
     border-radius: 999px;
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 700;
     white-space: nowrap;
     background: #eef2f7;
-    color: #56657a;
+    color: #41536b;
 }
 
 .chip::before {
@@ -1029,16 +1084,16 @@ table.data .sub {
 }
 
 .field label {
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 700;
-    color: #48607c;
+    color: #334a66;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .03em;
 }
 
 .field .hint {
-    font-size: 10.5px;
-    color: #94a3b8;
+    font-size: 11.5px;
+    color: #5d7085;
 }
 
 .input, .select, .textarea {
@@ -1046,17 +1101,29 @@ table.data .sub {
     border: 1px solid #d7dfe9;
     border-radius: 9px;
     background: #fff;
-    padding: 9px 11px;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-size: 14px;
     color: var(--ink);
     outline: none;
     transition: .15s;
-    min-height: 38px;
+    min-height: 42px;
 }
 
 .input:focus, .select:focus, .textarea:focus {
     border-color: #f3a077;
     box-shadow: 0 0 0 3px rgba(242, 107, 46, .12);
+}
+
+/* Navegação por teclado: o contorno não pode ser suprimido sem substituto. */
+:focus-visible {
+    outline: 3px solid #1d63b8;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible {
+    outline: 3px solid #1d63b8;
+    outline-offset: 1px;
 }
 
 .input::placeholder {
@@ -1101,12 +1168,12 @@ table.data .sub {
     color: #3c516b;
     padding: 8px 14px;
     border-radius: 9px;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 650;
     cursor: pointer;
     transition: .15s;
     white-space: nowrap;
-    min-height: 36px;
+    min-height: 42px;
 }
 
 .btn svg {
@@ -1169,9 +1236,9 @@ table.data .sub {
 }
 
 .btn.small {
-    padding: 5px 9px;
-    font-size: 11.5px;
-    min-height: 29px;
+    padding: 7px 11px;
+    font-size: 12px;
+    min-height: 36px;
 }
 
 .btn.block {
@@ -1526,7 +1593,7 @@ table.data .sub {
 /* ---------- Relatórios ---------- */
 .report-summary {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
     gap: 10px;
     margin: 14px 0;
 }

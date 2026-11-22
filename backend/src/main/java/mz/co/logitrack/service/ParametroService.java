@@ -28,6 +28,11 @@ public class ParametroService {
     public static final String PRECISAO_MAXIMA_GPS_METROS = "PRECISAO_MAXIMA_GPS_METROS";
     public static final String INTERVALO_VERIFICACAO_SLA_MINUTOS = "INTERVALO_VERIFICACAO_SLA_MINUTOS";
 
+    /** Teto fixo do RNF005: nenhuma configuração pode aceitar precisão superior. */
+    public static final double LIMITE_GPS_METROS = 15.0;
+    public static final String ORIENTACAO_GPS =
+            "Active o GPS e aguarde uma fix melhor antes de registar a posição.";
+
     private static final Logger log = LoggerFactory.getLogger(ParametroService.class);
 
     private static final Map<String, String> PADROES = new LinkedHashMap<>();
@@ -88,12 +93,21 @@ public class ParametroService {
     @Transactional(readOnly = true)
     public double obterDouble(String chave) {
         String valor = obter(chave);
+        double resultado;
         try {
-            return Double.parseDouble(valor.trim().replace(',', '.'));
+            resultado = Double.parseDouble(valor.trim().replace(',', '.'));
         } catch (NumberFormatException ex) {
             log.warn("Parâmetro {} inválido ({}). A usar valor por omissão.", chave, valor);
-            return Double.parseDouble(PADROES.getOrDefault(chave, "0"));
+            resultado = Double.parseDouble(PADROES.getOrDefault(chave, "0"));
         }
+        // Configurações antigas ou inválidas não podem alargar o limite do RNF005.
+        if (PRECISAO_MAXIMA_GPS_METROS.equals(chave)
+                && (Double.isNaN(resultado) || resultado <= 0 || resultado > LIMITE_GPS_METROS)) {
+            log.warn("Parâmetro {} com valor incompatível ({}). A aplicar o teto de {} m.",
+                    chave, valor, LIMITE_GPS_METROS);
+            return LIMITE_GPS_METROS;
+        }
+        return resultado;
     }
 
     @Transactional(readOnly = true)
@@ -148,9 +162,9 @@ public class ParametroService {
             }
             case PRECISAO_MAXIMA_GPS_METROS -> {
                 double v = parseDecimal(chave, limpo);
-                if (v <= 0 || v > 1000) {
+                if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0 || v > LIMITE_GPS_METROS) {
                     throw ApiException.unprocessable(
-                            "A precisão máxima deve estar entre 0 e 1000 metros");
+                            "A precisão máxima deve estar entre 0 e 15 metros. " + ORIENTACAO_GPS);
                 }
             }
             default -> {

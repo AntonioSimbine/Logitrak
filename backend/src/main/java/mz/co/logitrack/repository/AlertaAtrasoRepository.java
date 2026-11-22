@@ -14,6 +14,9 @@ public interface AlertaAtrasoRepository extends JpaRepository<AlertaAtraso, Long
 
     boolean existsByCarregamentoIdAndLidoFalse(Long carregamentoId);
 
+    /** Um carregamento tem no máximo um alerta de SLA, lido ou não. */
+    boolean existsByCarregamentoId(Long carregamentoId);
+
     long countByLidoFalse();
 
     @EntityGraph(attributePaths = {"carregamento", "carregamento.fabrica",

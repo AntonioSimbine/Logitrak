@@ -2,15 +2,18 @@ package mz.co.logitrack.repository;
 
 import mz.co.logitrack.domain.Carregamento;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +22,11 @@ import java.util.UUID;
 public interface CarregamentoRepository extends JpaRepository<Carregamento, Long> {
 
     Optional<Carregamento> findByUuidLocal(UUID uuidLocal);
+
+    /** Serializa a passagem do motor SLA para o mesmo carregamento. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Carregamento c where c.id = :id")
+    Optional<Carregamento> findByIdForUpdate(@Param("id") Long id);
 
     boolean existsByUuidLocal(UUID uuidLocal);
 
@@ -52,6 +60,20 @@ public interface CarregamentoRepository extends JpaRepository<Carregamento, Long
     long countByFabricaId(Long fabricaId);
 
     long countByVeiculoId(Long veiculoId);
+
+    List<Carregamento> findByVeiculoIdAndEstadoIn(Long veiculoId,
+                                                  Collection<EstadoCarregamento> estados);
+
+    @Query("""
+            select coalesce(sum(c.quantidadeToneladas), 0)
+            from Carregamento c
+            where c.veiculo.id = :veiculoId
+              and c.estado in :estados
+              and (:excluir is null or c.id <> :excluir)
+            """)
+    double somarToneladasAtivas(@Param("veiculoId") Long veiculoId,
+                                @Param("estados") Collection<EstadoCarregamento> estados,
+                                @Param("excluir") Long excluir);
 
     long countByMotoristaId(Long motoristaId);
 

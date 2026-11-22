@@ -272,6 +272,27 @@
         LT.toast('Não foi possível concluir', e && e.message ? e.message : String(e), 'error');
     };
 
+    /** Erro de uma lista de referência usada em filtros: sempre visível ao utilizador. */
+    LT.erroReferencia = function (nome, e) {
+        console.error('Falha ao carregar ' + nome, e);
+        let mensagem = e && e.message ? e.message : String(e);
+        if (e && e.status === 403) {
+            mensagem = 'Sem permissão para consultar ' + nome
+                + '. O perfil Operador pode consultar; peça ao Administrador se o acesso persistir.';
+        } else if (e && (e.status === 0 || !e.status)) {
+            mensagem = 'Sem ligação ao servidor ao carregar ' + nome + '. Tente novamente.';
+        } else {
+            mensagem = 'Não foi possível carregar ' + nome + '. ' + mensagem;
+        }
+        const alvo = document.getElementById('estadoReferencias');
+        if (alvo) {
+            alvo.textContent = mensagem;
+            alvo.setAttribute('role', 'alert');
+            alvo.classList.remove('hidden');
+        }
+        LT.toast('Filtros indisponíveis', mensagem, 'error');
+    };
+
     const dataFmt = new Intl.DateTimeFormat('pt-PT', {
         day: '2-digit', month: '2-digit', year: 'numeric'
     });
@@ -529,6 +550,13 @@
                     LT.beep();
                     LT.toast('Alerta de atraso', alerta.mensagem, 'warn');
                 });
+                stompClient.subscribe('/topic/alertas-contador', function (msg) {
+                    const total = Number(JSON.parse(msg.body));
+                    if (isFinite(total) && total >= 0) {
+                        LT.atualizarBadge(total);
+                        LT.emit('alertas-contador', total);
+                    }
+                });
                 stompClient.subscribe('/topic/carregamentos', function (msg) {
                     LT.emit('carregamento', JSON.parse(msg.body));
                 });
@@ -585,8 +613,18 @@
         }
         LT.api('/api/v1/alertas/nao-lidos').then(function (alertas) {
             LT.atualizarBadge(alertas.length);
-        }).catch(function () {
-            /* silencioso */
+            const badge = document.getElementById('navAlertBadge');
+            if (badge) {
+                badge.removeAttribute('title');
+            }
+        }).catch(function (e) {
+            // Consulta periódica: assinala no indicador sem repetir toast a cada minuto.
+            const badge = document.getElementById('navAlertBadge');
+            if (badge) {
+                badge.title = 'Alertas indisponíveis: '
+                    + (e && e.message ? e.message : 'falha na consulta');
+            }
+            console.warn('Falha ao actualizar contador de alertas', e);
         });
     }
 

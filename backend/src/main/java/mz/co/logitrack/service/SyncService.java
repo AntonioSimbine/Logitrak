@@ -9,6 +9,7 @@ import mz.co.logitrack.domain.Veiculo;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
 import mz.co.logitrack.domain.enums.EstadoVeiculo;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.carregamento.SyncCarregamentoRequest;
 import mz.co.logitrack.exception.ApiException;
 import mz.co.logitrack.mapper.CarregamentoMapper;
@@ -55,6 +56,7 @@ public class SyncService {
     private final DocumentoService documentoService;
     private final CarregamentoMapper mapper;
     private final NotificacaoService notificacaoService;
+    private final VehicleOperationService vehicleOperations;
     private final TransactionTemplate transacao;
 
     public SyncService(CarregamentoRepository carregamentoRepository,
@@ -66,6 +68,7 @@ public class SyncService {
                        DocumentoService documentoService,
                        CarregamentoMapper mapper,
                        NotificacaoService notificacaoService,
+                       VehicleOperationService vehicleOperations,
                        PlatformTransactionManager transactionManager) {
         this.carregamentoRepository = carregamentoRepository;
         this.veiculoRepository = veiculoRepository;
@@ -76,6 +79,7 @@ public class SyncService {
         this.documentoService = documentoService;
         this.mapper = mapper;
         this.notificacaoService = notificacaoService;
+        this.vehicleOperations = vehicleOperations;
         this.transacao = new TransactionTemplate(transactionManager);
     }
 
@@ -152,22 +156,18 @@ public class SyncService {
     private ResultadoSincronizacao criarCarregamento(SyncCarregamentoRequest requisicao,
                                                      AuthenticatedUser motorista) {
 
-        // 2) Precisão do GPS (RNF005 / RN02).
-        double precisaoMaxima = parametroService.obterDouble(
-                ParametroService.PRECISAO_MAXIMA_GPS_METROS);
-        if (requisicao.precisaoMetros() > precisaoMaxima) {
-            throw ApiException.badRequest(String.format(
-                    "Precisão de GPS insuficiente para validação (Máx: %sm)",
-                    formatarMetros(precisaoMaxima)));
-        }
+        // 2) Precisão do GPS (RNF005 / RN02) — teto fixo de 15 m.
+        ValidacaoGps.validar(requisicao.precisaoMetros(), parametroService.obterDouble(
+                ParametroService.PRECISAO_MAXIMA_GPS_METROS));
 
         // 3) Veículo e motorista.
-        Veiculo veiculo = veiculoRepository.findById(requisicao.veiculoId())
+        Veiculo veiculo = veiculoRepository.findByIdForUpdate(requisicao.veiculoId())
                 .orElseThrow(() -> ApiException.unprocessable("Veículo não encontrado"));
         if (veiculo.getEstado() == EstadoVeiculo.MANUTENCAO) {
             throw ApiException.unprocessable(
                     "O veículo " + veiculo.getMatricula() + " está em manutenção");
         }
+        vehicleOperations.validarNovaOperacao(veiculo, requisicao.quantidadeToneladas());
         Utilizador motoristaEntidade = utilizadorRepository.findById(motorista.getId())
                 .orElseThrow(() -> ApiException.unauthorized("Credenciais inválidas"));
 
@@ -183,6 +183,9 @@ public class SyncService {
 
         LocalDateTime inicio = requisicao.dataHoraInicio() != null
                 ? requisicao.dataHoraInicio() : LocalDateTime.now();
+        FasesCarregamento.validar(inicio, requisicao.dataHoraInicioCarregamento(),
+                requisicao.dataHoraFimCarregamento(),
+                requisicao.dataHoraInicioTransporte(), null);
 
         // 6) Registo central.
         Carregamento carregamento = new Carregamento();
@@ -192,6 +195,9 @@ public class SyncService {
         carregamento.setQuantidadeToneladas(requisicao.quantidadeToneladas());
         carregamento.setEstado(EstadoCarregamento.REGISTADO);
         carregamento.setDataHoraInicio(inicio);
+        carregamento.setDataHoraInicioCarregamento(requisicao.dataHoraInicioCarregamento());
+        carregamento.setDataHoraFimCarregamento(requisicao.dataHoraFimCarregamento());
+        carregamento.setDataHoraInicioTransporte(requisicao.dataHoraInicioTransporte());
         carregamento.setFabrica(fabrica);
         carregamento.setVeiculo(veiculo);
         carregamento.setMotorista(motoristaEntidade);

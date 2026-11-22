@@ -28,11 +28,11 @@
             step: 1
         },
         PRECISAO_MAXIMA_GPS_METROS: {
-            titulo: 'Precisão máxima do GPS',
+            titulo: 'Precisão máxima do GPS (teto fixo de 15 m)',
             unidade: 'metros',
             tipo: 'number',
             min: 0.1,
-            max: 1000,
+            max: 15,
             step: 0.1
         },
         INTERVALO_VERIFICACAO_SLA_MINUTOS: {

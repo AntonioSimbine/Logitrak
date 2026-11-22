@@ -19,6 +19,7 @@
     const TEXTO_ONLINE = 'Ligação ativa';
     const TEXTO_OFFLINE = 'Sem ligação — a aplicação funciona em modo offline';
     const PRECISAO_PADRAO = 15;
+    const LIMITE_GPS_METROS = 15; // Teto fixo do RNF005
     const TAMANHO_FOTO_MAX = 1500000; // ~1,1 MB em Base64
     const MIN_LARGURA = 640;
     const MIN_ALTURA = 360;
@@ -779,7 +780,9 @@
     LTM.precisaMaxima = function () {
         const params = state.refs && state.refs.parametros ? state.refs.parametros : {};
         const valor = Number(String(params.PRECISAO_MAXIMA_GPS_METROS || '').replace(',', '.'));
-        return isNaN(valor) || valor <= 0 ? PRECISAO_PADRAO : valor;
+        if (!isFinite(valor) || valor <= 0) return PRECISAO_PADRAO;
+        // Configurações antigas superiores a 15 m não podem alargar o limite.
+        return Math.min(valor, LIMITE_GPS_METROS);
     };
 
     LTM.intervaloSyncMinutos = function () {
@@ -848,14 +851,33 @@
             console.info('Service Worker requer HTTPS ou localhost.');
             return;
         }
-        navigator.serviceWorker.register('sw.js').catch(function (e) {
-            console.warn('Service Worker não registado', e);
-        });
+        navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'})
+            .then(function (registo) {
+                // O nginx serve sw.js sem cache; verificar actualizações periodicamente.
+                setInterval(function () {
+                    registo.update().catch(function () {});
+                }, 60 * 60 * 1000);
+                registo.addEventListener('updatefound', function () {
+                    const novo = registo.installing;
+                    if (!novo) return;
+                    novo.addEventListener('statechange', function () {
+                        if (novo.state === 'installed' && navigator.serviceWorker.controller) {
+                            LTM.toast('Actualização disponível',
+                                ' A nova versão será usada no próximo arranque da aplicação.',
+                                'info');
+                        }
+                    });
+                });
+            })
+            .catch(function (e) {
+                console.warn('Service Worker não registado', e);
+            });
     };
 
     LTM.constantes = {
         LOJA_FILA: LOJA_FILA,
         LOJA_CACHE: LOJA_CACHE,
+        LIMITE_GPS_METROS: LIMITE_GPS_METROS,
         TAMANHO_FOTO_MAX: TAMANHO_FOTO_MAX,
         MIN_LARGURA: MIN_LARGURA,
         MIN_ALTURA: MIN_ALTURA,

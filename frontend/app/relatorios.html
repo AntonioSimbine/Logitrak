@@ -6,11 +6,11 @@
     <meta name="color-scheme" content="light">
     <title>Relatórios Operacionais · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
-    <link rel="stylesheet" href="../css/logitrack-blue.css">
-    <link rel="stylesheet" href="../css/logitrack-complete.css">
+    <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
+    <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="relatorios" data-titulo="Relatórios Operacionais"
       data-subtitulo="Filtros avançados, pré-visualização e exportação">
@@ -33,6 +33,8 @@
                     </button>
                 </div>
             </div>
+
+            <p id="estadoReferencias" class="inline-alert hidden" role="alert"></p>
 
             <section class="card" style="margin-bottom:16px">
                 <div class="card-head">
@@ -104,6 +106,9 @@
                         <div class="rs-item green"><div class="lbl">Concluídos</div><div class="val">—</div></div>
                         <div class="rs-item red"><div class="lbl">Com atraso</div><div class="val">—</div></div>
                         <div class="rs-item"><div class="lbl">Tempo médio</div><div class="val">—</div></div>
+                        <div class="rs-item"><div class="lbl">Espera média</div><div class="val">—</div></div>
+                        <div class="rs-item"><div class="lbl">Carga média</div><div class="val">—</div></div>
+                        <div class="rs-item"><div class="lbl">Transporte médio</div><div class="val">—</div></div>
                     </div>
 
                     <div class="table-wrap">
@@ -120,11 +125,14 @@
                                 <th data-campo="dataHoraInicio" data-tipo="data" style="cursor:pointer">Início</th>
                                 <th data-campo="dataHoraFim" data-tipo="data" style="cursor:pointer">Fim</th>
                                 <th data-campo="atrasoMinutos" data-tipo="numero" style="cursor:pointer">Atraso</th>
+                                <th data-campo="fases.esperaMinutos" data-tipo="numero" style="cursor:pointer">Espera</th>
+                                <th data-campo="fases.carregamentoMinutos" data-tipo="numero" style="cursor:pointer">Carga</th>
+                                <th data-campo="fases.transporteMinutos" data-tipo="numero" style="cursor:pointer">Transporte</th>
                                 <th></th>
                             </tr>
                             </thead>
                             <tbody id="tabelaRelatorioCorpo">
-                            <tr><td colspan="11" class="empty">Defina os filtros e gere a pré-visualização.</td></tr>
+                            <tr><td colspan="14" class="empty">Defina os filtros e gere a pré-visualização.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -142,10 +150,10 @@
     </div>
 </div>
 
-<script src="../js/config.js"></script>
-<script src="../js/api.js?v=20261114-2"></script>
-<script src="../js/layout.js"></script>
-<script src="../js/relatorios.js"></script>
-    <script src="../js/logitrack-complete.js" defer></script>
+<script src="../js/config.js?v=20261122b"></script>
+<script src="../js/api.js?v=20261122b"></script>
+<script src="../js/layout.js?v=20261122b"></script>
+<script src="../js/relatorios.js?v=20261122b"></script>
+    <script src="../js/logitrack-complete.js?v=20261122b" defer></script>
 </body>
 </html>

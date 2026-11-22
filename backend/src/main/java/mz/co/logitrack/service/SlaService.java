@@ -49,7 +49,14 @@ public class SlaService {
                 .findByEstadoOrderByDataHoraInicioAsc(EstadoCarregamento.EM_TRANSITO);
         int novosAtrasos = 0;
 
-        for (Carregamento c : emTransito) {
+        for (Carregamento candidato : emTransito) {
+            // Releitura com bloqueio: duas execuções concorrentes não podem
+            // transformar o mesmo carregamento nem criar alertas duplicados.
+            Carregamento c = carregamentoRepository.findByIdForUpdate(candidato.getId())
+                    .orElse(null);
+            if (c == null || c.getEstado() != EstadoCarregamento.EM_TRANSITO) {
+                continue;
+            }
             LocalDateTime limite = mapper.horaLimite(c);
             if (limite == null) {
                 continue;
@@ -64,11 +71,14 @@ public class SlaService {
             c.setEstado(EstadoCarregamento.ATRASADO);
             Carregamento guardado = carregamentoRepository.save(c);
 
-            alertaService.criarAlerta(guardado, (int) Math.min(minutos, Integer.MAX_VALUE));
+            var alerta = alertaService.criarAlerta(guardado,
+                    (int) Math.min(minutos, Integer.MAX_VALUE));
 
             CarregamentoResumo resumo = mapper.toResumo(guardado);
             notificacaoService.publicarCarregamento(resumo);
-            novosAtrasos++;
+            if (alerta != null) {
+                novosAtrasos++;
+            }
 
             log.info("SLA excedido: carregamento={} guia={} minutos={}",
                     guardado.getId(), guardado.getGuiaNumero(), minutos);

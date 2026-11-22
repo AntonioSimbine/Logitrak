@@ -40,9 +40,21 @@
         return params.toString();
     }
 
+    function valorCampo(objeto, campo) {
+        if (campo.indexOf('fases.') === 0) {
+            return objeto.fases ? objeto.fases[campo.slice(6)] : null;
+        }
+        return objeto[campo];
+    }
+
+    function minutosFase(linha, chave) {
+        const valor = linha.fases ? linha.fases[chave] : null;
+        return valor === null || valor === undefined ? 'sem dados' : valor + ' min';
+    }
+
     function comparar(a, b, campo, tipo) {
-        let va = a[campo];
-        let vb = b[campo];
+        let va = valorCampo(a, campo);
+        let vb = valorCampo(b, campo);
         if (tipo === 'numero') {
             return (Number(va) || 0) - (Number(vb) || 0);
         }
@@ -81,12 +93,19 @@
     }
 
     function renderizarResumo(resumo) {
+        const semFases = !resumo.registosComFases;
+        const valorFase = function (horas) {
+            return semFases ? 'sem dados' : LT.fmt.numero(horas, 1) + ' h';
+        };
         const valores = [
             LT.fmt.numero(resumo.total, 0),
             LT.fmt.numero(resumo.toneladas, 1) + ' t',
             LT.fmt.numero(resumo.concluidos, 0),
             LT.fmt.numero(resumo.atrasados, 0),
-            LT.fmt.numero(resumo.tempoMedioHoras, 1) + ' h'
+            LT.fmt.numero(resumo.tempoMedioHoras, 1) + ' h',
+            valorFase(resumo.esperaMediaHoras),
+            valorFase(resumo.carregamentoMedioHoras),
+            valorFase(resumo.transporteMedioHoras)
         ];
         const itens = document.querySelectorAll('#resumoRelatorio .rs-item .val');
         itens.forEach(function (el, indice) {
@@ -107,7 +126,7 @@
         const visiveis = linhas.slice(inicio, inicio + TAMANHO_PAGINA);
 
         if (!visiveis.length) {
-            tbody.innerHTML = '<tr><td colspan="11" class="empty">'
+            tbody.innerHTML = '<tr><td colspan="14" class="empty">'
                 + 'Nenhum carregamento corresponde aos filtros selecionados.</td></tr>';
         } else {
             tbody.innerHTML = visiveis.map(function (l) {
@@ -124,6 +143,9 @@
                     + '<td>' + (l.atrasoMinutos > 0
                         ? '<span style="color:#c0392b;font-weight:700">+' + l.atrasoMinutos + ' min</span>'
                         : '<span class="muted">—</span>') + '</td>'
+                    + '<td>' + minutosFase(l, 'esperaMinutos') + '</td>'
+                    + '<td>' + minutosFase(l, 'carregamentoMinutos') + '</td>'
+                    + '<td>' + minutosFase(l, 'transporteMinutos') + '</td>'
                     + '<td><a class="btn small ghost" href="' + LT.urlCarregamento(l.id) + '">'
                     + 'Abrir</a></td>'
                     + '</tr>';
@@ -189,17 +211,23 @@
             LT.carregarFabricas().then(function (fabricas) {
                 LT.preencherSelect(document.getElementById('filtroFabrica'), fabricas,
                     'Todas', 'id', 'nome');
-            }).catch(function () {}),
+            }).catch(function (e) {
+                LT.erroReferencia('as fábricas', e);
+            }),
             LT.carregarVeiculos().then(function (veiculos) {
                 LT.preencherSelect(document.getElementById('filtroVeiculo'), veiculos,
                     'Todos', 'id', function (v) {
                         return v.matricula + ' · ' + v.modelo;
                     });
-            }).catch(function () {}),
+            }).catch(function (e) {
+                LT.erroReferencia('os veículos', e);
+            }),
             LT.carregarMotoristas().then(function (motoristas) {
                 LT.preencherSelect(document.getElementById('filtroMotorista'), motoristas,
                     'Todos', 'id', 'nome');
-            }).catch(function () {})
+            }).catch(function (e) {
+                LT.erroReferencia('os motoristas', e);
+            })
         ];
         await Promise.all(tarefas);
     }

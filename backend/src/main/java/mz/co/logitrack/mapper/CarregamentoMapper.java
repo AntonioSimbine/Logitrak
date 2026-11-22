@@ -9,6 +9,7 @@ import mz.co.logitrack.domain.Veiculo;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
 import mz.co.logitrack.dto.carregamento.CarregamentoDetalhe;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.dashboard.PontoMapa;
 import mz.co.logitrack.service.ParametroService;
 import org.springframework.stereotype.Component;
@@ -55,7 +56,8 @@ public class CarregamentoMapper {
                 m != null ? m.getNome() : null,
                 atraso,
                 c.getEstado() == EstadoCarregamento.ATRASADO || atraso > 0,
-                c.getDocumento() != null
+                c.getDocumento() != null,
+                FasesCarregamento.de(c)
         );
     }
 
@@ -86,7 +88,8 @@ public class CarregamentoMapper {
                 pontos,
                 ultima,
                 timeline(c),
-                alertasAbertos
+                alertasAbertos,
+                FasesCarregamento.de(c)
         );
     }
 
@@ -186,9 +189,20 @@ public class CarregamentoMapper {
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
                 "sincronizado", "Sincronizado", true,
                 c.getDataHoraInicio(), "cloud"));
+        boolean carregamentoIniciado = c.getDataHoraInicioCarregamento() != null
+                || c.getDataHoraFimCarregamento() != null || emTransito;
+        etapas.add(new CarregamentoDetalhe.EtapaTimeline(
+                "espera", "Espera na fábrica", carregamentoIniciado && !rejeitado,
+                c.getDataHoraInicioCarregamento(), "clock"));
+        etapas.add(new CarregamentoDetalhe.EtapaTimeline(
+                "carregamento", "Carregamento", c.getDataHoraFimCarregamento() != null
+                        || (emTransito && c.getDataHoraInicioCarregamento() != null),
+                c.getDataHoraFimCarregamento(), "package"));
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
                 "transito", "Em trânsito", emTransito && !rejeitado,
-                emTransito ? c.getDataHoraInicio() : null, "truck"));
+                c.getDataHoraInicioTransporte() != null
+                        ? c.getDataHoraInicioTransporte()
+                        : (emTransito ? c.getDataHoraInicio() : null), "truck"));
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
                 "concluido", "Concluído", concluido,
                 concluido ? c.getDataHoraFim() : null, "check"));

@@ -22,6 +22,76 @@
         return guiaUrl;
     }
 
+    function MinutosFase(fase) {
+        const fases = detalhe && detalhe.fases;
+        if (!fases) {
+            return 'sem dados';
+        }
+        const minutos = [fases.esperaMinutos, fases.carregamentoMinutos,
+            fases.transporteMinutos][fase];
+        return minutos === null || minutos === undefined
+            ? 'sem dados' : minutos + ' min';
+    }
+
+    function valorInputLocal(valor) {
+        return valor ? String(valor).slice(0, 16) : '';
+    }
+
+    function renderizarFases() {
+        const cartao = document.getElementById('cardFases');
+        if (!cartao) {
+            return;
+        }
+        const podeEditar = LT.perfil === 'ADMINISTRADOR'
+            || LT.perfil === 'OPERADOR_CENTRAL';
+        cartao.classList.toggle('hidden', !podeEditar);
+        if (!podeEditar) {
+            return;
+        }
+        const fases = detalhe.fases || {};
+        document.getElementById('faseInicioCarregamento').value =
+            valorInputLocal(fases.inicioCarregamento);
+        document.getElementById('faseFimCarregamento').value =
+            valorInputLocal(fases.fimCarregamento);
+        document.getElementById('faseInicioTransporte').value =
+            valorInputLocal(fases.inicioTransporte);
+        document.getElementById('faseFimTransporte').value =
+            valorInputLocal(fases.fimTransporte);
+    }
+
+    async function guardarFases() {
+        const botao = document.getElementById('btnGuardarFases');
+        const corpo = {};
+        [
+            ['faseInicioCarregamento', 'dataHoraInicioCarregamento'],
+            ['faseFimCarregamento', 'dataHoraFimCarregamento'],
+            ['faseInicioTransporte', 'dataHoraInicioTransporte'],
+            ['faseFimTransporte', 'dataHoraFimTransporte']
+        ].forEach(function (par) {
+            const valor = document.getElementById(par[0]).value;
+            if (valor) {
+                corpo[par[1]] = valor;
+            }
+        });
+        if (!Object.keys(corpo).length) {
+            LT.toast('Sem alterações', 'Indique pelo menos um instante operacional.', 'info');
+            return;
+        }
+        botao.disabled = true;
+        try {
+            await LT.api('/api/v1/carregamentos/' + id + '/fases', {
+                method: 'PATCH',
+                body: corpo
+            });
+            LT.toast('Fases guardadas', 'Os instantes operacionais foram atualizados.', 'success');
+            await carregar();
+        } catch (e) {
+            LT.erro(e);
+        } finally {
+            botao.disabled = false;
+        }
+    }
+
     function renderizarCabecalho() {
         document.getElementById('tituloGuia').textContent = 'Guia ' + detalhe.guiaNumero;
         document.getElementById('chipEstado').innerHTML = LT.chip(detalhe.estado, detalhe.estadoEtiqueta);
@@ -125,8 +195,11 @@
                 + '<div class="tl-icon"><svg><use href="#i-'
                 + (etapa.icone === 'save' ? 'save'
                     : etapa.icone === 'cloud' ? 'cloud'
-                        : etapa.icone === 'truck' ? 'truck'
-                            : etapa.icone === 'check' ? 'check' : 'x') + '"/></svg></div>'
+                        : etapa.icone === 'clock' ? 'clock'
+                            : etapa.icone === 'package' ? 'package'
+                                : etapa.icone === 'truck' ? 'truck'
+                                    : etapa.icone === 'check' ? 'check' : 'x')
+                + '"/></svg></div>'
                 + '<div class="tl-body"><strong>' + LT.escape(etapa.titulo) + '</strong>'
                 + '<span>' + (etapa.dataHora ? LT.fmt.dataHora(etapa.dataHora)
                     : (etapa.concluida ? 'Concluída' : 'A aguardar')) + '</span></div></div>';
@@ -141,6 +214,9 @@
             ['Quantidade', LT.fmt.numero(detalhe.quantidadeToneladas, 2) + ' t'],
             ['Início', LT.fmt.dataHora(detalhe.dataHoraInicio)],
             ['Fim', LT.fmt.dataHora(detalhe.dataHoraFim)],
+            ['Espera na fábrica', MinutosFase(0)],
+            ['Carregamento', MinutosFase(1)],
+            ['Transporte', MinutosFase(2)],
             ['Horário de acostagem', detalhe.fabrica ? detalhe.fabrica.horarioAcostagem : '—'],
             ['Raio de geofence', detalhe.fabrica
                 ? detalhe.fabrica.raioGeofenceMetros + ' m' : '—'],
@@ -236,6 +312,8 @@
         }
     }
 
+    document.getElementById('btnGuardarFases').addEventListener('click', guardarFases);
+
     document.getElementById('formRejeitar').addEventListener('submit', async function (ev) {
         ev.preventDefault();
         const motivo = document.getElementById('motivoRejeicao').value.trim();
@@ -263,6 +341,7 @@
             await renderizarGuia();
             renderizarTimeline();
             renderizarInfo();
+            renderizarFases();
             renderizarMapa();
         } catch (e) {
             LT.erro(e);

@@ -6,11 +6,11 @@
     <meta name="color-scheme" content="light">
     <title>Indicadores de Desempenho · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
-    <link rel="stylesheet" href="../css/logitrack-blue.css">
-    <link rel="stylesheet" href="../css/logitrack-complete.css">
+    <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
+    <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="kpis" data-titulo="Indicadores de Desempenho"
       data-subtitulo="Volume, tempo de ciclo e cumprimento de prazos">
@@ -68,6 +68,22 @@
                     <div class="kpi-value" id="kpiCumprimento">—</div>
                     <div class="kpi-foot" id="kpiCumprimentoDetalhe">No prazo vs. atrasados</div>
                 </article>
+            </section>
+
+            <section class="card fases-card">
+                <div class="card-head">
+                    <div>
+                        <h3>Tempos por fase operacional</h3>
+                        <div class="sub">Espera na fábrica, carregamento e transporte — sem valores estimados</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <span class="chip" id="fasesAbrangenciaKpi">Sem dados</span>
+                </div>
+                <div class="card-body fases-grid">
+                    <div><span>Espera na fábrica</span><strong id="kpiFaseEspera">—</strong></div>
+                    <div><span>Carregamento</span><strong id="kpiFaseCarregamento">—</strong></div>
+                    <div><span>Transporte</span><strong id="kpiFaseTransporte">—</strong></div>
+                </div>
             </section>
 
             <div class="charts-grid">
@@ -141,10 +157,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="../js/config.js"></script>
-<script src="../js/api.js?v=20261114-2"></script>
-<script src="../js/layout.js"></script>
-<script src="../js/kpis.js"></script>
-    <script src="../js/logitrack-complete.js" defer></script>
+<script src="../js/config.js?v=20261122b"></script>
+<script src="../js/api.js?v=20261122b"></script>
+<script src="../js/layout.js?v=20261122b"></script>
+<script src="../js/kpis.js?v=20261122b"></script>
+    <script src="../js/logitrack-complete.js?v=20261122b" defer></script>
 </body>
 </html>

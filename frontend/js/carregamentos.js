@@ -82,7 +82,7 @@
             LT.preencherSelect(document.getElementById('filtroFabrica'), fabricas, 'Todas',
                 'id', 'nome');
         } catch (e) {
-            /* o filtro de fábrica é opcional */
+            LT.erroReferencia('as fábricas', e);
         }
     }
 

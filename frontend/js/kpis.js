@@ -231,6 +231,23 @@
             dados.cumprimentoPrazos.noPrazo + ' no prazo · '
             + dados.cumprimentoPrazos.atrasados + ' atrasados';
 
+        const fases = dados.resumo || {};
+        const comFases = Number(fases.registosComFases || 0);
+        const abrangencia = document.getElementById('fasesAbrangenciaKpi');
+        if (abrangencia) {
+            abrangencia.textContent = comFases
+                ? comFases + ' registo(s) com fases' : 'Sem dados';
+        }
+        [['kpiFaseEspera', fases.tempoMedioEsperaHoras],
+         ['kpiFaseCarregamento', fases.tempoMedioCarregamentoHoras],
+         ['kpiFaseTransporte', fases.tempoMedioTransporteHoras]].forEach(function (par) {
+            const el = document.getElementById(par[0]);
+            if (el) {
+                el.textContent = comFases
+                    ? LT.fmt.numero(par[1], 1) + ' h' : '—';
+            }
+        });
+
         document.getElementById('atualizadoEm').textContent =
             'Atualizado ' + LT.fmt.relativo(new Date());
 

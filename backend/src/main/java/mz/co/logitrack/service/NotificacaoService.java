@@ -18,6 +18,7 @@ public class NotificacaoService {
     public static final String TOPICO_ALERTAS = "/topic/alertas-atraso";
     public static final String TOPICO_CARREGAMENTOS = "/topic/carregamentos";
     public static final String TOPICO_MAPA = "/topic/mapa";
+    public static final String TOPICO_CONTADOR_ALERTAS = "/topic/alertas-contador";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -27,6 +28,11 @@ public class NotificacaoService {
 
     public void publicarAlerta(AlertaResponse alerta) {
         messagingTemplate.convertAndSend(TOPICO_ALERTAS, alerta);
+    }
+
+    /** Contador de alertas não lidos, para manter o painel sincronizado. */
+    public void publicarContadorAlertas(long total) {
+        messagingTemplate.convertAndSend(TOPICO_CONTADOR_ALERTAS, total);
     }
 
     public void publicarCarregamento(CarregamentoResumo carregamento) {

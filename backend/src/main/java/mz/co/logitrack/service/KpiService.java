@@ -2,6 +2,7 @@ package mz.co.logitrack.service;
 
 import mz.co.logitrack.domain.Carregamento;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.dashboard.KpiResponse;
 import mz.co.logitrack.dto.dashboard.KpiResumo;
 import mz.co.logitrack.mapper.CarregamentoMapper;
@@ -19,6 +20,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 /** Cálculo dos KPIs gerenciais (W2 e W6). */
 @Service
@@ -49,7 +51,12 @@ public class KpiService {
                 carregamentoRepository.countByEstado(EstadoCarregamento.ATRASADO),
                 carregamentoRepository.countByEstadoAndDataHoraFimBetween(
                         EstadoCarregamento.CONCLUIDO, inicioHoje, fimHoje),
-                tempoMedioHoras(concluidos)
+                tempoMedioFase(concluidos, 0),
+                tempoMedioFase(concluidos, 1),
+                tempoMedioFase(concluidos, 2),
+                concluidos.stream().filter(c -> c.getDataHoraInicioCarregamento() != null
+                        || c.getDataHoraFimCarregamento() != null
+                        || c.getDataHoraInicioTransporte() != null).count()
         );
     }
 
@@ -127,6 +134,20 @@ public class KpiService {
                 .filter(c -> c.getDataHoraInicio() != null && c.getDataHoraFim() != null)
                 .mapToLong(c -> Duration.between(
                         c.getDataHoraInicio(), c.getDataHoraFim()).toMinutes())
+                .average().orElse(0) / 60.0);
+    }
+
+    /** 0 = espera, 1 = carregamento, 2 = transporte. */
+    private double tempoMedioFase(List<Carregamento> concluidos, int fase) {
+        return arredondar(concluidos.stream()
+                .map(FasesCarregamento::de)
+                .map(f -> switch (fase) {
+                    case 0 -> f.esperaMinutos();
+                    case 1 -> f.carregamentoMinutos();
+                    default -> f.transporteMinutos();
+                })
+                .filter(Objects::nonNull)
+                .mapToLong(Long::longValue)
                 .average().orElse(0) / 60.0);
     }
 

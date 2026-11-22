@@ -17,7 +17,6 @@ import java.util.List;
 /** Gestão de utilizadores e perfis (W8 / RN07). */
 @RestController
 @RequestMapping({"/api/v1/utilizadores", "/api/utilizadores"})
-@PreAuthorize("hasRole('ADMIN')")
 public class UtilizadorAdminController {
 
     private final UtilizadorService utilizadorService;
@@ -27,28 +26,33 @@ public class UtilizadorAdminController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UtilizadorResponse> listar() {
         return utilizadorService.listar();
     }
 
     @GetMapping("/motoristas")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
     public List<UtilizadorResponse> motoristas() {
         return utilizadorService.motoristas();
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public UtilizadorResponse criar(@Valid @RequestBody UtilizadorRequest pedido) {
         return utilizadorService.criar(pedido);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public UtilizadorResponse atualizar(@PathVariable Long id,
                                         @Valid @RequestBody UtilizadorRequest pedido) {
         return utilizadorService.atualizar(id, pedido);
     }
 
     @PatchMapping("/{id}/ativo")
+    @PreAuthorize("hasRole('ADMIN')")
     public UtilizadorResponse ativo(@PathVariable Long id,
                                     @Valid @RequestBody AtivoRequest pedido,
                                     @AuthenticationPrincipal AuthenticatedUser principal) {
@@ -56,6 +60,7 @@ public class UtilizadorAdminController {
     }
 
     @PatchMapping("/{id}/senha")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void redefinirSenha(@PathVariable Long id,
                                @Valid @RequestBody ResetPasswordRequest pedido) {
@@ -63,6 +68,7 @@ public class UtilizadorAdminController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id,
                          @AuthenticationPrincipal AuthenticatedUser principal) {

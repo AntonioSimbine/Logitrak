@@ -5,6 +5,9 @@ public record KpiResumo(
         long emTransito,
         long atrasados,
         long concluidosHoje,
-        double tempoMedioEsperaHoras
+        double tempoMedioEsperaHoras,
+        double tempoMedioCarregamentoHoras,
+        double tempoMedioTransporteHoras,
+        long registosComFases
 ) {
 }

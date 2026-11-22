@@ -27,7 +27,8 @@ public record CarregamentoDetalhe(
         List<PosicaoResumo> posicoes,
         PosicaoResumo ultimaPosicao,
         List<EtapaTimeline> timeline,
-        int alertasAbertos
+        int alertasAbertos,
+        FasesCarregamento fases
 ) {
     public record FabricaResumo(Long id, String nome, String endereco, Double latitude,
                                 Double longitude, Integer raioGeofenceMetros,

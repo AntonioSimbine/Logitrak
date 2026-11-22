@@ -6,6 +6,7 @@ import mz.co.logitrack.dto.carregamento.AtualizarEstadoRequest;
 import mz.co.logitrack.dto.carregamento.CarregamentoDetalhe;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
 import mz.co.logitrack.dto.carregamento.PosicaoRequest;
+import mz.co.logitrack.dto.carregamento.RegistarFasesRequest;
 import mz.co.logitrack.dto.common.PaginaResponse;
 import mz.co.logitrack.security.AuthenticatedUser;
 import mz.co.logitrack.service.CarregamentoService;
@@ -81,6 +82,16 @@ public class CarregamentoController {
             @Valid @RequestBody PosicaoRequest pedido,
             @AuthenticationPrincipal AuthenticatedUser principal) {
         return carregamentoService.registarPosicao(id, pedido, principal);
+    }
+
+    /** Regista os instantes reais das três fases operacionais. */
+    @PatchMapping("/{id}/fases")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
+    public CarregamentoResumo registarFases(
+            @PathVariable Long id,
+            @Valid @RequestBody RegistarFasesRequest pedido,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        return carregamentoService.registarFases(id, pedido, principal);
     }
 
     @PatchMapping("/{id}/estado")

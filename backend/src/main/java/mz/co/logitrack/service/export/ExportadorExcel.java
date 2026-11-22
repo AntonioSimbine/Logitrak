@@ -2,6 +2,7 @@ package mz.co.logitrack.service.export;
 
 import mz.co.logitrack.dto.relatorio.RelatorioFiltro;
 import mz.co.logitrack.dto.relatorio.RelatorioLinha;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.relatorio.RelatorioResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -90,21 +91,27 @@ public class ExportadorExcel implements ExportadorRelatorio {
                     f.estado() != null ? "  |  Estado: " + f.estado().getEtiqueta() : "",
                     java.time.LocalDateTime.now().format(DATA_HORA)));
             celulaFiltro.setCellStyle(subtitulo);
-            sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 9));
+            sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 12));
 
             RelatorioResponse.ResumoRelatorio r = relatorio.resumo();
+            String fases = r.registosComFases() > 0
+                    ? String.format("Espera: %.1f h  |  Carga: %.1f h  |  Transporte: %.1f h",
+                    r.esperaMediaHoras(), r.carregamentoMedioHoras(),
+                    r.transporteMedioHoras())
+                    : "Fases sem dados";
             Row linhaResumo = sheet.createRow(3);
             Cell celulaResumo = linhaResumo.createCell(0);
             celulaResumo.setCellValue(String.format(
                     "Total: %d  |  Toneladas: %.1f  |  Concluídos: %d  |  Atrasados: %d  |  "
-                            + "Tempo médio: %.1f h",
+                            + "Ciclo: %.1f h  |  %s",
                     r.total(), r.toneladas(), r.concluidos(), r.atrasados(),
-                    r.tempoMedioHoras()));
+                    r.tempoMedioHoras(), fases));
             celulaResumo.setCellStyle(destaque);
-            sheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 9));
+            sheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 12));
 
             String[] cabecalhos = {"Guia", "Fábrica", "Veículo", "Motorista", "Tipo de carga",
-                    "Toneladas", "Estado", "Início", "Fim", "Atraso (min)"};
+                    "Toneladas", "Estado", "Início", "Fim", "Atraso (min)",
+                    "Espera (min)", "Carga (min)", "Transporte (min)"};
             Row linhaCabecalho = sheet.createRow(5);
             for (int i = 0; i < cabecalhos.length; i++) {
                 Cell celula = linhaCabecalho.createCell(i);
@@ -143,16 +150,20 @@ public class ExportadorExcel implements ExportadorRelatorio {
                 } else {
                     criarCelula(row, 9, "—", estiloCorpo);
                 }
+
+                criarCelula(row, 10, minutosFase(linha.fases(), 0), estiloNumero);
+                criarCelula(row, 11, minutosFase(linha.fases(), 1), estiloNumero);
+                criarCelula(row, 12, minutosFase(linha.fases(), 2), estiloNumero);
                 alternado = !alternado;
             }
 
-            int[] larguras = {18, 24, 16, 24, 18, 12, 14, 18, 18, 14};
+            int[] larguras = {18, 24, 16, 24, 18, 12, 14, 18, 18, 14, 14, 13, 17};
             for (int i = 0; i < larguras.length; i++) {
                 sheet.setColumnWidth(i, larguras[i] * 256);
             }
             sheet.createFreezePane(0, 6);
             if (numeroLinha > 6) {
-                sheet.setAutoFilter(new CellRangeAddress(5, numeroLinha - 1, 0, 9));
+                sheet.setAutoFilter(new CellRangeAddress(5, numeroLinha - 1, 0, 12));
             }
 
             workbook.write(saida);
@@ -166,6 +177,18 @@ public class ExportadorExcel implements ExportadorRelatorio {
         Cell celula = row.createCell(coluna);
         celula.setCellValue(valor != null ? valor : "—");
         celula.setCellStyle(estilo);
+    }
+
+    private String minutosFase(FasesCarregamento fases, int fase) {
+        if (fases == null) {
+            return "—";
+        }
+        Long minutos = switch (fase) {
+            case 0 -> fases.esperaMinutos();
+            case 1 -> fases.carregamentoMinutos();
+            default -> fases.transporteMinutos();
+        };
+        return minutos != null ? String.valueOf(minutos) : "—";
     }
 
     private CellStyle estilo(XSSFWorkbook workbook, short fundo, short fonte,

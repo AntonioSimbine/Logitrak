@@ -42,10 +42,19 @@ public record SyncCarregamentoRequest(
         Double longitude,
 
         @NotNull(message = "A precisão do GPS é obrigatória")
-        @DecimalMin("0.0")
+        @DecimalMin(value = "0.0", message = "A precisão do GPS não pode ser negativa")
+        @DecimalMax(value = "15.0",
+                message = "Precisão de GPS insuficiente para validação (Máx: 15m). "
+                        + "Active o GPS e aguarde uma fix melhor antes de registar.")
         Double precisaoMetros,
 
         LocalDateTime dataHoraInicio,
+
+        LocalDateTime dataHoraInicioCarregamento,
+
+        LocalDateTime dataHoraFimCarregamento,
+
+        LocalDateTime dataHoraInicioTransporte,
 
         @NotBlank(message = "A fotografia da guia é obrigatória")
         String fotoBase64,

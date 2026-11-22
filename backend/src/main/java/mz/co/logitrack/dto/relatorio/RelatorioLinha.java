@@ -1,5 +1,7 @@
 package mz.co.logitrack.dto.relatorio;
 
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
+
 import java.time.LocalDateTime;
 
 /** Linha agregada do relatório operacional. */
@@ -15,6 +17,7 @@ public record RelatorioLinha(
         LocalDateTime dataHoraInicio,
         LocalDateTime dataHoraFim,
         long atrasoMinutos,
-        String motivoRejeicao
+        String motivoRejeicao,
+        FasesCarregamento fases
 ) {
 }

@@ -2,6 +2,7 @@ package mz.co.logitrack.service;
 
 import mz.co.logitrack.domain.Carregamento;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.relatorio.RelatorioFiltro;
 import mz.co.logitrack.dto.relatorio.RelatorioLinha;
 import mz.co.logitrack.dto.relatorio.RelatorioResponse;
@@ -20,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 /** Relatórios operacionais com filtros, pré-visualização e exportação (W5). */
 @Service
@@ -66,7 +68,8 @@ public class RelatorioService {
                         c.getDataHoraInicio(),
                         c.getDataHoraFim(),
                         mapper.atrasoMinutos(c),
-                        c.getMotivoRejeicao()))
+                        c.getMotivoRejeicao(),
+                        FasesCarregamento.de(c)))
                 .toList();
 
         double toneladas = linhas.stream().mapToDouble(RelatorioLinha::toneladas).sum();
@@ -84,7 +87,14 @@ public class RelatorioService {
                 new RelatorioResponse.ResumoRelatorio(linhas.size(),
                         Math.round(toneladas * 10.0) / 10.0,
                         concluidos, atrasados,
-                        Math.round(tempoMedio * 10.0) / 10.0);
+                        Math.round(tempoMedio * 10.0) / 10.0,
+                        mediaFaseHoras(linhas, 0),
+                        mediaFaseHoras(linhas, 1),
+                        mediaFaseHoras(linhas, 2),
+                        linhas.stream().filter(l -> l.fases() != null
+                                && (l.fases().inicioCarregamento() != null
+                                || l.fases().fimCarregamento() != null
+                                || l.fases().inicioTransporte() != null)).count());
         return new RelatorioResponse(linhas, resumo, filtro);
     }
 
@@ -99,6 +109,21 @@ public class RelatorioService {
         RelatorioResponse dados = gerar(filtro);
         return new Exportacao(exportador.gerar(dados),
                 exportador.nomeFicheiro(filtro), exportador.contentType());
+    }
+
+    /** 0 = espera, 1 = carregamento, 2 = transporte. */
+    private double mediaFaseHoras(List<RelatorioLinha> linhas, int fase) {
+        return Math.round(linhas.stream()
+                .map(RelatorioLinha::fases)
+                .filter(Objects::nonNull)
+                .map(f -> switch (fase) {
+                    case 0 -> f.esperaMinutos();
+                    case 1 -> f.carregamentoMinutos();
+                    default -> f.transporteMinutos();
+                })
+                .filter(Objects::nonNull)
+                .mapToLong(Long::longValue)
+                .average().orElse(0) / 60.0 * 10.0) / 10.0;
     }
 
     public record Exportacao(byte[] conteudo, String nomeFicheiro, String contentType) {

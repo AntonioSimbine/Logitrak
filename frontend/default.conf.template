@@ -27,14 +27,31 @@ server {
         try_files $uri =404;
     }
 
+    # As páginas HTML não podem ficar com código antigo em cache.
+    location ~* \.html$ {
+        add_header Cache-Control "no-cache, must-revalidate";
+        try_files $uri =404;
+    }
+
     # O service worker e o manifesto têm de ser sempre revalidados.
+    # Os ficheiros reais da PWA estão em /m/, não na raiz.
     location = /sw.js {
-        add_header Cache-Control "no-cache";
+        add_header Cache-Control "no-cache, must-revalidate";
         try_files $uri =404;
     }
 
     location = /manifest.webmanifest {
-        add_header Cache-Control "no-cache";
+        add_header Cache-Control "no-cache, must-revalidate";
+        try_files $uri =404;
+    }
+
+    location = /m/sw.js {
+        add_header Cache-Control "no-cache, must-revalidate";
+        try_files $uri =404;
+    }
+
+    location = /m/manifest.webmanifest {
+        add_header Cache-Control "no-cache, must-revalidate";
         try_files $uri =404;
     }
 

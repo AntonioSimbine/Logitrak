@@ -8,7 +8,9 @@ import mz.co.logitrack.domain.enums.EstadoVeiculo;
 import mz.co.logitrack.domain.enums.Role;
 import mz.co.logitrack.dto.carregamento.CarregamentoDetalhe;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.carregamento.PosicaoRequest;
+import mz.co.logitrack.dto.carregamento.RegistarFasesRequest;
 import mz.co.logitrack.dto.dashboard.PontoMapa;
 import mz.co.logitrack.exception.ApiException;
 import mz.co.logitrack.mapper.CarregamentoMapper;
@@ -41,6 +43,7 @@ public class CarregamentoService {
     private final CarregamentoMapper mapper;
     private final NotificacaoService notificacaoService;
     private final ParametroService parametroService;
+    private final VehicleOperationService vehicleOperations;
 
     public CarregamentoService(CarregamentoRepository carregamentoRepository,
                                VeiculoRepository veiculoRepository,
@@ -48,7 +51,8 @@ public class CarregamentoService {
                                AlertaAtrasoRepository alertaRepository,
                                CarregamentoMapper mapper,
                                NotificacaoService notificacaoService,
-                               ParametroService parametroService) {
+                               ParametroService parametroService,
+                               VehicleOperationService vehicleOperations) {
         this.carregamentoRepository = carregamentoRepository;
         this.veiculoRepository = veiculoRepository;
         this.gpsRepository = gpsRepository;
@@ -56,6 +60,7 @@ public class CarregamentoService {
         this.mapper = mapper;
         this.notificacaoService = notificacaoService;
         this.parametroService = parametroService;
+        this.vehicleOperations = vehicleOperations;
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +98,61 @@ public class CarregamentoService {
         return mapper.toResumo(c);
     }
 
+    /** Regista os instantes reais das fases; campos omitidos mantêm o valor atual. */
+    @Transactional
+    public CarregamentoResumo registarFases(Long id, RegistarFasesRequest pedido,
+                                            AuthenticatedUser principal) {
+        if (pedido == null || (pedido.dataHoraInicioCarregamento() == null
+                && pedido.dataHoraFimCarregamento() == null
+                && pedido.dataHoraInicioTransporte() == null
+                && pedido.dataHoraFimTransporte() == null)) {
+            throw ApiException.badRequest("Indique pelo menos um instante operacional.");
+        }
+        Carregamento c = obterComRelacoes(id);
+        verificarAcesso(c, principal);
+        if (c.getEstado() == EstadoCarregamento.REJEITADO) {
+            throw ApiException.unprocessable(
+                    "Não é possível registar fases de um carregamento rejeitado.");
+        }
+        if (pedido.dataHoraFimTransporte() != null
+                && c.getEstado() != EstadoCarregamento.CONCLUIDO) {
+            throw ApiException.unprocessable(
+                    "O fim do transporte só pode ser registado após a conclusão.");
+        }
+
+        LocalDateTime inicioCarregamento = pedido.dataHoraInicioCarregamento() != null
+                ? pedido.dataHoraInicioCarregamento() : c.getDataHoraInicioCarregamento();
+        LocalDateTime fimCarregamento = pedido.dataHoraFimCarregamento() != null
+                ? pedido.dataHoraFimCarregamento() : c.getDataHoraFimCarregamento();
+        LocalDateTime inicioTransporte = pedido.dataHoraInicioTransporte() != null
+                ? pedido.dataHoraInicioTransporte() : c.getDataHoraInicioTransporte();
+        LocalDateTime fimTransporte = pedido.dataHoraFimTransporte() != null
+                ? pedido.dataHoraFimTransporte() : c.getDataHoraFim();
+
+        FasesCarregamento.validar(c.getDataHoraInicio(), inicioCarregamento,
+                fimCarregamento, inicioTransporte, fimTransporte);
+
+        if (pedido.dataHoraInicioCarregamento() != null) {
+            c.setDataHoraInicioCarregamento(inicioCarregamento);
+        }
+        if (pedido.dataHoraFimCarregamento() != null) {
+            c.setDataHoraFimCarregamento(fimCarregamento);
+        }
+        if (pedido.dataHoraInicioTransporte() != null) {
+            c.setDataHoraInicioTransporte(inicioTransporte);
+        }
+        if (pedido.dataHoraFimTransporte() != null) {
+            c.setDataHoraFim(fimTransporte);
+        }
+
+        Carregamento guardado = carregamentoRepository.save(c);
+        CarregamentoResumo resumo = mapper.toResumo(guardado);
+        notificacaoService.publicarCarregamento(resumo);
+        log.info("Fases operacionais do carregamento {} actualizadas por {}",
+                id, principal != null ? principal.getEmail() : "sistema");
+        return resumo;
+    }
+
     @Transactional
     public CarregamentoResumo atualizarEstado(Long id, EstadoCarregamento novoEstado,
                                               String motivoRejeicao,
@@ -117,13 +177,25 @@ public class CarregamentoService {
             }
             c.setMotivoRejeicao(motivoRejeicao.trim());
             c.setDataHoraFim(LocalDateTime.now());
-            libertarVeiculo(c.getVeiculo());
+            vehicleOperations.libertarVeiculo(c.getVeiculo(), c.getId());
         }
 
         if (novoEstado == EstadoCarregamento.EM_TRANSITO) {
+            LocalDateTime agora = LocalDateTime.now();
             if (c.getDataHoraInicio() == null) {
-                c.setDataHoraInicio(LocalDateTime.now());
+                c.setDataHoraInicio(agora);
             }
+            // O momento da transição é o início real do transporte.
+            if (c.getDataHoraInicioTransporte() == null) {
+                c.setDataHoraInicioTransporte(agora);
+            }
+            if (c.getDataHoraInicioCarregamento() != null
+                    && c.getDataHoraFimCarregamento() == null) {
+                c.setDataHoraFimCarregamento(agora);
+            }
+            FasesCarregamento.validar(c.getDataHoraInicio(),
+                    c.getDataHoraInicioCarregamento(), c.getDataHoraFimCarregamento(),
+                    c.getDataHoraInicioTransporte(), c.getDataHoraFim());
             if (c.getVeiculo() != null) {
                 c.getVeiculo().setEstado(EstadoVeiculo.EM_TRANSITO);
                 veiculoRepository.save(c.getVeiculo());
@@ -132,7 +204,7 @@ public class CarregamentoService {
 
         if (novoEstado == EstadoCarregamento.CONCLUIDO) {
             c.setDataHoraFim(LocalDateTime.now());
-            libertarVeiculo(c.getVeiculo());
+            vehicleOperations.libertarVeiculo(c.getVeiculo(), c.getId());
         }
 
         c.setEstado(novoEstado);
@@ -217,20 +289,7 @@ public class CarregamentoService {
     }
 
     public void validarPrecisaoGps(double precisao) {
-        double maxima = parametroService.obterDouble(
-                ParametroService.PRECISAO_MAXIMA_GPS_METROS);
-        if (precisao > maxima) {
-            String limite = Math.abs(maxima - Math.rint(maxima)) < 0.0001
-                    ? String.format("%.0f", maxima) : String.format("%.1f", maxima);
-            throw ApiException.badRequest(String.format(
-                    "Precisão de GPS insuficiente para validação (Máx: %sm)", limite));
-        }
-    }
-
-    private void libertarVeiculo(Veiculo veiculo) {
-        if (veiculo != null) {
-            veiculo.setEstado(EstadoVeiculo.DISPONIVEL);
-            veiculoRepository.save(veiculo);
-        }
+        ValidacaoGps.validar(precisao, parametroService.obterDouble(
+                ParametroService.PRECISAO_MAXIMA_GPS_METROS));
     }
 }

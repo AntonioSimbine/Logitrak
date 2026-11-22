@@ -460,10 +460,28 @@ svg {
     color: #a8b4c5;
 }
 
+.field .hint,
+.hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #4d647e;
+}
+
 .input:focus,
 .select:focus {
     border-color: var(--orange);
     box-shadow: 0 0 0 3px rgba(242, 107, 46, .14);
+}
+
+:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid #1d63b8;
+    outline-offset: 2px;
 }
 
 #screen-login .input {

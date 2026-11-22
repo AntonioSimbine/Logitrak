@@ -13,7 +13,6 @@ import java.util.List;
 /** CRUD da frota (W9 / RN07). */
 @RestController
 @RequestMapping({"/api/v1/veiculos", "/api/veiculos"})
-@PreAuthorize("hasRole('ADMIN')")
 public class VeiculoAdminController {
 
     private final VeiculoService veiculoService;
@@ -23,23 +22,27 @@ public class VeiculoAdminController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
     public List<VeiculoDTO> listar() {
         return veiculoService.listar();
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public VeiculoDTO criar(@Valid @RequestBody VeiculoRequest pedido) {
         return veiculoService.criar(pedido);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public VeiculoDTO atualizar(@PathVariable Long id,
                                 @Valid @RequestBody VeiculoRequest pedido) {
         return veiculoService.atualizar(id, pedido);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         veiculoService.eliminar(id);

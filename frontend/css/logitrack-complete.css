@@ -18,3 +18,10 @@ body[data-perfil-ui="OPERADOR"] .lt-hero{background:linear-gradient(110deg,#062d
 @media(max-width:620px){.lt-hero{border-radius:18px}.lt-hero-mark{display:none}.lt-footer{flex-direction:column}.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.kpi{min-height:132px;padding:14px!important}.page-actions{width:100%}.page-actions .btn{flex:1}.card-head{flex-wrap:wrap}}
 @media(max-width:380px){.kpi-grid{grid-template-columns:1fr!important}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+/* Legibilidade e foco visível (sobrescreve as regras compactas acima) */
+.lt-breadcrumb{font-size:12px;color:#526b80}.lt-breadcrumb span{color:#617b90}
+.lt-footer{color:#54718a;font-size:12px}
+.kpi-label{font-size:12.5px;color:#476780}.kpi-foot{font-size:11.5px;color:#54718a}
+.card-head .sub{color:#54718a}
+table.data thead th{font-size:11px;color:#3d5c76}
+:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #1d63b8!important;outline-offset:2px!important}

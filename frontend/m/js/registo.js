@@ -133,6 +133,30 @@
                 return v.matricula + ' · ' + v.modelo
                     + (v.capacidadeCargaToneladas ? ' (' + v.capacidadeCargaToneladas + ' t)' : '');
             });
+        const seletorVeiculo = $('#selectVeiculo');
+        if (seletorVeiculo && !seletorVeiculo.dataset.capacidadeLigada) {
+            seletorVeiculo.dataset.capacidadeLigada = '1';
+            seletorVeiculo.addEventListener('change', function () {
+                const v = veiculos.find(function (item) {
+                    return Number(item.id) === Number(seletorVeiculo.value);
+                });
+                const capacidade = v ? Number(v.capacidadeCargaToneladas) : NaN;
+                const quantidade = $('#quantidade');
+                const aviso = $('#capacidadeVeiculo');
+                if (quantidade) {
+                    if (isFinite(capacidade) && capacidade > 0) {
+                        quantidade.max = String(capacidade);
+                    } else {
+                        quantidade.removeAttribute('max');
+                    }
+                }
+                if (aviso) {
+                    aviso.textContent = isFinite(capacidade) && capacidade > 0
+                        ? 'Capacidade do veículo: ' + capacidade + ' t. Não é possível exceder.'
+                        : 'Capacidade do veículo indisponível.';
+                }
+            });
+        }
         preencherSelect($('#selectTipo'), tipos.map(function (t) {
             return {nome: t};
         }), 'Selecione o tipo…',
@@ -792,8 +816,24 @@
             LTM.toast('Tipo de carga em falta', 'Selecione o tipo de carga.', 'error');
             return null;
         }
-        if (!quantidade || quantidade <= 0) {
+        if (!isFinite(quantidade) || quantidade <= 0) {
             LTM.toast('Quantidade inválida', 'Indique a quantidade em toneladas.', 'error');
+            return null;
+        }
+        const veiculoSelecionado = (state.refs && state.refs.veiculos || []).find(function (v) {
+            return Number(v.id) === veiculoId;
+        });
+        const capacidade = veiculoSelecionado
+            ? Number(veiculoSelecionado.capacidadeCargaToneladas) : NaN;
+        if (!isFinite(capacidade) || capacidade <= 0) {
+            LTM.toast('Capacidade indisponível',
+                'O veículo selecionado não tem uma capacidade válida.', 'error');
+            return null;
+        }
+        if (quantidade > capacidade) {
+            LTM.toast('Capacidade excedida',
+                'A quantidade (' + quantidade + ' t) excede a capacidade do veículo '
+                + veiculoSelecionado.matricula + ' (' + capacidade + ' t).', 'error');
             return null;
         }
         if (!state.foto) {
@@ -806,9 +846,10 @@
             return null;
         }
         const maximo = LTM.precisaMaxima();
-        if (state.gps.precisao > maximo) {
+        if (!isFinite(state.gps.precisao) || state.gps.precisao < 0
+                || state.gps.precisao > maximo) {
             LTM.toast('GPS insuficiente', 'Precisão de GPS insuficiente para validação (Máx: '
-                + textoPrecisao(maximo) + 'm)', 'error');
+                + textoPrecisao(maximo) + 'm). Active o GPS e aguarde uma fix melhor.', 'error');
             return null;
         }
         if (!state.fabricaId) {

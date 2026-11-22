@@ -40,12 +40,13 @@
             if (!main || main.querySelector('.role-banner')) return;
             const banner = document.createElement('div');
             banner.className = 'role-banner';
-            banner.innerHTML = admin
-              ? '<span class="role-dot"></span><strong>Painel do Administrador</strong><small>Supervisão geral, controlo de acessos e gestão da operação</small>'
-              : '<span class="role-dot"></span><strong>Painel do Operador</strong><small>Monitorização de carregamentos, frota e alertas em tempo real</small>';
+            banner.innerHTML = '<span class="role-dot"></span><strong>Perfil: '
+              + (admin ? 'Administrador' : 'Operador da Central')
+              + '</strong><small>'
+              + (admin ? 'Supervisão geral, acessos e gestão da operação'
+                       : 'Monitorização de carregamentos, frota e alertas em tempo real')
+              + '</small>';
             main.prepend(banner);
-            const heading = main.querySelector('.page-head h2');
-            if (heading) heading.textContent = admin ? 'Visão geral do sistema' : 'Central de Operações';
         });
     }
 
@@ -141,6 +142,9 @@
     <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
     </symbol>
+    <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2l9 5v10l-9 5-9-5V7l9-5z"/><path d="M3 7l9 5 9-5M12 12v10"/>
+    </symbol>
     <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
     </symbol>
@@ -212,9 +216,9 @@
             <button class="menu-toggle" type="button" id="menuToggle" aria-label="Abrir menu">
                 <svg><use href="#i-menu"/></svg>
             </button>
-            <div>
-                <h1>${titulo}</h1>
-                <div class="sub">${subtitulo}</div>
+            <div class="topbar-perfil">
+                <span class="topbar-etiqueta">${etiquetaPerfil}</span>
+                <span class="sub">${subtitulo || 'Ambiente operacional Logitrack'}</span>
             </div>
             <div class="topbar-spacer"></div>
             <span class="live" id="liveIndicator"><i></i> Tempo real</span>

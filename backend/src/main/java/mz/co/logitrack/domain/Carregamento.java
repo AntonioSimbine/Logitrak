@@ -64,6 +64,15 @@ public class Carregamento {
     @Column(name = "data_hora_fim")
     private LocalDateTime dataHoraFim;
 
+    @Column(name = "data_hora_inicio_carregamento")
+    private LocalDateTime dataHoraInicioCarregamento;
+
+    @Column(name = "data_hora_fim_carregamento")
+    private LocalDateTime dataHoraFimCarregamento;
+
+    @Column(name = "data_hora_inicio_transporte")
+    private LocalDateTime dataHoraInicioTransporte;
+
     @Size(max = 500)
     @Column(name = "motivo_rejeicao", length = 500)
     private String motivoRejeicao;
@@ -148,6 +157,30 @@ public class Carregamento {
 
     public void setDataHoraFim(LocalDateTime dataHoraFim) {
         this.dataHoraFim = dataHoraFim;
+    }
+
+    public LocalDateTime getDataHoraInicioCarregamento() {
+        return dataHoraInicioCarregamento;
+    }
+
+    public void setDataHoraInicioCarregamento(LocalDateTime dataHoraInicioCarregamento) {
+        this.dataHoraInicioCarregamento = dataHoraInicioCarregamento;
+    }
+
+    public LocalDateTime getDataHoraFimCarregamento() {
+        return dataHoraFimCarregamento;
+    }
+
+    public void setDataHoraFimCarregamento(LocalDateTime dataHoraFimCarregamento) {
+        this.dataHoraFimCarregamento = dataHoraFimCarregamento;
+    }
+
+    public LocalDateTime getDataHoraInicioTransporte() {
+        return dataHoraInicioTransporte;
+    }
+
+    public void setDataHoraInicioTransporte(LocalDateTime dataHoraInicioTransporte) {
+        this.dataHoraInicioTransporte = dataHoraInicioTransporte;
     }
 
     public String getMotivoRejeicao() {

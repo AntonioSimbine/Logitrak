@@ -132,6 +132,24 @@
         document.getElementById('kpiConcluidos').textContent = kpis.concluidosHoje;
         document.getElementById('kpiTempo').innerHTML = LT.fmt.numero(kpis.tempoMedioEsperaHoras, 1)
             + '<small>h</small>';
+
+        const comFases = Number(kpis.registosComFases || 0);
+        const abrangencia = document.getElementById('fasesAbrangencia');
+        if (abrangencia) {
+            abrangencia.textContent = comFases
+                ? comFases + ' registo(s) com fases' : 'Sem dados';
+        }
+        const valorFase = function (horas) {
+            return comFases ? LT.fmt.numero(horas, 1) + ' h' : '—';
+        };
+        [['faseEspera', kpis.tempoMedioEsperaHoras],
+         ['faseCarregamento', kpis.tempoMedioCarregamentoHoras],
+         ['faseTransporte', kpis.tempoMedioTransporteHoras]].forEach(function (par) {
+            const el = document.getElementById(par[0]);
+            if (el) {
+                el.textContent = valorFase(par[1]);
+            }
+        });
     }
 
     function renderizarAlertas(lista) {

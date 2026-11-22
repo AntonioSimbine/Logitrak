@@ -24,6 +24,7 @@ public record CarregamentoResumo(
         String motoristaNome,
         long atrasoMinutos,
         boolean atrasado,
-        boolean temDocumento
+        boolean temDocumento,
+        FasesCarregamento fases
 ) {
 }

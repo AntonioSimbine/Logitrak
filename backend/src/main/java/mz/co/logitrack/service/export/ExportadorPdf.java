@@ -8,6 +8,7 @@ import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfWriter;
 import mz.co.logitrack.dto.relatorio.RelatorioFiltro;
 import mz.co.logitrack.dto.relatorio.RelatorioLinha;
+import mz.co.logitrack.dto.carregamento.FasesCarregamento;
 import mz.co.logitrack.dto.relatorio.RelatorioResponse;
 import org.springframework.stereotype.Component;
 
@@ -81,22 +82,28 @@ public class ExportadorPdf implements ExportadorRelatorio {
             documento.add(new Paragraph(filtros.toString(), normal));
 
             RelatorioResponse.ResumoRelatorio r = relatorio.resumo();
+            String fases = r.registosComFases() > 0
+                    ? String.format("Espera: %.1f h  |  Carga: %.1f h  |  Transporte: %.1f h",
+                    r.esperaMediaHoras(), r.carregamentoMedioHoras(),
+                    r.transporteMedioHoras())
+                    : "Fases sem dados";
             Paragraph resumo = new Paragraph(String.format(
                     "Total: %d carregamentos  |  %.1f toneladas  |  Concluídos: %d  |  "
-                            + "Atrasados: %d  |  Tempo médio: %.1f h",
+                            + "Atrasados: %d  |  Ciclo: %.1f h  |  %s",
                     r.total(), r.toneladas(), r.concluidos(), r.atrasados(),
-                    r.tempoMedioHoras()),
+                    r.tempoMedioHoras(), fases),
                     new Font(Font.HELVETICA, 9, Font.BOLD, LARANJA));
             resumo.setSpacingBefore(6);
             resumo.setSpacingAfter(10);
             documento.add(resumo);
 
             PdfPTable tabela = new PdfPTable(new float[]{1.05f, 1.35f, 0.9f, 1.25f, 0.9f,
-                    0.62f, 0.9f, 1.0f, 0.95f, 0.58f});
+                    0.62f, 0.9f, 1.0f, 0.95f, 0.58f, 0.7f, 0.7f, 0.75f});
             tabela.setWidthPercentage(100);
 
             String[] cabecalhos = {"Guia", "Fábrica", "Veículo", "Motorista", "Carga",
-                    "Ton.", "Estado", "Início", "Fim", "Atraso"};
+                    "Ton.", "Estado", "Início", "Fim", "Atraso", "Espera min",
+                    "Carga min", "Transporte min"};
             Font fonteCabecalho = new Font(Font.HELVETICA, 7.5f, Font.BOLD, Color.WHITE);
             for (String cabecalho : cabecalhos) {
                 PdfPCell celula = new PdfPCell(new Phrase(cabecalho, fonteCabecalho));
@@ -130,13 +137,19 @@ public class ExportadorPdf implements ExportadorRelatorio {
                 adicionar(tabela, linha.atrasoMinutos() > 0
                         ? "+" + linha.atrasoMinutos() + " min" : "—", fonteLinha,
                         fundo, Element.ALIGN_RIGHT);
+                adicionar(tabela, minutosFase(linha.fases(), 0), fonteLinha,
+                        fundo, Element.ALIGN_RIGHT);
+                adicionar(tabela, minutosFase(linha.fases(), 1), fonteLinha,
+                        fundo, Element.ALIGN_RIGHT);
+                adicionar(tabela, minutosFase(linha.fases(), 2), fonteLinha,
+                        fundo, Element.ALIGN_RIGHT);
             }
 
             if (relatorio.linhas().isEmpty()) {
                 PdfPCell vazio = new PdfPCell(new Phrase(
                         "Nenhum carregamento corresponde aos filtros selecionados.",
                         normal));
-                vazio.setColspan(10);
+                vazio.setColspan(13);
                 vazio.setPadding(12);
                 vazio.setHorizontalAlignment(Element.ALIGN_CENTER);
                 tabela.addCell(vazio);
@@ -164,6 +177,18 @@ public class ExportadorPdf implements ExportadorRelatorio {
 
     private String nulo(String valor) {
         return valor != null ? valor : "—";
+    }
+
+    private String minutosFase(FasesCarregamento fases, int fase) {
+        if (fases == null) {
+            return "—";
+        }
+        Long minutos = switch (fase) {
+            case 0 -> fases.esperaMinutos();
+            case 1 -> fases.carregamentoMinutos();
+            default -> fases.transporteMinutos();
+        };
+        return minutos != null ? minutos + " min" : "—";
     }
 
     private Color corEstado(String estado) {

@@ -6,12 +6,12 @@
     <meta name="color-scheme" content="light">
     <title>Painel de Operações · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
-    <link rel="stylesheet" href="../css/logitrack-blue.css">
-    <link rel="stylesheet" href="../css/logitrack-complete.css">
+    <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
+    <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="dashboard" data-titulo="Painel de Operações"
       data-subtitulo="Visão em tempo real da operação">
@@ -67,8 +67,24 @@
                         <span class="kpi-icon amber"><svg><use href="#i-chart"/></svg></span>
                     </div>
                     <div class="kpi-value" id="kpiTempo">—</div>
-                    <div class="kpi-foot">Média entre partida e conclusão</div>
+                    <div class="kpi-foot">Registo → início do carregamento</div>
                 </article>
+            </section>
+
+            <section class="card fases-card">
+                <div class="card-head">
+                    <div>
+                        <h3>Tempos por fase</h3>
+                        <div class="sub">Média dos carregamentos com instantes operacionais registados</div>
+                    </div>
+                    <div class="spacer"></div>
+                    <span class="chip" id="fasesAbrangencia">Sem dados</span>
+                </div>
+                <div class="card-body fases-grid">
+                    <div><span>Espera na fábrica</span><strong id="faseEspera">—</strong></div>
+                    <div><span>Carregamento</span><strong id="faseCarregamento">—</strong></div>
+                    <div><span>Transporte</span><strong id="faseTransporte">—</strong></div>
+                </div>
             </section>
 
             <div class="dash-grid">
@@ -149,10 +165,10 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../js/config.js"></script>
-<script src="../js/api.js?v=20261114-2"></script>
-<script src="../js/layout.js"></script>
-<script src="../js/dashboard.js"></script>
-    <script src="../js/logitrack-complete.js" defer></script>
+<script src="../js/config.js?v=20261122b"></script>
+<script src="../js/api.js?v=20261122b"></script>
+<script src="../js/layout.js?v=20261122b"></script>
+<script src="../js/dashboard.js?v=20261122b"></script>
+    <script src="../js/logitrack-complete.js?v=20261122b" defer></script>
 </body>
 </html>

@@ -6,12 +6,12 @@
     <meta name="color-scheme" content="light">
     <title>Detalhe do Carregamento · Logitrack</title>
     <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/app.css?v=20261122b">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
-    <link rel="stylesheet" href="../css/logitrack-blue.css">
-    <link rel="stylesheet" href="../css/logitrack-complete.css">
+    <link rel="stylesheet" href="../css/logitrack-blue.css?v=20261122b">
+    <link rel="stylesheet" href="../css/logitrack-complete.css?v=20261122b">
 </head>
 <body data-pagina="carregamentos" data-titulo="Detalhe do Carregamento"
       data-subtitulo="Rastreio, guia digitalizada e ciclo de vida">
@@ -102,6 +102,40 @@
                         </div>
                     </section>
 
+                    <section class="card" id="cardFases">
+                        <div class="card-head">
+                            <div>
+                                <h3>Fases operacionais</h3>
+                                <div class="sub">Registe os instantes reais; campos vazios mantêm o valor atual</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label for="faseInicioCarregamento">Início do carregamento</label>
+                                    <input class="input" id="faseInicioCarregamento" type="datetime-local">
+                                </div>
+                                <div class="field">
+                                    <label for="faseFimCarregamento">Fim do carregamento</label>
+                                    <input class="input" id="faseFimCarregamento" type="datetime-local">
+                                </div>
+                                <div class="field">
+                                    <label for="faseInicioTransporte">Início do transporte</label>
+                                    <input class="input" id="faseInicioTransporte" type="datetime-local">
+                                </div>
+                                <div class="field">
+                                    <label for="faseFimTransporte">Fim do transporte</label>
+                                    <input class="input" id="faseFimTransporte" type="datetime-local">
+                                </div>
+                            </div>
+                            <div class="row mt-12">
+                                <button class="btn primary" id="btnGuardarFases" type="button">
+                                    Guardar fases
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
                     <section class="card">
                         <div class="card-head">
                             <div>
@@ -151,10 +185,10 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../js/config.js"></script>
-<script src="../js/api.js?v=20261114-2"></script>
-<script src="../js/layout.js"></script>
-<script src="../js/carregamento-detalhe.js"></script>
-    <script src="../js/logitrack-complete.js" defer></script>
+<script src="../js/config.js?v=20261122b"></script>
+<script src="../js/api.js?v=20261122b"></script>
+<script src="../js/layout.js?v=20261122b"></script>
+<script src="../js/carregamento-detalhe.js?v=20261122b"></script>
+    <script src="../js/logitrack-complete.js?v=20261122b" defer></script>
 </body>
 </html>

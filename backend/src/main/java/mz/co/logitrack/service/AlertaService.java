@@ -63,16 +63,17 @@ public class AlertaService {
                 .orElseThrow(() -> ApiException.notFound("Alerta não encontrado"));
         alerta.setLido(lido);
         AlertaAtraso guardado = alertaRepository.save(alerta);
+        notificacaoService.publicarContadorAlertas(alertaRepository.countByLidoFalse());
         return toResponse(guardado);
     }
 
     /**
-     * Cria um alerta se ainda não existir um alerta aberto para o
-     * carregamento (RN05). Publica o alerta no WebSocket.
+     * Cria no máximo um alerta por carregamento (RN05), mesmo após leitura,
+     * para que verificações repetidas não dupliquem notificações.
      */
     @Transactional
     public AlertaResponse criarAlerta(Carregamento carregamento, int minutosExcedidos) {
-        if (alertaRepository.existsByCarregamentoIdAndLidoFalse(carregamento.getId())) {
+        if (alertaRepository.existsByCarregamentoId(carregamento.getId())) {
             return null;
         }
         String fabrica = carregamento.getFabrica() != null
@@ -86,6 +87,7 @@ public class AlertaService {
         AlertaAtraso guardado = alertaRepository.save(alerta);
         AlertaResponse resposta = toResponse(guardado);
         notificacaoService.publicarAlerta(resposta);
+        notificacaoService.publicarContadorAlertas(alertaRepository.countByLidoFalse());
         log.info("Alerta de SLA criado: carregamento={} minutos={}", carregamento.getId(),
                 minutosExcedidos);
         return resposta;

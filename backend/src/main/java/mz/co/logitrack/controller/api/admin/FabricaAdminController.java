@@ -13,7 +13,6 @@ import java.util.List;
 /** CRUD de fábricas (W7 / RN07). */
 @RestController
 @RequestMapping({"/api/v1/fabricas", "/api/fabricas"})
-@PreAuthorize("hasRole('ADMIN')")
 public class FabricaAdminController {
 
     private final FabricaService fabricaService;
@@ -23,28 +22,33 @@ public class FabricaAdminController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
     public List<FabricaDTO> listar() {
         return fabricaService.listar();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
     public FabricaDTO obter(@PathVariable Long id) {
         return fabricaService.obter(id);
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public FabricaDTO criar(@Valid @RequestBody FabricaRequest pedido) {
         return fabricaService.criar(pedido);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public FabricaDTO atualizar(@PathVariable Long id,
                                 @Valid @RequestBody FabricaRequest pedido) {
         return fabricaService.atualizar(id, pedido);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         fabricaService.eliminar(id);
