@@ -86,8 +86,10 @@ public class SyncService {
     public ResultadoSincronizacao sincronizar(SyncCarregamentoRequest requisicao,
                                               AuthenticatedUser motorista) {
 
-        // 1) Idempotência: o mesmo uuidLocal devolve o registo já processado.
-        Optional<ResultadoSincronizacao> existente = procurarDuplicado(requisicao.uuidLocal());
+        // 1) Idempotência: o mesmo uuidLocal devolve o registo já processado,
+        // desde que pertença ao motorista autenticado.
+        Optional<ResultadoSincronizacao> existente =
+                procurarDuplicado(requisicao.uuidLocal(), motorista);
         if (existente.isPresent()) {
             log.info("Sincronização idempotente: uuidLocal={} já existe",
                     requisicao.uuidLocal());
@@ -106,7 +108,7 @@ public class SyncService {
             // única da base de dados decide qual vence. A perdedora devolve
             // exatamente o mesmo contrato idempotente (HTTP 200).
             Optional<ResultadoSincronizacao> duplicado =
-                    procurarDuplicado(requisicao.uuidLocal());
+                    procurarDuplicado(requisicao.uuidLocal(), motorista);
             if (duplicado.isPresent()) {
                 log.info("Sincronização concorrente resolvida por idempotência: uuidLocal={}",
                         requisicao.uuidLocal());
@@ -116,13 +118,35 @@ public class SyncService {
         }
     }
 
-    private Optional<ResultadoSincronizacao> procurarDuplicado(UUID uuidLocal) {
+    private Optional<ResultadoSincronizacao> procurarDuplicado(UUID uuidLocal,
+                                                                AuthenticatedUser motorista) {
         ResultadoSincronizacao resultado = transacao.execute(status ->
                 carregamentoRepository.findByUuidLocal(uuidLocal)
-                        .map(c -> new ResultadoSincronizacao(
-                                mapper.toResumo(c), true, HttpStatus.OK))
+                        .map(c -> {
+                            verificarPropriedade(c, motorista);
+                            return new ResultadoSincronizacao(
+                                    mapper.toResumo(c), true, HttpStatus.OK);
+                        })
                         .orElse(null));
         return Optional.ofNullable(resultado);
+    }
+
+    /**
+     * Impede que a idempotência por uuidLocal seja usada para ler o registo de
+     * outro motorista. O reenvio legítimo continua a devolver o mesmo registo
+     * (HTTP 200, X-Idempotente: true) sem criar duplicados.
+     */
+    private void verificarPropriedade(Carregamento carregamento, AuthenticatedUser motorista) {
+        Long autenticadoId = motorista != null ? motorista.getId() : null;
+        Utilizador proprietario = carregamento.getMotorista();
+        Long proprietarioId = proprietario != null ? proprietario.getId() : null;
+
+        if (autenticadoId == null || !autenticadoId.equals(proprietarioId)) {
+            log.warn("Acesso negado a carregamento de outro motorista: uuidLocal={} "
+                            + "proprietarioId={} autenticadoId={}",
+                    carregamento.getUuidLocal(), proprietarioId, autenticadoId);
+            throw ApiException.forbidden("Este carregamento pertence a outro motorista.");
+        }
     }
 
     private ResultadoSincronizacao criarCarregamento(SyncCarregamentoRequest requisicao,

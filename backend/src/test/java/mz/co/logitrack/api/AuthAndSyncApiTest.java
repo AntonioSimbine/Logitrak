@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
 import mz.co.logitrack.repository.CarregamentoRepository;
 import mz.co.logitrack.repository.DocumentoGuiaRepository;
+import mz.co.logitrack.repository.UtilizadorRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ class AuthAndSyncApiTest {
 
     private static final String SENHA = "test-demo-password-only-for-tests";
     private static final String EMAIL_MOTORISTA = "motorista@logitrack.co.mz";
+    private static final String EMAIL_MOTORISTA_2 = "motorista2@logitrack.co.mz";
     private static final double LAT_MATOLA = -25.9622;
     private static final double LON_MATOLA = 32.4589;
 
@@ -61,6 +63,9 @@ class AuthAndSyncApiTest {
 
     @Autowired
     private DocumentoGuiaRepository documentoGuiaRepository;
+
+    @Autowired
+    private UtilizadorRepository utilizadorRepository;
 
     @BeforeAll
     static void gerarFotografia() throws Exception {
@@ -182,6 +187,62 @@ class AuthAndSyncApiTest {
     }
 
     @Test
+    @DisplayName("Outro motorista não pode usar a idempotência para ler registo alheio")
+    void sincronizacaoComDoisMotoristasDiferentes() throws Exception {
+        UUID uuidLocal = UUID.fromString("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+        String payload = payload(uuidLocal, 1L, LAT_MATOLA, LON_MATOLA, 6.0);
+        String tokenMotorista1 = obterToken(EMAIL_MOTORISTA);
+        String tokenMotorista2 = obterToken(EMAIL_MOTORISTA_2);
+
+        MvcResult primeira = mockMvc.perform(post("/api/v1/carregamentos")
+                        .header("Authorization", "Bearer " + tokenMotorista1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("X-Idempotente", "false"))
+                .andExpect(jsonPath("$.uuidLocal").value(uuidLocal.toString()))
+                .andReturn();
+        long idRegisto = objectMapper.readTree(
+                primeira.getResponse().getContentAsString()).get("id").asLong();
+
+        // O mesmo uuidLocal na mão de outro motorista não devolve o registo.
+        mockMvc.perform(post("/api/v1/carregamentos")
+                        .header("Authorization", "Bearer " + tokenMotorista2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value(
+                        "Este carregamento pertence a outro motorista."));
+
+        // O proprietário continua a reenviar sem duplicar.
+        mockMvc.perform(post("/api/v1/carregamentos")
+                        .header("Authorization", "Bearer " + tokenMotorista1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Idempotente", "true"))
+                .andExpect(jsonPath("$.id").value(idRegisto))
+                .andExpect(jsonPath("$.uuidLocal").value(uuidLocal.toString()));
+
+        var guardado = carregamentoRepository.findByUuidLocal(uuidLocal).orElseThrow();
+        Long idMotorista1 = utilizadorRepository.findByEmailIgnoreCase(EMAIL_MOTORISTA)
+                .orElseThrow().getId();
+        assertThat(guardado.getMotorista().getId()).isEqualTo(idMotorista1);
+        assertThat(documentoGuiaRepository.existsByCarregamentoId(idRegisto)).isTrue();
+
+        // O segundo motorista continua a poder criar os próprios registos.
+        UUID uuidSegundoMotorista = UUID.fromString("cccccccc-dddd-eeee-ffff-000000000001");
+        mockMvc.perform(post("/api/v1/sync/carregamentos")
+                        .header("Authorization", "Bearer " + tokenMotorista2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload(uuidSegundoMotorista, 1L,
+                                LAT_MATOLA, LON_MATOLA, 6.0)))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("X-Idempotente", "false"))
+                .andExpect(jsonPath("$.uuidLocal").value(uuidSegundoMotorista.toString()));
+    }
+
+    @Test
     @DisplayName("Endpoints móveis exigem autenticação JWT")
     void dashboardMovelSemTokenDevolve401() throws Exception {
         mockMvc.perform(get("/api/v1/mobile/dashboard"))
@@ -189,8 +250,12 @@ class AuthAndSyncApiTest {
     }
 
     private String obterToken() throws Exception {
+        return obterToken(EMAIL_MOTORISTA);
+    }
+
+    private String obterToken(String email) throws Exception {
         String corpo = objectMapper.writeValueAsString(Map.of(
-                "email", EMAIL_MOTORISTA, "senha", SENHA));
+                "email", email, "senha", SENHA));
 
         MvcResult resultado = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
