@@ -322,8 +322,29 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 } else if (cache == null && !temCache) {
                     renderErro()
                 }
+                carregarNotificacoes()
             } catch (e: Exception) {
                 if (cache == null && !temCache) renderErro()
+                carregarNotificacoes()
+            }
+        }
+    }
+
+    /** Atualiza a caixa de entrada com as notificações persistidas no servidor. */
+    private fun carregarNotificacoes() {
+        if (prefs.userId <= 0L) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val resp = RetrofitClient.getApi(requireContext()).notificacoes()
+                val corpo = resp.body()
+                if (resp.isSuccessful && corpo != null) {
+                    prefs.guardarNotificacoes(corpo)
+                    atualizarSino()
+                } else if (resp.code() == 401) {
+                    Sessao.sinalizarExpiracao()
+                }
+            } catch (_: Exception) {
+                // Badge mantém a contagem do cache offline.
             }
         }
     }

@@ -482,21 +482,25 @@
     <string name="offline_last_sync">Última sincronização: %1$s</string>
     <string name="offline_never_sync">Ainda sem sincronizações neste dispositivo.</string>
 
-    <!-- Notificações do operador e da administração -->
+    <!-- Notificações destinadas à conta do motorista -->
     <string name="notifications_title">Notificações</string>
-    <string name="notifications_subtitle">Operador e administração</string>
+    <string name="notifications_subtitle">Sistema, operador e administração</string>
     <string name="notifications_summary_title">A sua caixa de entrada</string>
     <string name="notifications_unread">%1$d por ler</string>
     <string name="notifications_all_read">Tudo lido</string>
     <string name="notifications_mark_all">Marcar lidas</string>
     <string name="notifications_marked_all">Notificações marcadas como lidas.</string>
     <string name="notifications_empty_title">Sem notificações</string>
-    <string name="notifications_empty_text">As mensagens do operador e da administração aparecem aqui.</string>
+    <string name="notifications_empty_text">Os avisos da sua conta aparecem aqui.</string>
     <string name="notif_operador">Operador</string>
     <string name="notif_administracao">Administração</string>
     <string name="notif_sistema">Sistema</string>
+    <string name="notif_origem_desconhecida">Origem desconhecida</string>
+    <string name="notif_autor">Enviado por %1$s</string>
+    <string name="notif_sem_texto">Sem detalhe adicional.</string>
+    <string name="notif_sync_title">Falha ao sincronizar %1$s</string>
     <string name="notif_rejected_title">Guia %1$s rejeitada</string>
-    <string name="notif_rejected_fallback">O operador rejeitou este carregamento. Abra o detalhe para mais informação.</string>
+    <string name="notif_rejected_fallback">Este carregamento foi rejeitado. Abra o detalhe para mais informação.</string>
     <string name="notif_late_title">Guia %1$s atrasada</string>
     <string name="notif_late_text">Está %1$d minutos acima do limite de SLA.</string>
     <string name="notif_late_text_generic">Está fora do limite de SLA definido para o carregamento.</string>

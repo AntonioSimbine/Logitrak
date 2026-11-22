@@ -14,6 +14,10 @@ public record AlertaResponse(
         Integer minutosExcedidos,
         String mensagem,
         Boolean lido,
-        LocalDateTime dataHoraEmissao
+        LocalDateTime dataHoraEmissao,
+        Long tratadoPorId,
+        String tratadoPorNome,
+        String tratadoPorPerfil,
+        LocalDateTime dataHoraTratamento
 ) {
 }

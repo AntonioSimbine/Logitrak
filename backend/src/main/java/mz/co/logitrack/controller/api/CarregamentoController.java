@@ -76,7 +76,7 @@ public class CarregamentoController {
 
     @PostMapping("/{id}/posicoes")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('MOTORISTA','ADMIN','OPERADOR')")
+    @PreAuthorize("hasRole('MOTORISTA')")
     public CarregamentoDetalhe.PosicaoResumo registarPosicao(
             @PathVariable Long id,
             @Valid @RequestBody PosicaoRequest pedido,

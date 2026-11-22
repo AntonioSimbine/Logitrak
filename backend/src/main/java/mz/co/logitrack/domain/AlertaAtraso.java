@@ -44,6 +44,21 @@ public class AlertaAtraso {
             foreignKey = @ForeignKey(name = "fk_alertas_carregamento"))
     private Carregamento carregamento;
 
+    /** Autoria do tratamento manual do alerta, definida no servidor. */
+    @Column(name = "tratado_por_id")
+    private Long tratadoPorId;
+
+    @Size(max = 120)
+    @Column(name = "tratado_por_nome", length = 120)
+    private String tratadoPorNome;
+
+    @Size(max = 30)
+    @Column(name = "tratado_por_perfil", length = 30)
+    private String tratadoPorPerfil;
+
+    @Column(name = "data_hora_tratamento")
+    private LocalDateTime dataHoraTratamento;
+
     public AlertaAtraso() {
     }
 
@@ -102,6 +117,38 @@ public class AlertaAtraso {
 
     public void setCarregamento(Carregamento carregamento) {
         this.carregamento = carregamento;
+    }
+
+    public Long getTratadoPorId() {
+        return tratadoPorId;
+    }
+
+    public void setTratadoPorId(Long tratadoPorId) {
+        this.tratadoPorId = tratadoPorId;
+    }
+
+    public String getTratadoPorNome() {
+        return tratadoPorNome;
+    }
+
+    public void setTratadoPorNome(String tratadoPorNome) {
+        this.tratadoPorNome = tratadoPorNome;
+    }
+
+    public String getTratadoPorPerfil() {
+        return tratadoPorPerfil;
+    }
+
+    public void setTratadoPorPerfil(String tratadoPorPerfil) {
+        this.tratadoPorPerfil = tratadoPorPerfil;
+    }
+
+    public LocalDateTime getDataHoraTratamento() {
+        return dataHoraTratamento;
+    }
+
+    public void setDataHoraTratamento(LocalDateTime dataHoraTratamento) {
+        this.dataHoraTratamento = dataHoraTratamento;
     }
 
     @Override

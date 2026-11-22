@@ -2,10 +2,13 @@ package mz.co.logitrack.service;
 
 import mz.co.logitrack.domain.AlertaAtraso;
 import mz.co.logitrack.domain.Carregamento;
+import mz.co.logitrack.domain.enums.OrigemNotificacao;
+import mz.co.logitrack.domain.enums.TipoNotificacao;
 import mz.co.logitrack.dto.dashboard.AlertaResponse;
 import mz.co.logitrack.exception.ApiException;
 import mz.co.logitrack.mapper.CarregamentoMapper;
 import mz.co.logitrack.repository.AlertaAtrasoRepository;
+import mz.co.logitrack.security.AuthenticatedUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -59,9 +62,28 @@ public class AlertaService {
 
     @Transactional
     public AlertaResponse marcarLido(Long id, boolean lido) {
+        return marcarLido(id, lido, null);
+    }
+
+    /** Regista quem tratou o alerta; a identidade vem sempre da autenticação. */
+    @Transactional
+    public AlertaResponse marcarLido(Long id, boolean lido, AuthenticatedUser principal) {
         AlertaAtraso alerta = alertaRepository.findById(id)
                 .orElseThrow(() -> ApiException.notFound("Alerta não encontrado"));
         alerta.setLido(lido);
+        if (lido) {
+            alerta.setTratadoPorId(principal != null ? principal.getId() : null);
+            alerta.setTratadoPorNome(principal != null ? principal.getNome() : null);
+            alerta.setTratadoPorPerfil(principal != null && principal.getPerfil() != null
+                    ? principal.getPerfil().name()
+                    : OrigemNotificacao.DESCONHECIDO.name());
+            alerta.setDataHoraTratamento(LocalDateTime.now());
+        } else {
+            alerta.setTratadoPorId(null);
+            alerta.setTratadoPorNome(null);
+            alerta.setTratadoPorPerfil(null);
+            alerta.setDataHoraTratamento(null);
+        }
         AlertaAtraso guardado = alertaRepository.save(alerta);
         notificacaoService.publicarContadorAlertas(alertaRepository.countByLidoFalse());
         return toResponse(guardado);
@@ -88,6 +110,16 @@ public class AlertaService {
         AlertaResponse resposta = toResponse(guardado);
         notificacaoService.publicarAlerta(resposta);
         notificacaoService.publicarContadorAlertas(alertaRepository.countByLidoFalse());
+
+        // Atraso é detectado pelo motor de SLA: origem SISTEMA, nunca Administração.
+        Long destinatario = carregamento.getMotorista() != null
+                ? carregamento.getMotorista().getId() : null;
+        if (destinatario != null) {
+            notificacaoService.registarSistema(
+                    TipoNotificacao.ATRASO, destinatario, carregamento.getId(),
+                    carregamento.getGuiaNumero(), "Carregamento atrasado", mensagem,
+                    "DETECAO_AUTOMATICA_SLA");
+        }
         log.info("Alerta de SLA criado: carregamento={} minutos={}", carregamento.getId(),
                 minutosExcedidos);
         return resposta;
@@ -106,7 +138,11 @@ public class AlertaService {
                 alerta.getMinutosExcedidos(),
                 alerta.getMensagem(),
                 alerta.getLido(),
-                alerta.getDataHoraEmissao()
+                alerta.getDataHoraEmissao(),
+                alerta.getTratadoPorId(),
+                alerta.getTratadoPorNome(),
+                alerta.getTratadoPorPerfil(),
+                alerta.getDataHoraTratamento()
         );
     }
 }

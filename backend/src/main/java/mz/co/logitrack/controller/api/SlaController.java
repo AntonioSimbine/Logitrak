@@ -11,7 +11,7 @@ import java.util.Map;
 /** Permite forçar uma passagem do motor de SLA (útil em testes e operação). */
 @RestController
 @RequestMapping({"/api/v1/sla", "/api/sla"})
-@PreAuthorize("hasAnyRole('ADMIN','OPERADOR')")
+@PreAuthorize("hasRole('ADMIN')")
 public class SlaController {
 
     private final SlaService slaService;

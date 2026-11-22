@@ -4,11 +4,14 @@ import jakarta.validation.Valid;
 import mz.co.logitrack.dto.carregamento.CarregamentoDetalhe;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
 import mz.co.logitrack.dto.carregamento.RegistarFasesRequest;
+import mz.co.logitrack.dto.dashboard.MarcarLidoRequest;
 import mz.co.logitrack.dto.mobile.MobileDashboardResponse;
+import mz.co.logitrack.dto.mobile.NotificacaoResponse;
 import mz.co.logitrack.dto.mobile.ReferenciasMobileResponse;
 import mz.co.logitrack.security.AuthenticatedUser;
 import mz.co.logitrack.service.CarregamentoService;
 import mz.co.logitrack.service.MobileService;
+import mz.co.logitrack.service.NotificacaoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,19 +22,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
-/** API dedicada à aplicação móvel do motorista (M2, M3 e M6). */
+/** API dedicada à aplicação móvel do motorista (M2, M3, M4 e M6). */
 @RestController
 @RequestMapping({"/api/v1/mobile", "/api/mobile"})
-@PreAuthorize("hasAnyRole('MOTORISTA','ADMIN')")
+@PreAuthorize("hasRole('MOTORISTA')")
 public class MobileController {
 
     private final MobileService mobileService;
     private final CarregamentoService carregamentoService;
+    private final NotificacaoService notificacaoService;
 
-    public MobileController(MobileService mobileService, CarregamentoService carregamentoService) {
+    public MobileController(MobileService mobileService, CarregamentoService carregamentoService,
+                            NotificacaoService notificacaoService) {
         this.mobileService = mobileService;
         this.carregamentoService = carregamentoService;
+        this.notificacaoService = notificacaoService;
     }
 
     @GetMapping("/dashboard")
@@ -55,6 +62,34 @@ public class MobileController {
     public CarregamentoDetalhe detalhe(@PathVariable Long id,
                                        @AuthenticationPrincipal AuthenticatedUser principal) {
         return mobileService.detalhe(id, principal);
+    }
+
+    /** Notificações destinadas exclusivamente à conta autenticada. */
+    @GetMapping("/notificacoes")
+    public List<NotificacaoResponse> notificacoes(
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        return notificacaoService.listarPara(principal.getId());
+    }
+
+    @GetMapping("/notificacoes/nao-lidas")
+    public Map<String, Long> notificacoesNaoLidas(
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        return Map.of("naoLidas", notificacaoService.contarNaoLidas(principal.getId()));
+    }
+
+    @PatchMapping("/notificacoes/{id}/lida")
+    public NotificacaoResponse marcarLida(
+            @PathVariable Long id,
+            @Valid @RequestBody MarcarLidoRequest pedido,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        return notificacaoService.marcarLida(
+                id, principal.getId(), Boolean.TRUE.equals(pedido.lido()));
+    }
+
+    @PatchMapping("/notificacoes/lidas")
+    public Map<String, Integer> marcarTodasLidas(
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        return Map.of("marcadas", notificacaoService.marcarTodasLidas(principal.getId()));
     }
 
     /**

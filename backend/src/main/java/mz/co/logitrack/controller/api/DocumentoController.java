@@ -79,7 +79,7 @@ public class DocumentoController {
 
     @PostMapping(value = "/carregamento/{carregamentoId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('MOTORISTA','ADMIN','OPERADOR')")
+    @PreAuthorize("hasRole('MOTORISTA')")
     public ResponseEntity<CarregamentoDetalhe.DocumentoResumo> enviar(
             @PathVariable Long carregamentoId,
             @RequestPart("ficheiro") MultipartFile ficheiro,

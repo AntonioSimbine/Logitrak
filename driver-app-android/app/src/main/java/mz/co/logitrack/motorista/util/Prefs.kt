@@ -7,6 +7,7 @@ import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 import mz.co.logitrack.motorista.BuildConfig
 import mz.co.logitrack.motorista.data.dto.DashboardDto
+import mz.co.logitrack.motorista.data.dto.NotificacaoDto
 import mz.co.logitrack.motorista.data.dto.ReferenciasDto
 import android.util.Log
 import java.security.MessageDigest
@@ -202,9 +203,24 @@ class Prefs(context: Context) {
 
     fun lerDetalhe(id: Long): String? = prefs.getString(chaveDetalhe(id), null)
 
+    /** Cache das notificações recebidas da API, isolada por utilizador. */
+    fun guardarNotificacoes(dto: List<NotificacaoDto>?) =
+        putJson(chaveNotificacoes(userId), dto)
+
+    fun lerNotificacoes(): List<NotificacaoDto> {
+        val texto = prefs.getString(chaveNotificacoes(userId), null) ?: return emptyList()
+        return try {
+            val tipo = com.google.gson.reflect.TypeToken
+                .getParameterized(List::class.java, NotificacaoDto::class.java).type
+            gson.fromJson<List<NotificacaoDto>>(texto, tipo) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     /** IDs das notificações já lidas, guardados como texto para manter o ficheiro leve. */
     fun notificacoesLidas(): Set<String> =
-        prefs.getString(CHAVE_NOTIF_LIDAS, null)
+        prefs.getString(chaveNotifLidas(userId), null)
             ?.split('\n')
             ?.filter { it.isNotBlank() }
             ?.toSet()
@@ -218,9 +234,14 @@ class Prefs(context: Context) {
         lidas.addAll(notificacoesLidas())
         lidas.addAll(ids)
         prefs.edit()
-            .putString(CHAVE_NOTIF_LIDAS, lidas.toList().takeLast(MAX_NOTIF_LIDAS).joinToString("\n"))
+            .putString(chaveNotifLidas(userId),
+                lidas.toList().takeLast(MAX_NOTIF_LIDAS).joinToString("\n"))
             .apply()
     }
+
+    private fun chaveNotificacoes(id: Long): String = "cache_notificacoes_$id"
+
+    private fun chaveNotifLidas(id: Long): String = "notif_lidas_$id"
 
     private fun chaveDetalhe(id: Long): String = "cache_detalhe_${userId}_$id"
 
@@ -245,7 +266,7 @@ class Prefs(context: Context) {
             .remove("user_name")
             .remove("user_email")
             .remove("session_expired")
-            .remove(CHAVE_NOTIF_LIDAS)
+            .remove(chaveNotifLidas(userId))
             .apply()
     }
 
@@ -255,7 +276,6 @@ class Prefs(context: Context) {
 
     companion object {
         val BASE_PADRAO: String = BuildConfig.API_BASE_PADRAO
-        private const val CHAVE_NOTIF_LIDAS = "notif_lidas"
         private const val MAX_NOTIF_LIDAS = 300
         private const val PBKDF2_PREFIX = "pbkdf2"
         private const val ITERACOES_PBKDF2 = 120_000

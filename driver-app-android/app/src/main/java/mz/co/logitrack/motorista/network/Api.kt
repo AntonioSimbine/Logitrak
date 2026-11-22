@@ -42,6 +42,21 @@ interface Api {
         @Body req: RegistarFasesRequest
     ): Response<RecenteDto>
 
+    @GET("mobile/notificacoes")
+    suspend fun notificacoes(): Response<List<NotificacaoDto>>
+
+    @GET("mobile/notificacoes/nao-lidas")
+    suspend fun notificacoesNaoLidas(): Response<Map<String, Long>>
+
+    @PATCH("mobile/notificacoes/{id}/lida")
+    suspend fun marcarNotificacaoLida(
+        @Path("id") id: Long,
+        @Body req: MarcarLidoRequest
+    ): Response<NotificacaoDto>
+
+    @PATCH("mobile/notificacoes/lidas")
+    suspend fun marcarNotificacoesLidas(): Response<Map<String, Int>>
+
     @Streaming
     @GET("documentos/{id}/ficheiro")
     suspend fun documento(@Path("id") id: Long): Response<ResponseBody>

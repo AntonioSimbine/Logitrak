@@ -77,6 +77,25 @@ public class Carregamento {
     @Column(name = "motivo_rejeicao", length = 500)
     private String motivoRejeicao;
 
+    /** Autoria da última acção manual (rejeição ou conclusão), definida no servidor. */
+    @Column(name = "autor_id")
+    private Long autorId;
+
+    @Size(max = 120)
+    @Column(name = "autor_nome", length = 120)
+    private String autorNome;
+
+    @Size(max = 30)
+    @Column(name = "autor_perfil", length = 30)
+    private String autorPerfil;
+
+    @Size(max = 60)
+    @Column(name = "tipo_accao", length = 60)
+    private String tipoAccao;
+
+    @Column(name = "data_hora_accao")
+    private LocalDateTime dataHoraAccao;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fabrica_id", foreignKey = @ForeignKey(name = "fk_carregamentos_fabrica"))
     private Fabrica fabrica;
@@ -189,6 +208,46 @@ public class Carregamento {
 
     public void setMotivoRejeicao(String motivoRejeicao) {
         this.motivoRejeicao = motivoRejeicao;
+    }
+
+    public Long getAutorId() {
+        return autorId;
+    }
+
+    public void setAutorId(Long autorId) {
+        this.autorId = autorId;
+    }
+
+    public String getAutorNome() {
+        return autorNome;
+    }
+
+    public void setAutorNome(String autorNome) {
+        this.autorNome = autorNome;
+    }
+
+    public String getAutorPerfil() {
+        return autorPerfil;
+    }
+
+    public void setAutorPerfil(String autorPerfil) {
+        this.autorPerfil = autorPerfil;
+    }
+
+    public String getTipoAccao() {
+        return tipoAccao;
+    }
+
+    public void setTipoAccao(String tipoAccao) {
+        this.tipoAccao = tipoAccao;
+    }
+
+    public LocalDateTime getDataHoraAccao() {
+        return dataHoraAccao;
+    }
+
+    public void setDataHoraAccao(LocalDateTime dataHoraAccao) {
+        this.dataHoraAccao = dataHoraAccao;
     }
 
     public Fabrica getFabrica() {

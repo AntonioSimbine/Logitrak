@@ -193,4 +193,28 @@ data class RegistarFasesRequest(
     val dataHoraInicioTransporte: String? = null
 )
 
+/**
+ * Notificação persistida pelo servidor. A origem e a autoria são calculadas
+ * na API — o cliente apenas apresenta e marca como lida.
+ */
+data class NotificacaoDto(
+    val id: Long,
+    val tipo: String?,
+    val origem: String?,
+    val autorId: Long?,
+    val autorNome: String?,
+    val autorPerfil: String?,
+    val acaoTipo: String?,
+    val dataHoraCriacao: String?,
+    val carregamentoId: Long?,
+    val guiaNumero: String?,
+    val titulo: String?,
+    val mensagem: String?,
+    val lido: Boolean,
+    val dataHoraLeitura: String?
+)
+
+/** Corpo do PATCH /mobile/notificacoes/{id}/lida. */
+data class MarcarLidoRequest(val lido: Boolean)
+
 data class ApiErrorDto(val error: String?, val detalhes: Map<String, String>?)

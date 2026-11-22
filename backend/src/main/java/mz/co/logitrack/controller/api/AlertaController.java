@@ -4,10 +4,12 @@ import jakarta.validation.Valid;
 import mz.co.logitrack.dto.common.PaginaResponse;
 import mz.co.logitrack.dto.dashboard.AlertaResponse;
 import mz.co.logitrack.dto.dashboard.MarcarLidoRequest;
+import mz.co.logitrack.security.AuthenticatedUser;
 import mz.co.logitrack.service.AlertaService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,7 +43,8 @@ public class AlertaController {
 
     @PatchMapping("/{id}")
     public AlertaResponse marcarLido(@PathVariable Long id,
-                                     @Valid @RequestBody MarcarLidoRequest pedido) {
-        return alertaService.marcarLido(id, pedido.lido());
+                                     @Valid @RequestBody MarcarLidoRequest pedido,
+                                     @AuthenticationPrincipal AuthenticatedUser principal) {
+        return alertaService.marcarLido(id, pedido.lido(), principal);
     }
 }

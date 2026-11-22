@@ -5,7 +5,9 @@ import mz.co.logitrack.domain.LocalizacaoGPS;
 import mz.co.logitrack.domain.Veiculo;
 import mz.co.logitrack.domain.enums.EstadoCarregamento;
 import mz.co.logitrack.domain.enums.EstadoVeiculo;
+import mz.co.logitrack.domain.enums.OrigemNotificacao;
 import mz.co.logitrack.domain.enums.Role;
+import mz.co.logitrack.domain.enums.TipoNotificacao;
 import mz.co.logitrack.dto.carregamento.CarregamentoDetalhe;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
 import mz.co.logitrack.dto.carregamento.FasesCarregamento;
@@ -177,6 +179,7 @@ public class CarregamentoService {
             }
             c.setMotivoRejeicao(motivoRejeicao.trim());
             c.setDataHoraFim(LocalDateTime.now());
+            registarAutoria(c, "REJEICAO", principal);
             vehicleOperations.libertarVeiculo(c.getVeiculo(), c.getId());
         }
 
@@ -204,6 +207,7 @@ public class CarregamentoService {
 
         if (novoEstado == EstadoCarregamento.CONCLUIDO) {
             c.setDataHoraFim(LocalDateTime.now());
+            registarAutoria(c, "CONCLUSAO", principal);
             vehicleOperations.libertarVeiculo(c.getVeiculo(), c.getId());
         }
 
@@ -211,9 +215,43 @@ public class CarregamentoService {
         Carregamento guardado = carregamentoRepository.save(c);
         CarregamentoResumo resumo = mapper.toResumo(guardado);
         notificacaoService.publicarCarregamento(resumo);
+        if (novoEstado == EstadoCarregamento.REJEITADO
+                || novoEstado == EstadoCarregamento.CONCLUIDO) {
+            notificarAccaoManual(guardado, novoEstado, principal);
+        }
         log.info("Estado do carregamento {} alterado para {} por {}",
                 id, novoEstado, principal != null ? principal.getEmail() : "sistema");
         return resumo;
+    }
+
+    /** Grava a autoria verdadeira da acção manual, sem confiar no cliente. */
+    private void registarAutoria(Carregamento c, String acao, AuthenticatedUser principal) {
+        c.setAutorId(principal != null ? principal.getId() : null);
+        c.setAutorNome(principal != null ? principal.getNome() : null);
+        c.setAutorPerfil(principal != null && principal.getPerfil() != null
+                ? principal.getPerfil().name() : OrigemNotificacao.DESCONHECIDO.name());
+        c.setTipoAccao(acao);
+        c.setDataHoraAccao(LocalDateTime.now());
+    }
+
+    /** Entrega ao motorista um aviso com o autor e o perfil reais da acção. */
+    private void notificarAccaoManual(Carregamento c, EstadoCarregamento estado,
+                                      AuthenticatedUser principal) {
+        if (c.getMotorista() == null) {
+            return;
+        }
+        boolean rejeicao = estado == EstadoCarregamento.REJEITADO;
+        TipoNotificacao tipo = rejeicao
+                ? TipoNotificacao.REJEICAO : TipoNotificacao.CONCLUSAO;
+        String titulo = rejeicao ? "Guia rejeitada" : "Carregamento concluído";
+        String mensagem = rejeicao
+                ? "O carregamento da guia " + c.getGuiaNumero() + " foi rejeitado. Motivo: "
+                        + c.getMotivoRejeicao()
+                : "O carregamento da guia " + c.getGuiaNumero() + " foi concluído.";
+        notificacaoService.registarAccaoManual(
+                principal, tipo, c.getMotorista().getId(), c.getId(), c.getGuiaNumero(),
+                titulo, mensagem,
+                rejeicao ? "REJEITAR_CARREGAMENTO" : "CONCLUIR_CARREGAMENTO");
     }
 
     @Transactional

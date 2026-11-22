@@ -41,20 +41,18 @@ class NotificacaoAdapter(
             if (item.lida) R.drawable.bg_recent_item else R.drawable.bg_notif_unread
         )
 
+        // A origem é a recebida do servidor: SISTEMA, OPERADOR, ADMINISTRADOR
+        // ou DESCONHECIDO para registos antigos sem autoria gravada.
         val sistema = item.origem == Notificacoes.ORIGEM_SISTEMA
-        val admin = item.origem == Notificacoes.ORIGEM_ADMIN
-        b.tvOrigem.text = when {
-            admin -> contexto.getString(R.string.notif_administracao)
-            sistema -> contexto.getString(R.string.notif_sistema)
-            else -> contexto.getString(R.string.notif_operador)
-        }
+        val desconhecido = item.origem == Notificacoes.ORIGEM_DESCONHECIDO
+        b.tvOrigem.text = item.origemEtiqueta
         b.tvOrigem.setBackgroundResource(
-            if (sistema) R.drawable.bg_chip_grey else R.drawable.bg_chip_blue
+            if (sistema || desconhecido) R.drawable.bg_chip_grey else R.drawable.bg_chip_blue
         )
         b.tvOrigem.setTextColor(
             ContextCompat.getColor(
                 contexto,
-                if (sistema) R.color.chip_text else R.color.blue_dark
+                if (sistema || desconhecido) R.color.chip_text else R.color.blue_dark
             )
         )
 
@@ -65,10 +63,13 @@ class NotificacaoAdapter(
         b.tvAbrir.visibility = if (item.carregamentoId != null) View.VISIBLE else View.GONE
 
         b.ivIcone.setImageResource(
-            if (admin) R.drawable.ic_settings else R.drawable.ic_user
+            if (sistema || desconhecido) R.drawable.ic_settings else R.drawable.ic_user
         )
         b.ivIcone.imageTintList = ColorStateList.valueOf(
-            ContextCompat.getColor(contexto, if (admin) R.color.navy else R.color.blue)
+            ContextCompat.getColor(
+                contexto,
+                if (sistema || desconhecido) R.color.navy else R.color.blue
+            )
         )
 
         b.root.setOnClickListener { aoAbrir(item) }
