@@ -49,7 +49,7 @@
 
     function minutosFase(linha, chave) {
         const valor = linha.fases ? linha.fases[chave] : null;
-        return valor === null || valor === undefined ? 'sem horário registado' : valor + ' min';
+        return valor === null || valor === undefined ? '—' : LT.fmt.duracao(valor);
     }
 
     function comparar(a, b, campo, tipo) {
@@ -93,19 +93,19 @@
     }
 
     function renderizarResumo(resumo) {
-        const semFases = !resumo.registosComFases;
-        const valorFase = function (horas) {
-            return semFases ? 'sem horário registado' : LT.fmt.numero(horas, 1) + ' h';
+        const valorHoras = function (horas) {
+            return horas === null || horas === undefined
+                ? 'sem horário registado' : LT.fmt.numero(horas, 1) + ' h';
         };
         const valores = [
             LT.fmt.numero(resumo.total, 0),
             LT.fmt.numero(resumo.toneladas, 1) + ' t',
             LT.fmt.numero(resumo.concluidos, 0),
             LT.fmt.numero(resumo.atrasados, 0),
-            LT.fmt.numero(resumo.tempoMedioHoras, 1) + ' h',
-            valorFase(resumo.esperaMediaHoras),
-            valorFase(resumo.carregamentoMedioHoras),
-            valorFase(resumo.transporteMedioHoras)
+            valorHoras(resumo.tempoMedioHoras),
+            valorHoras(resumo.esperaMediaHoras),
+            valorHoras(resumo.carregamentoMedioHoras),
+            valorHoras(resumo.transporteMedioHoras)
         ];
         const itens = document.querySelectorAll('#resumoRelatorio .rs-item .val');
         itens.forEach(function (el, indice) {
@@ -113,6 +113,19 @@
                 el.textContent = valores[indice];
             }
         });
+    }
+
+    function colunasExtrasVisiveis() {
+        const tabela = document.getElementById('tabelaRelatorio');
+        return tabela && !tabela.classList.contains('relatorio-compacto');
+    }
+
+    function atualizarBotaoColunas() {
+        const botao = document.getElementById('btnColunas');
+        if (!botao) return;
+        const visiveis = colunasExtrasVisiveis();
+        botao.textContent = visiveis ? 'Mostrar menos colunas' : 'Mostrar mais colunas';
+        botao.setAttribute('aria-expanded', visiveis ? 'true' : 'false');
     }
 
     function renderizarTabela() {
@@ -135,17 +148,17 @@
                     + '<td>' + LT.escape(l.fabrica || '—') + '</td>'
                     + '<td><span class="mono">' + LT.escape(l.veiculo || '—') + '</span></td>'
                     + '<td>' + LT.escape(l.motorista || '—') + '</td>'
-                    + '<td>' + LT.escape(l.tipoCarga || '—') + '</td>'
-                    + '<td>' + LT.fmt.numero(l.toneladas, 1) + '</td>'
+                    + '<td class="col-extra">' + LT.escape(l.tipoCarga || '—') + '</td>'
+                    + '<td class="col-extra">' + LT.fmt.numero(l.toneladas, 1) + '</td>'
                     + '<td>' + LT.chip(estadoChave(l.estado), l.estado) + '</td>'
                     + '<td>' + LT.fmt.dataHora(l.dataHoraInicio) + '</td>'
-                    + '<td>' + LT.fmt.dataHora(l.dataHoraFim) + '</td>'
+                    + '<td class="col-extra">' + LT.fmt.dataHora(l.dataHoraFim) + '</td>'
                     + '<td>' + (l.atrasoMinutos > 0
-                        ? '<span style="color:#c0392b;font-weight:700">+' + l.atrasoMinutos + ' min</span>'
+                        ? '<span style="color:#c0392b;font-weight:700">+' + LT.fmt.duracao(l.atrasoMinutos) + '</span>'
                         : '<span class="muted">—</span>') + '</td>'
-                    + '<td>' + minutosFase(l, 'esperaMinutos') + '</td>'
-                    + '<td>' + minutosFase(l, 'carregamentoMinutos') + '</td>'
-                    + '<td>' + minutosFase(l, 'transporteMinutos') + '</td>'
+                    + '<td class="col-extra">' + minutosFase(l, 'esperaMinutos') + '</td>'
+                    + '<td class="col-extra">' + minutosFase(l, 'carregamentoMinutos') + '</td>'
+                    + '<td class="col-extra">' + minutosFase(l, 'transporteMinutos') + '</td>'
                     + '<td><a class="btn small ghost" href="' + LT.urlCarregamento(l.id) + '">'
                     + 'Abrir</a></td>'
                     + '</tr>';
@@ -157,6 +170,7 @@
             : 'Sem registos';
         document.getElementById('btnAnterior').disabled = pagina === 0;
         document.getElementById('btnSeguinte').disabled = pagina >= totalPaginas - 1;
+        atualizarBotaoColunas();
     }
 
     function estadoChave(etiqueta) {
@@ -259,6 +273,18 @@
             renderizarTabela();
         }
     });
+    const btnColunas = document.getElementById('btnColunas');
+    const tabelaRelatorio = document.getElementById('tabelaRelatorio');
+    if (tabelaRelatorio) {
+        tabelaRelatorio.classList.add('relatorio-compacto');
+    }
+    if (btnColunas && tabelaRelatorio) {
+        btnColunas.addEventListener('click', function () {
+            tabelaRelatorio.classList.toggle('relatorio-compacto');
+            atualizarBotaoColunas();
+        });
+        atualizarBotaoColunas();
+    }
     colunas.forEach(function (th) {
         th.addEventListener('click', function () {
             const campo = th.dataset.campo;

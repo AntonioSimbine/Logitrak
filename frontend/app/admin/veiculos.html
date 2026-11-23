@@ -91,9 +91,9 @@
     </div>
 </div>
 
-<div class="modal-backdrop" id="modalVeiculo">
-    <div class="modal narrow">
-        <div class="modal-head">
+<div class="modal-backdrop" role="dialog" aria-modal="true" id="modalVeiculo">
+    <div class="modal narrow" role="dialog" aria-modal="true">
+        <div class="modal-head" role="dialog" aria-modal="true">
             <div>
                 <h3 id="tituloModalVeiculo">Novo veículo</h3>
                 <p>A matrícula é única no sistema.</p>
@@ -103,7 +103,7 @@
         </div>
         <form id="formVeiculo">
             <input type="hidden" id="veiculoId">
-            <div class="modal-body">
+            <div class="modal-body" role="dialog" aria-modal="true">
                 <div class="form-grid">
                     <div class="field">
                         <label for="matriculaVeiculo">Matrícula *</label>
@@ -130,7 +130,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-foot">
+            <div class="modal-foot" role="dialog" aria-modal="true">
                 <button class="btn ghost" type="button" data-fechar="modalVeiculo">Cancelar</button>
                 <button class="btn primary" type="submit" id="btnGuardarVeiculo">
                     <svg><use href="#i-save"/></svg> Guardar veículo

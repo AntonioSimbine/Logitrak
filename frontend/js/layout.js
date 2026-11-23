@@ -34,21 +34,6 @@
     document.body.dataset.perfilUi = admin ? 'ADMINISTRADOR' : 'OPERADOR';
     const pagina = document.body.dataset.pagina || '';
     const titulo = escapar(document.body.dataset.titulo || 'Logitrack');
-    if (document.body.dataset.pagina === 'dashboard') {
-        document.addEventListener('DOMContentLoaded', function () {
-            const main = document.querySelector('.content');
-            if (!main || main.querySelector('.role-banner')) return;
-            const banner = document.createElement('div');
-            banner.className = 'role-banner';
-            banner.innerHTML = '<span class="role-dot"></span><strong>Perfil: '
-              + (admin ? 'Administrador' : 'Operador da Central')
-              + '</strong><small>'
-              + (admin ? 'Configuração, acessos e acompanhamento da operação'
-                       : 'Acompanha carregamentos, veículos e alertas em tempo real')
-              + '</small>';
-            main.prepend(banner);
-        });
-    }
 
     const subtitulo = escapar(document.body.dataset.subtitulo || '');
 
@@ -62,14 +47,8 @@
     }
 
     if (perfil === 'MOTORISTA') {
-        if (window.location.pathname.indexOf('/app/') >= 0) {
-            window.location.replace(url('m/index.html'));
-            return;
-        }
-        if (window.location.pathname.indexOf('/m/') === -1) {
-            window.location.replace(url('m/index.html'));
-            return;
-        }
+        window.location.replace(url('acesso.html'));
+        return;
     }
     if (document.body.dataset.requer === 'ADMIN' && !admin) {
         window.location.replace(url('app/dashboard.html'));
@@ -217,12 +196,10 @@
                 <svg><use href="#i-menu"/></svg>
             </button>
             <div class="topbar-perfil">
-                <span class="topbar-etiqueta">${etiquetaPerfil}</span>
                 <span class="sub">${subtitulo || 'Painel da central Logitrack'}</span>
             </div>
             <div class="topbar-spacer"></div>
-            <span class="live" id="liveIndicator"><i></i> Tempo real</span>
-            <div class="avatar">${inicial}</div>`;
+            <span class="live" id="liveIndicator"><i></i> Tempo real</span>`;
     }
 
     document.title = titulo + ' · Logitrack';

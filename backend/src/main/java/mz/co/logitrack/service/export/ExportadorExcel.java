@@ -94,18 +94,16 @@ public class ExportadorExcel implements ExportadorRelatorio {
             sheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 12));
 
             RelatorioResponse.ResumoRelatorio r = relatorio.resumo();
-            String fases = r.registosComFases() > 0
-                    ? String.format("Espera: %.1f h  |  Carga: %.1f h  |  Transporte: %.1f h",
-                    r.esperaMediaHoras(), r.carregamentoMedioHoras(),
-                    r.transporteMedioHoras())
-                    : "Fases sem dados";
+            String fases = "Espera: " + horas(r.esperaMediaHoras())
+                    + "  |  Carga: " + horas(r.carregamentoMedioHoras())
+                    + "  |  Transporte: " + horas(r.transporteMedioHoras());
             Row linhaResumo = sheet.createRow(3);
             Cell celulaResumo = linhaResumo.createCell(0);
             celulaResumo.setCellValue(String.format(
                     "Total: %d  |  Toneladas: %.1f  |  Concluídos: %d  |  Atrasados: %d  |  "
-                            + "Ciclo: %.1f h  |  %s",
+                            + "Ciclo: %s  |  %s",
                     r.total(), r.toneladas(), r.concluidos(), r.atrasados(),
-                    r.tempoMedioHoras(), fases));
+                    horas(r.tempoMedioHoras()), fases));
             celulaResumo.setCellStyle(destaque);
             sheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 12));
 
@@ -177,6 +175,10 @@ public class ExportadorExcel implements ExportadorRelatorio {
         Cell celula = row.createCell(coluna);
         celula.setCellValue(valor != null ? valor : "—");
         celula.setCellStyle(estilo);
+    }
+
+    private String horas(Double valor) {
+        return valor == null ? "sem dados" : String.format("%.1f h", valor);
     }
 
     private String minutosFase(FasesCarregamento fases, int fase) {

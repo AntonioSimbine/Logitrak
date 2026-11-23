@@ -10,14 +10,14 @@ public record KpiResponse(
         CumprimentoPrazos cumprimentoPrazos,
         long totalCarregamentos,
         double totalToneladas,
-        double tempoMedioHoras
+        Double tempoMedioHoras
 ) {
     public record VolumeFabrica(String fabrica, double toneladas) {
     }
 
-    public record SerieDia(String dia, double horas) {
+    public record SerieDia(String dia, Double horas) {
     }
 
-    public record CumprimentoPrazos(long noPrazo, long atrasados, double percentagem) {
+    public record CumprimentoPrazos(long noPrazo, long atrasados, Double percentagem) {
     }
 }

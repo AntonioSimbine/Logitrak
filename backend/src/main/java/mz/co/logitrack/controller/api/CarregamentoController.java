@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -75,13 +76,15 @@ public class CarregamentoController {
     }
 
     @PostMapping("/{id}/posicoes")
-    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('MOTORISTA')")
-    public CarregamentoDetalhe.PosicaoResumo registarPosicao(
+    public ResponseEntity<CarregamentoDetalhe.PosicaoResumo> registarPosicao(
             @PathVariable Long id,
             @Valid @RequestBody PosicaoRequest pedido,
             @AuthenticationPrincipal AuthenticatedUser principal) {
-        return carregamentoService.registarPosicao(id, pedido, principal);
+        var resultado = carregamentoService.registarPosicao(id, pedido, principal);
+        return ResponseEntity.status(resultado.duplicado()
+                        ? HttpStatus.OK : HttpStatus.CREATED)
+                .body(resultado.posicao());
     }
 
     /** Regista os instantes reais das três fases operacionais. */
@@ -100,7 +103,6 @@ public class CarregamentoController {
             @PathVariable Long id,
             @Valid @RequestBody AtualizarEstadoRequest pedido,
             @AuthenticationPrincipal AuthenticatedUser principal) {
-        return carregamentoService.atualizarEstado(
-                id, pedido.estado(), pedido.motivoRejeicao(), principal);
+        return carregamentoService.atualizarEstado(id, pedido, principal);
     }
 }

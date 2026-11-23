@@ -22,6 +22,14 @@ public record PosicaoRequest(
         @DecimalMax(value = "15.0",
                 message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
         Double precisaoMetros,
-        LocalDateTime timestamp
+        /** Hora real da captura no dispositivo; ausente nos clientes antigos. */
+        LocalDateTime timestamp,
+        /** Alias explícito de timestamp, para clientes novos. */
+        LocalDateTime dataHoraCaptura,
+        /** Identificador do ponto no dispositivo, para reenvio idempotente. */
+        String uuidPonto
 ) {
+    public LocalDateTime captura() {
+        return dataHoraCaptura != null ? dataHoraCaptura : timestamp;
+    }
 }

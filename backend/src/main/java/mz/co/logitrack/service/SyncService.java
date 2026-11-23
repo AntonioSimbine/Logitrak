@@ -30,6 +30,9 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Núcleo do mecanismo offline-first:
@@ -38,7 +41,7 @@ import java.util.UUID;
  *   <li>validação da precisão GPS (&le; parâmetro global);</li>
  *   <li>deteção de geofence por Haversine;</li>
  *   <li>gravação do carregamento, guia e localização numa única transação;</li>
- *   <li>transição REGISTADO -&gt; EM_TRANSITO.</li>
+ *   <li>o registo fica REGISTADO: EM_TRANSITO só depois do início real do transporte.</li>
  * </ul>
  */
 @Service
@@ -60,6 +63,9 @@ public class SyncService {
     private final NotificacaoService notificacaoService;
     private final VehicleOperationService vehicleOperations;
     private final TransactionTemplate transacao;
+
+    /** Serializa reenvios do mesmo registo antes de qualquer validação de veículo. */
+    private final ConcurrentMap<UUID, ReentrantLock> bloqueiosPorUuid = new ConcurrentHashMap<>();
 
     public SyncService(CarregamentoRepository carregamentoRepository,
                        VeiculoRepository veiculoRepository,
@@ -89,41 +95,64 @@ public class SyncService {
                                          HttpStatus status) {
     }
 
-    public ResultadoSincronizacao sincronizar(SyncCarregamentoRequest requisicao,
-                                              AuthenticatedUser motorista) {
-
-        // 1) Idempotência: o mesmo uuidLocal devolve o registo já processado,
-        // desde que pertença ao motorista autenticado.
-        Optional<ResultadoSincronizacao> existente =
-                procurarDuplicado(requisicao.uuidLocal(), motorista);
-        if (existente.isPresent()) {
-            log.info("Sincronização idempotente: uuidLocal={} já existe",
-                    requisicao.uuidLocal());
-            return existente.get();
-        }
-
-        try {
-            ResultadoSincronizacao resultado =
-                    transacao.execute(status -> criarCarregamento(requisicao, motorista));
-            if (resultado == null) {
-                throw new IllegalStateException("Não foi possível enviar o registo à central");
-            }
-            return resultado;
-        } catch (DataIntegrityViolationException ex) {
-            // Duas sincronizações concorrentes do mesmo uuidLocal: a restrição
-            // única da base de dados decide qual vence. A perdedora devolve
-            // exatamente o mesmo contrato idempotente (HTTP 200).
-            Optional<ResultadoSincronizacao> duplicado =
-                    procurarDuplicado(requisicao.uuidLocal(), motorista);
-            if (duplicado.isPresent()) {
-                log.info("Sincronização concorrente resolvida por idempotência: uuidLocal={}",
-                        requisicao.uuidLocal());
-                return duplicado.get();
-            }
-            throw ex;
-        }
+    /** Sinaliza, dentro da transação, que outro pedido já gravou o mesmo uuidLocal. */
+    private static class RegistroDuplicadoException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 
+    public ResultadoSincronizacao sincronizar(SyncCarregamentoRequest requisicao,
+                                              AuthenticatedUser motorista) {
+        ReentrantLock bloqueio = bloqueiosPorUuid.computeIfAbsent(
+                requisicao.uuidLocal(), chave -> new ReentrantLock());
+        bloqueio.lock();
+        try {
+            // 1) Idempotência rápida: o mesmo uuidLocal devolve o registo já
+            // processado, desde que pertença ao motorista autenticado.
+            Optional<ResultadoSincronizacao> existente =
+                    procurarDuplicado(requisicao.uuidLocal(), motorista);
+            if (existente.isPresent()) {
+                log.info("Sincronização idempotente: uuidLocal={} já existe",
+                        requisicao.uuidLocal());
+                return existente.get();
+            }
+
+            try {
+                ResultadoSincronizacao resultado =
+                        transacao.execute(status -> criarCarregamento(requisicao, motorista));
+                if (resultado == null) {
+                    throw new IllegalStateException("Não foi possível enviar o registo à central");
+                }
+                return resultado;
+            } catch (RegistroDuplicadoException ex) {
+                return resolverConcorrencia(requisicao, motorista, ex);
+            } catch (DataIntegrityViolationException ex) {
+                return resolverConcorrencia(requisicao, motorista, ex);
+            } catch (ApiException ex) {
+                // Se outra transação já gravou o mesmo uuidLocal, a validação
+                // de veículo pode falhar primeiro. O reenvio legítimo continua
+                // a ser sucesso idempotente; qualquer outra validação é mantida.
+                if (ex.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY) {
+                    return resolverConcorrencia(requisicao, motorista, ex);
+                }
+                throw ex;
+            }
+        } finally {
+            bloqueio.unlock();
+            bloqueiosPorUuid.remove(requisicao.uuidLocal(), bloqueio);
+        }
+    }
+    private ResultadoSincronizacao resolverConcorrencia(SyncCarregamentoRequest requisicao,
+                                                        AuthenticatedUser motorista,
+                                                        RuntimeException original) {
+        Optional<ResultadoSincronizacao> duplicado =
+                procurarDuplicado(requisicao.uuidLocal(), motorista);
+        if (duplicado.isPresent()) {
+            log.info("Sincronizacao concorrente resolvida por idempotencia: uuidLocal={}",
+                    requisicao.uuidLocal());
+            return duplicado.get();
+        }
+        throw original;
+    }
     private Optional<ResultadoSincronizacao> procurarDuplicado(UUID uuidLocal,
                                                                 AuthenticatedUser motorista) {
         ResultadoSincronizacao resultado = transacao.execute(status ->
@@ -174,6 +203,15 @@ public class SyncService {
             throw ApiException.unprocessable(
                     "O veículo selecionado está em manutenção. Escolha outro veículo e tente novamente.");
         }
+        // Reverificação depois do bloqueio: outra transação pode ter gravado
+        // o mesmo uuidLocal enquanto esperávamos pelo veículo. Isto evita que
+        // a validação de operação ativa transforme um reenvio legítimo em 422.
+        carregamentoRepository.findByUuidLocalForUpdate(requisicao.uuidLocal())
+                .ifPresent(c -> {
+                    verificarPropriedade(c, motorista);
+                    throw new RegistroDuplicadoException();
+                });
+
         vehicleOperations.validarNovaOperacao(veiculo, requisicao.quantidadeToneladas());
         Utilizador motoristaEntidade = utilizadorRepository.findById(motorista.getId())
                 .orElseThrow(() -> ApiException.unauthorized(
@@ -217,19 +255,16 @@ public class SyncService {
         DocumentoGuia documento = documentoService.salvarFoto(
                 carregamento, fotografia, null, inicio);
 
-        // 8) GPS de origem.
+        // 8) GPS de origem: a hora é a do registo no dispositivo, não a da
+        // chegada à central (o envio pode acontecer depois de horas offline).
         LocalizacaoGPS localizacao = new LocalizacaoGPS(
                 requisicao.latitude(), requisicao.longitude(),
-                requisicao.precisaoMetros(), LocalDateTime.now(),
+                requisicao.precisaoMetros(), inicio,
                 carregamento, veiculo);
         gpsRepository.save(localizacao);
 
-        // 9) Transição de sucesso: REGISTADO -> EM_TRANSITO.
-        carregamento.setEstado(EstadoCarregamento.EM_TRANSITO);
-        carregamento = carregamentoRepository.save(carregamento);
-        veiculo.setEstado(EstadoVeiculo.EM_TRANSITO);
-        veiculoRepository.save(veiculo);
-
+        // 9) O envio não é transporte. Veículo e carga continuam disponíveis
+        // para validação de capacidade até ser registado o início do transporte.
         CarregamentoResumo resumo = mapper.toResumo(carregamento);
         notificacaoService.publicarCarregamento(resumo);
 

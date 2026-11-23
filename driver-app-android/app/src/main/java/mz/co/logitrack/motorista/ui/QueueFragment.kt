@@ -323,7 +323,7 @@ class QueueFragment : Fragment(R.layout.fragment_queue) {
     private fun repetirItem(item: FilaResumo) {
         val contexto = requireContext().applicationContext
         lifecycleScope.launch {
-            AppDb.get(contexto).filaDao().reporPendente(item.uuidLocal)
+            AppDb.get(contexto).filaDao().reporPendente(item.uuidLocal, prefs.userId)
             SyncManager.sincronizarUm(contexto, item.uuidLocal).let { resultado ->
                 when (resultado) {
                     ResultadoItem.ENVIADO -> Toast.makeText(
@@ -368,7 +368,7 @@ class QueueFragment : Fragment(R.layout.fragment_queue) {
                 val contexto = requireContext().applicationContext
                 lifecycleScope.launch {
                     try {
-                        AppDb.get(contexto).filaDao().remover(item.uuidLocal)
+                        AppDb.get(contexto).filaDao().remover(item.uuidLocal, prefs.userId)
                         avisar(R.string.remove_done)
                     } catch (e: Exception) {
                         avisar(R.string.queue_remove_failed)

@@ -1,5 +1,6 @@
 package mz.co.logitrack.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mz.co.logitrack.domain.Carregamento;
 import mz.co.logitrack.domain.ParametroGlobal;
@@ -11,6 +12,7 @@ import mz.co.logitrack.exception.ApiException;
 import mz.co.logitrack.repository.AlertaAtrasoRepository;
 import mz.co.logitrack.repository.CarregamentoRepository;
 import mz.co.logitrack.repository.FabricaRepository;
+import mz.co.logitrack.repository.LocalizacaoGPSRepository;
 import mz.co.logitrack.repository.ParametroGlobalRepository;
 import mz.co.logitrack.repository.UtilizadorRepository;
 import mz.co.logitrack.repository.VeiculoRepository;
@@ -27,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -60,6 +63,7 @@ class RegrasCriticasTest {
     @Autowired private VeiculoRepository veiculoRepository;
     @Autowired private CarregamentoRepository carregamentoRepository;
     @Autowired private FabricaRepository fabricaRepository;
+    @Autowired private LocalizacaoGPSRepository gpsRepository;
     @Autowired private UtilizadorRepository utilizadorRepository;
     @Autowired private AlertaService alertaService;
     @Autowired private AlertaAtrasoRepository alertaRepository;
@@ -300,6 +304,155 @@ class RegrasCriticasTest {
         mockMvc.perform(delete("/api/v1/fabricas/999999")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A sequência das fases é validada e o estado segue o início real do transporte")
+    void sequenciaFasesMoveEstado() throws Exception {
+        Veiculo veiculo = criarVeiculo(100.0);
+        Carregamento c = criarCarregamentoAtivo(veiculo, 10.0);
+        LocalDateTime inicio = LocalDateTime.now().minusHours(4).withNano(0);
+        c.setEstado(EstadoCarregamento.REGISTADO);
+        c.setDataHoraInicio(inicio);
+        c.setDataHoraFim(null);
+        carregamentoRepository.saveAndFlush(c);
+        String token = obterToken("admin@logitrack.co.mz");
+        String url = "/api/v1/carregamentos/" + c.getId();
+
+        mockMvc.perform(patch(url + "/estado")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"estado\":\"EM_TRANSITO\"}"))
+                .andExpect(status().isUnprocessableEntity());
+        assertThat(carregamentoRepository.findById(c.getId()).orElseThrow().getEstado())
+                .isEqualTo(EstadoCarregamento.REGISTADO);
+
+        patchFases(c.getId(), token, Map.of(
+                        "dataHoraFimCarregamento", inicio.plusHours(2)))
+                .andExpect(status().isUnprocessableEntity());
+        patchFases(c.getId(), token, Map.of(
+                        "dataHoraInicioCarregamento", inicio.minusMinutes(1)))
+                .andExpect(status().isUnprocessableEntity());
+
+        patchFases(c.getId(), token, Map.of(
+                        "dataHoraInicioCarregamento", inicio.plusHours(1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("REGISTADO"));
+        patchFases(c.getId(), token, Map.of(
+                        "dataHoraFimCarregamento", inicio.plusHours(2)))
+                .andExpect(status().isOk());
+        patchFases(c.getId(), token, Map.of(
+                        "dataHoraInicioTransporte", inicio.plusHours(3)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("EM_TRANSITO"));
+        assertThat(veiculoRepository.findById(veiculo.getId()).orElseThrow().getEstado())
+                .isEqualTo(EstadoVeiculo.EM_TRANSITO);
+
+        patchFases(c.getId(), token, Map.of(
+                        "dataHoraFimTransporte", inicio.plusHours(3).plusMinutes(30)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CONCLUIDO"))
+                .andExpect(jsonPath("$.fases.transporteMinutos").value(30));
+        assertThat(veiculoRepository.findById(veiculo.getId()).orElseThrow().getEstado())
+                .isEqualTo(EstadoVeiculo.DISPONIVEL);
+    }
+
+    @Test
+    @DisplayName("GPS conserva a captura, rejeita futuro, deduplica e não promove ponto antigo no mapa")
+    void gpsCapturaDuplicadoEOrdem() throws Exception {
+        Veiculo veiculo = criarVeiculo(100.0);
+        Carregamento c = criarCarregamentoAtivo(veiculo, 1.0);
+        String tokenMotorista = obterToken("motorista@logitrack.co.mz");
+        String url = "/api/v1/carregamentos/" + c.getId() + "/posicoes";
+        LocalDateTime capturaAntiga = LocalDateTime.now().minusHours(2).withNano(0);
+        String uuidAntigo = UUID.randomUUID().toString();
+        String corpoAntigo = objectMapper.writeValueAsString(Map.of(
+                "latitude", -25.9, "longitude", 32.5, "precisaoMetros", 8.0,
+                "dataHoraCaptura", capturaAntiga, "uuidPonto", uuidAntigo));
+
+        MvcResult primeira = mockMvc.perform(post(url)
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON).content(corpoAntigo))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.uuidPonto").value(uuidAntigo))
+                .andReturn();
+        JsonNode json = objectMapper.readTree(primeira.getResponse().getContentAsString());
+        assertThat(LocalDateTime.parse(json.get("timestamp").asText())).isEqualTo(capturaAntiga);
+        assertThat(LocalDateTime.parse(json.get("recebidoEm").asText())).isAfter(capturaAntiga);
+
+        mockMvc.perform(post(url)
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON).content(corpoAntigo))
+                .andExpect(status().isOk());
+        assertThat(gpsRepository.findByCarregamentoIdOrderByTimestampAsc(c.getId())).hasSize(1);
+
+        mockMvc.perform(post(url)
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "latitude", -25.9, "longitude", 32.5, "precisaoMetros", 8.0,
+                                "dataHoraCaptura", LocalDateTime.now().plusHours(2),
+                                "uuidPonto", UUID.randomUUID().toString()))))
+                .andExpect(status().isUnprocessableEntity());
+
+        LocalDateTime capturaRecente = LocalDateTime.now().minusMinutes(30).withNano(0);
+        mockMvc.perform(post(url)
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "latitude", -25.91, "longitude", 32.51, "precisaoMetros", 7.0,
+                                "dataHoraCaptura", capturaRecente,
+                                "uuidPonto", UUID.randomUUID().toString()))))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post(url)
+                        .header("Authorization", "Bearer " + tokenMotorista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "latitude", -25.92, "longitude", 32.52, "precisaoMetros", 9.0,
+                                "dataHoraCaptura", LocalDateTime.now().minusMinutes(90),
+                                "uuidPonto", UUID.randomUUID().toString()))))
+                .andExpect(status().isCreated());
+
+        MvcResult mapa = mockMvc.perform(get("/api/v1/mapa")
+                        .header("Authorization", "Bearer " + obterToken("admin@logitrack.co.mz")))
+                .andExpect(status().isOk()).andReturn();
+        JsonNode pontoAtual = null;
+        for (JsonNode ponto : objectMapper.readTree(mapa.getResponse().getContentAsString())) {
+            if (ponto.get("carregamentoId").asLong() == c.getId()) {
+                pontoAtual = ponto;
+                break;
+            }
+        }
+        assertThat(pontoAtual).isNotNull();
+        assertThat(LocalDateTime.parse(pontoAtual.get("timestamp").asText()))
+                .isEqualTo(capturaRecente);
+    }
+
+    @Test
+    @DisplayName("Relatório sem amostras devolve indicadores sem tempo, nunca zero")
+    void relatorioSemAmostrasSemZeros() throws Exception {
+        String token = obterToken("admin@logitrack.co.mz");
+        mockMvc.perform(get("/api/v1/relatorios")
+                        .param("fabricaId", "999999")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.linhas").isEmpty())
+                .andExpect(jsonPath("$.resumo.tempoMedioHoras")
+                        .value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.resumo.esperaMediaHoras")
+                        .value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.resumo.carregamentoMedioHoras")
+                        .value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.resumo.transporteMedioHoras")
+                        .value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    private ResultActions patchFases(Long id, String token, Map<String, Object> corpo)
+            throws Exception {
+        return mockMvc.perform(patch("/api/v1/carregamentos/" + id + "/fases")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(corpo)));
     }
 
     private Veiculo criarVeiculo(double capacidade) {

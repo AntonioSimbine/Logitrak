@@ -24,4 +24,7 @@ interface PosicaoDao {
 
     @Query("DELETE FROM posicoes WHERE enviadoEm IS NOT NULL AND criadoEm < :antes")
     suspend fun limparEnviadas(antes: Long)
+
+    @Query("DELETE FROM posicoes WHERE motoristaId = :motoristaId")
+    suspend fun limparDoMotorista(motoristaId: Long)
 }

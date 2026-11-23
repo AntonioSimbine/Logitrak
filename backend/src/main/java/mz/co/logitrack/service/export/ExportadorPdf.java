@@ -82,16 +82,14 @@ public class ExportadorPdf implements ExportadorRelatorio {
             documento.add(new Paragraph(filtros.toString(), normal));
 
             RelatorioResponse.ResumoRelatorio r = relatorio.resumo();
-            String fases = r.registosComFases() > 0
-                    ? String.format("Espera: %.1f h  |  Carga: %.1f h  |  Transporte: %.1f h",
-                    r.esperaMediaHoras(), r.carregamentoMedioHoras(),
-                    r.transporteMedioHoras())
-                    : "Fases sem dados";
+            String fases = "Espera: " + horas(r.esperaMediaHoras())
+                    + "  |  Carga: " + horas(r.carregamentoMedioHoras())
+                    + "  |  Transporte: " + horas(r.transporteMedioHoras());
             Paragraph resumo = new Paragraph(String.format(
                     "Total: %d carregamentos  |  %.1f toneladas  |  Concluídos: %d  |  "
-                            + "Atrasados: %d  |  Ciclo: %.1f h  |  %s",
+                            + "Atrasados: %d  |  Ciclo: %s  |  %s",
                     r.total(), r.toneladas(), r.concluidos(), r.atrasados(),
-                    r.tempoMedioHoras(), fases),
+                    horas(r.tempoMedioHoras()), fases),
                     new Font(Font.HELVETICA, 9, Font.BOLD, LARANJA));
             resumo.setSpacingBefore(6);
             resumo.setSpacingAfter(10);
@@ -177,6 +175,10 @@ public class ExportadorPdf implements ExportadorRelatorio {
 
     private String nulo(String valor) {
         return valor != null ? valor : "—";
+    }
+
+    private String horas(Double valor) {
+        return valor == null ? "sem dados" : String.format("%.1f h", valor);
     }
 
     private String minutosFase(FasesCarregamento fases, int fase) {

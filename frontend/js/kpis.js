@@ -88,7 +88,9 @@
 
     function criarTempo(dados) {
         const canvas = document.getElementById('graficoTempo');
-        if (!dados.length) {
+        if (!dados.length || !dados.some(function (d) {
+            return d.horas !== null && d.horas !== undefined;
+        })) {
             semDados(canvas, 'Sem dados de tempo de ciclo para apresentar.');
             return;
         }
@@ -129,7 +131,9 @@
                     tooltip: {
                         callbacks: {
                             label: function (ctx) {
-                                return ' ' + LT.fmt.numero(ctx.parsed.y, 1) + ' horas';
+                                const valor = ctx.parsed.y;
+                                return valor === null || valor === undefined
+                                    ? ' Sem dados' : ' ' + LT.fmt.numero(valor, 1) + ' horas';
                             }
                         }
                     }
@@ -223,10 +227,16 @@
         document.getElementById('kpiTotal').textContent = LT.fmt.numero(dados.totalCarregamentos, 0);
         document.getElementById('kpiToneladas').innerHTML = LT.fmt.numero(dados.totalToneladas, 1)
             + ' <small>t</small>';
-        document.getElementById('kpiTempo').innerHTML = LT.fmt.numero(dados.tempoMedioHoras, 1)
-            + ' <small>h</small>';
+        const tempoMedio = dados.tempoMedioHoras;
+        document.getElementById('kpiTempo').innerHTML =
+            tempoMedio === null || tempoMedio === undefined
+                ? 'sem dados'
+                : LT.fmt.numero(tempoMedio, 1) + ' <small>h</small>';
+        const percentagem = dados.cumprimentoPrazos.percentagem;
         document.getElementById('kpiCumprimento').innerHTML =
-            LT.fmt.numero(dados.cumprimentoPrazos.percentagem, 1) + ' <small>%</small>';
+            percentagem === null || percentagem === undefined
+                ? 'sem dados'
+                : LT.fmt.numero(percentagem, 1) + ' <small>%</small>';
         document.getElementById('kpiCumprimentoDetalhe').textContent =
             dados.cumprimentoPrazos.noPrazo + ' dentro do prazo · '
             + dados.cumprimentoPrazos.atrasados + ' fora do prazo';
@@ -243,8 +253,8 @@
          ['kpiFaseTransporte', fases.tempoMedioTransporteHoras]].forEach(function (par) {
             const el = document.getElementById(par[0]);
             if (el) {
-                el.textContent = comFases
-                    ? LT.fmt.numero(par[1], 1) + ' h' : '—';
+                el.textContent = par[1] === null || par[1] === undefined
+                    ? 'sem horário registado' : LT.fmt.numero(par[1], 1) + ' h';
             }
         });
 

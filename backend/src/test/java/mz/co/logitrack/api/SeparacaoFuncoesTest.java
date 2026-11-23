@@ -289,6 +289,45 @@ class SeparacaoFuncoesTest {
                 .andExpect(jsonPath("$.naoLidas").value(antes - 1));
     }
 
+    @Test
+    @DisplayName("Painéis, alertas e relatórios são de central; escrita administrativa continua só ADMIN")
+    void paineisGerenciaisPorPerfil() throws Exception {
+        String[] rotas = {
+                "/api/v1/dashboard",
+                "/api/v1/kpis",
+                "/api/v1/kpis/resumo",
+                "/api/v1/mapa",
+                "/api/v1/alertas",
+                "/api/v1/relatorios"
+        };
+        String tokenMotorista = obterToken(MOTORISTA);
+        for (String rota : rotas) {
+            mockMvc.perform(get(rota).header("Authorization", "Bearer " + tokenMotorista))
+                    .andExpect(status().isForbidden());
+            for (String email : new String[]{ADMIN, OPERADOR}) {
+                mockMvc.perform(get(rota)
+                                .header("Authorization", "Bearer " + obterToken(email)))
+                        .andExpect(status().isOk());
+            }
+        }
+
+        mockMvc.perform(post("/api/v1/relatorios")
+                        .header("Authorization", "Bearer " + obterToken(OPERADOR))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "estado", "CONCLUIDO", "fabricaId", 1))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/fabricas")
+                        .header("Authorization", "Bearer " + obterToken(OPERADOR))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Fabrica Teste\",\"endereco\":\"Maputo\","
+                                + "\"latitude\":-25.9,\"longitude\":32.5,"
+                                + "\"raioGeofenceMetros\":100,\"slaLimiteHoras\":4,"
+                                + "\"horarioAcostagem\":\"08:00-18:00\",\"ativa\":true}"))
+                .andExpect(status().isForbidden());
+    }
+
     private void rejeitar(Long id, String email, String motivo) throws Exception {
         mockMvc.perform(patch("/api/v1/carregamentos/" + id + "/estado")
                         .header("Authorization", "Bearer " + obterToken(email))

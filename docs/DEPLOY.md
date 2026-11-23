@@ -6,7 +6,6 @@
 | Componente | Onde está | Endereço |
 |---|---|---|
 | Sistema web | Railway (`web`) | <https://web-production-f93e366a.up.railway.app/> |
-| App do motorista (PWA) | Railway (`web`) | <https://web-production-f93e366a.up.railway.app/m/> |
 | APK Android | Railway (`web`) | <https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk> |
 | API Spring Boot | Railway (`api`) | <https://api-production-938e6a7a.up.railway.app/api/v1/health> |
 | MySQL 8 | Railway (`MySQL`) | rede privada do projeto |
@@ -153,7 +152,10 @@ Para publicar uma nova versão:
 3. Atualiza `frontend/downloads/versao.json` com o novo `versionCode`,
    `versionName`, mensagem, `sha256` do APK e `obrigatoria` (true/false).
 4. Aumenta `APK_CACHE_BUST` no `frontend/Dockerfile`.
-5. Publica o serviço `web` com `railway up -s web --ci`.
+5. Atualiza os links `?v=` em `frontend/apresentacao.html`.
+6. Mantém a **mesma chave de assinatura** da APK publicada — caso contrário o
+   Android recusa a atualização dentro da app e é preciso reinstalar.
+7. Publica o serviço `web` com `railway up -s web --ci`.
 
 A aplicação lê `versao.json` ao abrir. Se houver versão nova, mostra o aviso e
 descarrega o APK dentro da app; o instalador do Android pede a confirmação final.
@@ -200,7 +202,6 @@ Não uses `*` em produção.
 - [ ] `https://api-production-938e6a7a.up.railway.app/api/v1/health` responde `UP`.
 - [ ] O login devolve um token JWT.
 - [ ] `https://web-production-f93e366a.up.railway.app/` abre com estilos.
-- [ ] `.../m/` instala como PWA (HTTPS).
 - [ ] `.../downloads/Logitrack-Motorista.apk` descarrega o APK.
 - [ ] `.../downloads/versao.json` devolve o `versionCode` da última versão.
 - [ ] A app antiga avisa e instala a nova versão sem abrir o browser.

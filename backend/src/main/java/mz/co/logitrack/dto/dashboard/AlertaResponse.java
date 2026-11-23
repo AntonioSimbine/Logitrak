@@ -18,6 +18,7 @@ public record AlertaResponse(
         Long tratadoPorId,
         String tratadoPorNome,
         String tratadoPorPerfil,
-        LocalDateTime dataHoraTratamento
+        LocalDateTime dataHoraTratamento,
+        Long atrasoAtualMinutos
 ) {
 }

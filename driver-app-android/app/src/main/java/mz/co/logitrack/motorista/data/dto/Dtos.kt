@@ -183,7 +183,9 @@ data class PosicaoRequest(
     val latitude: Double,
     val longitude: Double,
     val precisaoMetros: Double,
-    val timestamp: String? = null
+    val timestamp: String? = null,
+    val dataHoraCaptura: String? = null,
+    val uuidPonto: String? = null
 )
 
 /** Contrato do PATCH /mobile/carregamentos/{id}/fases. */

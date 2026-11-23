@@ -12,4 +12,6 @@ public interface DocumentoGuiaRepository extends JpaRepository<DocumentoGuia, Lo
     Optional<DocumentoGuia> findByCarregamentoId(Long carregamentoId);
 
     boolean existsByCarregamentoId(Long carregamentoId);
+
+    long countByCarregamentoId(Long carregamentoId);
 }

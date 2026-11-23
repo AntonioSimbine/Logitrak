@@ -2,6 +2,8 @@ package mz.co.logitrack.motorista.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Base64
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
@@ -9,12 +11,10 @@ import mz.co.logitrack.motorista.BuildConfig
 import mz.co.logitrack.motorista.data.dto.DashboardDto
 import mz.co.logitrack.motorista.data.dto.NotificacaoDto
 import mz.co.logitrack.motorista.data.dto.ReferenciasDto
-import android.util.Log
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.util.Base64
-import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.PBEKeySpec
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Preferências da sessão. Usa sempre AES/Keystore; se o dispositivo não o
@@ -150,15 +150,16 @@ class Prefs(context: Context) {
 
     /** Repõe os dados do utilizador a partir do instantâneo offline guardado. */
     fun restaurarSessaoOffline(): Boolean {
-        if (!sessaoOfflineValida()) return false
         val offline = tokenOffline ?: return false
+        if (offlineUserId <= 0L) return false
+        val expirada = !(tokenOfflineExpiraEm <= 0L || tokenOfflineExpiraEm > System.currentTimeMillis() + 30_000L)
         prefs.edit()
             .putString("token", offline)
             .putLong("token_expira_em", tokenOfflineExpiraEm)
             .putLong("user_id", offlineUserId)
             .putString("user_name", offlineUserName)
             .putString("user_email", offlineUserEmail)
-            .putBoolean("session_expired", false)
+            .putBoolean("session_expired", expirada)
             .apply()
         return true
     }
@@ -191,11 +192,14 @@ class Prefs(context: Context) {
         return expira <= 0L || expira > System.currentTimeMillis()
     }
 
-    fun guardarDashboard(dto: DashboardDto?) = putJson("cache_dashboard", dto)
-    fun lerDashboard(): DashboardDto? = readJson("cache_dashboard", DashboardDto::class.java)
+    // Os caches partilhados passam a ter o utilizador no nome da chave.
+    private fun chaveCache(nome: String) = "${nome}_${userId}"
 
-    fun guardarReferencias(dto: ReferenciasDto?) = putJson("cache_referencias", dto)
-    fun lerReferencias(): ReferenciasDto? = readJson("cache_referencias", ReferenciasDto::class.java)
+    fun guardarDashboard(dto: DashboardDto?) = putJson(chaveCache("cache_dashboard"), dto)
+    fun lerDashboard(): DashboardDto? = readJson(chaveCache("cache_dashboard"), DashboardDto::class.java)
+
+    fun guardarReferencias(dto: ReferenciasDto?) = putJson(chaveCache("cache_referencias"), dto)
+    fun lerReferencias(): ReferenciasDto? = readJson(chaveCache("cache_referencias"), ReferenciasDto::class.java)
 
     fun guardarDetalhe(id: Long, json: String?) {
         prefs.edit().putString(chaveDetalhe(id), json).apply()
@@ -258,21 +262,35 @@ class Prefs(context: Context) {
         }
     }
 
+    /**
+     * Limpa a sessão ativa e caches locais, mas preserva a credencial guardada e
+     * o instantâneo offline para que o mesmo motorista possa voltar a entrar sem
+     * perder pendentes. A configuração do servidor também é preservada.
+     */
     fun limparSessao() {
-        prefs.edit()
-            .remove("token")
-            .remove("token_expira_em")
-            .remove("user_id")
-            .remove("user_name")
-            .remove("user_email")
-            .remove("session_expired")
-            .remove(chaveNotifLidas(userId))
-            .apply()
+        val fixas = setOf(
+            "token", "token_expira_em", "user_id", "user_name", "user_email",
+            "session_expired", "ultima_sync"
+        )
+        val editor = prefs.edit()
+        prefs.all.keys
+            .filter {
+                it in fixas || it.startsWith("cache_") ||
+                    it.startsWith("notif_lidas_") || it.startsWith("rascunho_")
+            }
+            .forEach { editor.remove(it) }
+        editor.apply()
     }
 
     fun limparTudo() {
         prefs.edit().clear().apply()
     }
+
+    fun guardarRascunhoNovo(json: String?) {
+        prefs.edit().putString("rascunho_novo_${userId}", json).apply()
+    }
+
+    fun lerRascunhoNovo(): String? = prefs.getString("rascunho_novo_${userId}", null)
 
     companion object {
         val BASE_PADRAO: String = BuildConfig.API_BASE_PADRAO
@@ -300,8 +318,8 @@ class Prefs(context: Context) {
             return listOf(
                 PBKDF2_PREFIX,
                 ITERACOES_PBKDF2.toString(),
-                Base64.getEncoder().encodeToString(salt),
-                Base64.getEncoder().encodeToString(chave)
+                Base64.encodeToString(salt, Base64.NO_WRAP),
+                Base64.encodeToString(chave, Base64.NO_WRAP)
             ).joinToString(":")
         }
 
@@ -310,28 +328,56 @@ class Prefs(context: Context) {
             if (partes.size != 4 || partes[0] != PBKDF2_PREFIX) return false
             return try {
                 val iteracoes = partes[1].toInt()
-                val salt = Base64.getDecoder().decode(partes[2])
-                val esperado = Base64.getDecoder().decode(partes[3])
+                val salt = Base64.decode(partes[2], Base64.DEFAULT)
+                val esperado = Base64.decode(partes[3], Base64.DEFAULT)
                 MessageDigest.isEqual(derivarChave(email, senha, salt, iteracoes), esperado)
             } catch (e: Exception) {
                 false
             }
         }
 
-        private fun derivarChave(
+        /**
+         * PBKDF2-HMAC-SHA256 implementado com HmacSHA256 (disponível desde a API 1).
+         * O SecretKeyFactory "PBKDF2WithHmacSHA256" só existe a partir da API 26;
+         * esta implementação produz exatamente a mesma chave e funciona na API 24.
+         */
+        internal fun derivarChave(
             email: String,
             senha: String,
             salt: ByteArray,
             iteracoes: Int
         ): ByteArray {
-            val especificacao = PBEKeySpec(
-                "${email.trim().lowercase()}:$senha".toCharArray(),
-                salt,
-                iteracoes,
-                256
-            )
-            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-                .generateSecret(especificacao).encoded
+            val palavraPasse = "${email.trim().lowercase()}:$senha".toByteArray(Charsets.UTF_8)
+            val tamanhoBloco = 32 // HmacSHA256
+            val tamanhoChave = 32  // 256 bits
+            val blocos = (tamanhoChave + tamanhoBloco - 1) / tamanhoBloco
+            val resultado = ByteArray(tamanhoChave)
+            var deslocamento = 0
+
+            val mac = Mac.getInstance("HmacSHA256")
+            mac.init(SecretKeySpec(palavraPasse, "HmacSHA256"))
+            for (bloco in 1..blocos) {
+                mac.update(salt)
+                mac.update(
+                    byteArrayOf(
+                        (bloco ushr 24).toByte(),
+                        (bloco ushr 16).toByte(),
+                        (bloco ushr 8).toByte(),
+                        bloco.toByte()
+                    )
+                )
+                var u = mac.doFinal()
+                val t = u.copyOf()
+                for (i in 2..iteracoes) {
+                    mac.update(u)
+                    u = mac.doFinal()
+                    for (j in t.indices) t[j] = (t[j].toInt() xor u[j].toInt()).toByte()
+                }
+                val tamanho = minOf(tamanhoBloco, tamanhoChave - deslocamento)
+                System.arraycopy(t, 0, resultado, deslocamento, tamanho)
+                deslocamento += tamanho
+            }
+            return resultado
         }
 
         private fun hashSha256(email: String, senha: String): String {

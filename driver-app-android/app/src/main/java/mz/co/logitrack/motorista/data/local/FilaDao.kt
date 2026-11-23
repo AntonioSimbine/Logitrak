@@ -67,9 +67,12 @@ interface FilaDao {
     @Update
     suspend fun atualizar(entity: FilaEntity)
 
-    @Query("DELETE FROM fila WHERE uuidLocal = :uuid")
-    suspend fun remover(uuid: String)
+    @Query("DELETE FROM fila WHERE uuidLocal = :uuid AND motoristaId = :motoristaId")
+    suspend fun remover(uuid: String, motoristaId: Long)
 
-    @Query("UPDATE fila SET estado = 'PENDENTE', erro = NULL WHERE uuidLocal = :uuid")
-    suspend fun reporPendente(uuid: String)
+    @Query("UPDATE fila SET estado = 'PENDENTE', erro = NULL WHERE uuidLocal = :uuid AND motoristaId = :motoristaId")
+    suspend fun reporPendente(uuid: String, motoristaId: Long)
+
+    @Query("DELETE FROM fila WHERE motoristaId = :motoristaId")
+    suspend fun limparDoMotorista(motoristaId: Long)
 }

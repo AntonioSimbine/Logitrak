@@ -2,6 +2,8 @@ package mz.co.logitrack.motorista.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import mz.co.logitrack.motorista.util.CriptoConverters
 
 @Entity(tableName = "fila")
 data class FilaEntity(
@@ -17,6 +19,7 @@ data class FilaEntity(
     val latitude: Double,
     val longitude: Double,
     val precisaoMetros: Double,
+    @TypeConverters(CriptoConverters::class)
     val fotoBase64: String,
     val dataHoraInicio: String?,
     val dataHoraInicioCarregamento: String? = null,

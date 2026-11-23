@@ -86,15 +86,15 @@
             }).join('');
             const titulo = m.titulo.charAt(0).toUpperCase() + m.titulo.slice(1);
             return '<article class="param-card">'
-                + '<span class="key">' + LT.escape(p.chave) + '</span>'
                 + '<h4>' + LT.escape(titulo) + (m.unidade ? ' (' + LT.escape(m.unidade) + ')' : '') + '</h4>'
-                + '<p>' + LT.escape(DESCRICOES_SIMPLES[p.chave] || p.descricao || 'Regra usada na operação.') + '</p>'
+                + '<p>' + LT.escape(DESCRICOES_SIMPLES[p.chave] || p.descricao || 'Regra usada na opera??o.') + '</p>'
                 + '<div class="row">'
                 + '<input class="input" type="' + m.tipo + '" value="' + LT.escape(p.valor) + '"'
                 + atributos + ' aria-label="' + LT.escape(titulo) + '">'
                 + '<button class="btn primary" type="button" data-chave="' + LT.escape(p.chave) + '">'
                 + '<svg><use href="#i-save"/></svg> Guardar</button>'
                 + '</div>'
+                + '<details class="detalhes-tecnicos"><summary>Nome t?cnico</summary><span class="key">' + LT.escape(p.chave) + '</span></details>'
                 + '</article>';
         }).join('');
     }

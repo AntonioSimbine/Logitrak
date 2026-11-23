@@ -2,6 +2,7 @@ package mz.co.logitrack.motorista.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 /** Ponto de GPS guardado com o instante original da captura, mesmo sem rede. */
 @Entity(tableName = "posicoes")
@@ -12,6 +13,8 @@ data class PosicaoEntity(
     val latitude: Double,
     val longitude: Double,
     val precisaoMetros: Double,
+    // Identificador estável do ponto: permite deduplicação mesmo após reenvio.
+    val uuidPonto: String = UUID.randomUUID().toString(),
     val timestamp: String,
     val criadoEm: Long = System.currentTimeMillis(),
     val tentativas: Int = 0,

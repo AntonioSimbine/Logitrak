@@ -91,10 +91,10 @@ public class KpiService {
         List<KpiResponse.SerieDia> serie = new ArrayList<>();
         for (DayOfWeek dia : DayOfWeek.values()) {
             List<Double> valores = porDia.get(dia);
-            double media = valores.isEmpty() ? 0
-                    : valores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            Double media = valores.isEmpty() ? null : arredondar(
+                    valores.stream().mapToDouble(Double::doubleValue).average().orElseThrow());
             serie.add(new KpiResponse.SerieDia(
-                    capitalizar(dia.getDisplayName(TextStyle.SHORT, PT)), arredondar(media)));
+                    capitalizar(dia.getDisplayName(TextStyle.SHORT, PT)), media));
         }
 
         long noPrazo = 0;
@@ -109,7 +109,7 @@ public class KpiService {
             }
         }
         long total = noPrazo + atrasados;
-        double percentagem = total == 0 ? 100.0
+        Double percentagem = total == 0 ? null
                 : arredondar(noPrazo * 100.0 / total);
 
         return new KpiResponse(
@@ -129,17 +129,19 @@ public class KpiService {
                         EstadoCarregamento.CONCLUIDO);
     }
 
-    private double tempoMedioHoras(List<Carregamento> concluidos) {
-        return arredondar(concluidos.stream()
+    private Double tempoMedioHoras(List<Carregamento> concluidos) {
+        var valores = concluidos.stream()
                 .filter(c -> c.getDataHoraInicio() != null && c.getDataHoraFim() != null)
                 .mapToLong(c -> Duration.between(
                         c.getDataHoraInicio(), c.getDataHoraFim()).toMinutes())
-                .average().orElse(0) / 60.0);
+                .toArray();
+        return valores.length == 0 ? null : arredondar(
+                java.util.Arrays.stream(valores).average().orElseThrow() / 60.0);
     }
 
-    /** 0 = espera, 1 = carregamento, 2 = transporte. */
-    private double tempoMedioFase(List<Carregamento> concluidos, int fase) {
-        return arredondar(concluidos.stream()
+    /** 0 = espera, 1 = carregamento, 2 = transporte. Sem amostras devolve null. */
+    private Double tempoMedioFase(List<Carregamento> concluidos, int fase) {
+        var valores = concluidos.stream()
                 .map(FasesCarregamento::de)
                 .map(f -> switch (fase) {
                     case 0 -> f.esperaMinutos();
@@ -148,7 +150,9 @@ public class KpiService {
                 })
                 .filter(Objects::nonNull)
                 .mapToLong(Long::longValue)
-                .average().orElse(0) / 60.0);
+                .toArray();
+        return valores.length == 0 ? null : arredondar(
+                java.util.Arrays.stream(valores).average().orElseThrow() / 60.0);
     }
 
     private LocalDateTime limiteSla(Carregamento c, int tolerancia) {

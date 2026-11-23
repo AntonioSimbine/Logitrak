@@ -91,9 +91,9 @@
     </div>
 </div>
 
-<div class="modal-backdrop" id="modalUtilizador">
-    <div class="modal">
-        <div class="modal-head">
+<div class="modal-backdrop" role="dialog" aria-modal="true" id="modalUtilizador">
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-head" role="dialog" aria-modal="true">
             <div>
                 <h3 id="tituloModalUtilizador">Novo utilizador</h3>
                 <p>Escolha o perfil de acesso e escreva a palavra-passe inicial.</p>
@@ -103,7 +103,7 @@
         </div>
         <form id="formUtilizador">
             <input type="hidden" id="utilizadorId">
-            <div class="modal-body">
+            <div class="modal-body" role="dialog" aria-modal="true">
                 <div class="form-grid">
                     <div class="field full">
                         <label for="nomeUtilizador">Nome completo *</label>
@@ -137,7 +137,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-foot">
+            <div class="modal-foot" role="dialog" aria-modal="true">
                 <button class="btn ghost" type="button" data-fechar="modalUtilizador">Cancelar</button>
                 <button class="btn primary" type="submit" id="btnGuardarUtilizador">
                     <svg><use href="#i-save"/></svg> Guardar utilizador
@@ -147,9 +147,9 @@
     </div>
 </div>
 
-<div class="modal-backdrop" id="modalSenha">
-    <div class="modal narrow">
-        <div class="modal-head">
+<div class="modal-backdrop" role="dialog" aria-modal="true" id="modalSenha">
+    <div class="modal narrow" role="dialog" aria-modal="true">
+        <div class="modal-head" role="dialog" aria-modal="true">
             <div>
                 <h3>Mudar palavra-passe</h3>
                 <p id="subtituloSenha">A nova palavra-passe vale de imediato.</p>
@@ -159,7 +159,7 @@
         </div>
         <form id="formSenha">
             <input type="hidden" id="senhaUtilizadorId">
-            <div class="modal-body">
+            <div class="modal-body" role="dialog" aria-modal="true">
                 <div class="field">
                     <label for="novaSenha">Nova palavra-passe *</label>
                     <input class="input" id="novaSenha" type="password" minlength="6"
@@ -171,7 +171,7 @@
                            maxlength="72" autocomplete="new-password" required>
                 </div>
             </div>
-            <div class="modal-foot">
+            <div class="modal-foot" role="dialog" aria-modal="true">
                 <button class="btn ghost" type="button" data-fechar="modalSenha">Cancelar</button>
                 <button class="btn primary" type="submit">Guardar nova palavra-passe</button>
             </div>

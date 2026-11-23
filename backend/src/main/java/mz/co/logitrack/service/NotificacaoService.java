@@ -57,8 +57,12 @@ public class NotificacaoService {
         messagingTemplate.convertAndSend(TOPICO_MAPA, pontos);
     }
 
-    public void publicarNotificacao(NotificacaoResponse notificacao) {
-        messagingTemplate.convertAndSend(TOPICO_NOTIFICACOES, notificacao);
+    /** Entrega privada: cada motorista recebe apenas o seu próprio canal. */
+    public void publicarNotificacao(Long destinatarioId, NotificacaoResponse notificacao) {
+        if (destinatarioId == null) {
+            return;
+        }
+        messagingTemplate.convertAndSend(TOPICO_NOTIFICACOES + "." + destinatarioId, notificacao);
     }
 
     /** Evento gerado automaticamente: a origem é sempre SISTEMA. */
@@ -110,7 +114,7 @@ public class NotificacaoService {
 
         Notificacao guardada = notificacaoRepository.save(notificacao);
         NotificacaoResponse resposta = toResponse(guardada);
-        publicarNotificacao(resposta);
+        publicarNotificacao(guardada.getDestinatarioId(), resposta);
         return resposta;
     }
 
@@ -136,7 +140,7 @@ public class NotificacaoService {
         notificacao.setDataHoraLeitura(lido ? LocalDateTime.now() : null);
         Notificacao guardada = notificacaoRepository.save(notificacao);
         NotificacaoResponse resposta = toResponse(guardada);
-        publicarNotificacao(resposta);
+        publicarNotificacao(guardada.getDestinatarioId(), resposta);
         return resposta;
     }
 

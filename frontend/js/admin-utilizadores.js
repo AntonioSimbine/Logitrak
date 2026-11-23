@@ -50,13 +50,14 @@
                     ? '<span class="chip no">Ativa</span>'
                     : '<span class="chip sim">Inativa</span>') + '</td>'
                 + '<td>' + LT.fmt.data(u.dataCriacao) + '</td>'
-                + '<td><div class="table-actions">'
-                + '<button class="btn small ghost" type="button" data-acao="editar" data-id="' + u.id + '">Editar</button>'
-                + '<button class="btn small ghost" type="button" data-acao="senha" data-id="' + u.id + '">Palavra-passe</button>'
-                + '<button class="btn small ghost" type="button" data-acao="estado" data-id="' + u.id + '">'
-                + (u.ativo ? 'Desativar' : 'Ativar') + '</button>'
-                + '<button class="btn small ghost" type="button" data-acao="eliminar" data-id="' + u.id + '">Eliminar</button>'
-                + '</div></td>'
+                + '<td><div class="table-actions action-menu-wrap">'
+                + '<button class="btn small" type="button" data-acao="editar" data-id="' + u.id + '">Editar</button>'
+                + '<button class="btn small ghost action-menu-toggle" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Mais ações para ' + LT.escape(u.nome) + '">Mais ações ▾</button>'
+                + '<div class="action-menu" role="menu">'
+                + '<button class="action-menu-item" role="menuitem" type="button" data-acao="senha" data-id="' + u.id + '">Mudar palavra-passe</button>'
+                + '<button class="action-menu-item" role="menuitem" type="button" data-acao="estado" data-id="' + u.id + '">' + (u.ativo ? 'Desativar conta' : 'Ativar conta') + '</button>'
+                + '<button class="action-menu-item danger" role="menuitem" type="button" data-acao="eliminar" data-id="' + u.id + '">Eliminar conta</button>'
+                + '</div></div></td>'
                 + '</tr>';
         }).join('');
     }
@@ -225,11 +226,45 @@
         });
     });
 
+    function fecharMenusAcoes(excepto) {
+        document.querySelectorAll('.action-menu-wrap.open').forEach(function (wrap) {
+            if (excepto && wrap === excepto) return;
+            wrap.classList.remove('open');
+            const toggle = wrap.querySelector('.action-menu-toggle');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+            const menu = wrap.querySelector('.action-menu');
+            if (menu) { menu.style.position = ''; menu.style.top = ''; menu.style.left = ''; menu.style.right = ''; }
+        });
+    }
+
     document.getElementById('tabelaUtilizadores').addEventListener('click', function (ev) {
+        const toggle = ev.target.closest('.action-menu-toggle');
+        if (toggle) {
+            const wrap = toggle.closest('.action-menu-wrap');
+            const menu = wrap.querySelector('.action-menu');
+            const aberto = wrap.classList.contains('open');
+            fecharMenusAcoes();
+            wrap.classList.toggle('open', !aberto);
+            toggle.setAttribute('aria-expanded', !aberto ? 'true' : 'false');
+            if (!aberto && menu) {
+                const r = toggle.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = (r.bottom + 4) + 'px';
+                menu.style.left = Math.max(8, Math.min(r.right - 190, window.innerWidth - 198)) + 'px';
+                menu.style.right = 'auto';
+            } else if (menu) {
+                menu.style.position = '';
+                menu.style.top = '';
+                menu.style.left = '';
+                menu.style.right = '';
+            }
+            return;
+        }
         const botao = ev.target.closest('button[data-acao]');
         if (!botao) {
             return;
         }
+        fecharMenusAcoes();
         const id = Number(botao.dataset.id);
         switch (botao.dataset.acao) {
             case 'editar':
@@ -247,6 +282,13 @@
             default:
                 break;
         }
+    });
+
+    document.addEventListener('click', function (ev) {
+        if (!ev.target.closest('.action-menu-wrap')) fecharMenusAcoes();
+    });
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') fecharMenusAcoes();
     });
 
     carregar();

@@ -25,12 +25,12 @@
     function MinutosFase(fase) {
         const fases = detalhe && detalhe.fases;
         if (!fases) {
-            return 'sem horário registado';
+            return '—';
         }
         const minutos = [fases.esperaMinutos, fases.carregamentoMinutos,
             fases.transporteMinutos][fase];
         return minutos === null || minutos === undefined
-            ? 'sem horário registado' : minutos + ' min';
+            ? '—' : LT.fmt.duracao(minutos);
     }
 
     function valorInputLocal(valor) {
@@ -174,7 +174,7 @@
             + (doc.tamanhoBytes ? (doc.tamanhoBytes / 1024).toFixed(0) + ' KB' : '—');
         document.getElementById('guideIntegridade').textContent =
             doc.mimeType === 'image/svg+xml' ? 'Guia de exemplo' : 'Fotografia verificada';
-        hash.innerHTML = '<strong>Código de verificação da fotografia:</strong> ' + LT.escape(doc.hashSha256 || '—');
+        hash.innerHTML = '';
 
         document.getElementById('btnAmpliar').addEventListener('click', function () {
             const img = document.getElementById('lightboxImg');
@@ -209,7 +209,6 @@
     function renderizarInfo() {
         const itens = [
             ['Número da guia', detalhe.guiaNumero],
-            ['Número do registo no telemóvel', detalhe.uuidLocal || '—'],
             ['Tipo de carga', detalhe.tipoCarga],
             ['Quantidade', LT.fmt.numero(detalhe.quantidadeToneladas, 2) + ' t'],
             ['Início', LT.fmt.dataHora(detalhe.dataHoraInicio)],
@@ -218,8 +217,6 @@
             ['Carregamento', MinutosFase(1)],
             ['Transporte', MinutosFase(2)],
             ['Horário de recepção', detalhe.fabrica ? detalhe.fabrica.horarioAcostagem : '—'],
-            ['Área da fábrica', detalhe.fabrica
-                ? detalhe.fabrica.raioGeofenceMetros + ' m' : '—'],
             ['Prazo da viagem', detalhe.fabrica
                 ? detalhe.fabrica.slaLimiteHoras + ' horas' : '—'],
             ['Alertas por tratar', String(detalhe.alertasAbertos || 0)]
@@ -227,34 +224,85 @@
         if (detalhe.motivoRejeicao) {
             itens.push(['Motivo de rejeição', detalhe.motivoRejeicao]);
         }
+        const tecnicos = [
+            ['Número do registo no telemóvel', detalhe.uuidLocal || '—'],
+            ['Área da fábrica', detalhe.fabrica ? detalhe.fabrica.raioGeofenceMetros + ' m' : '—'],
+            ['Código de verificação da fotografia', detalhe.documento ? (detalhe.documento.hashSha256 || '—') : '—']
+        ];
         document.getElementById('infoDetalhada').innerHTML = itens.map(function (item) {
             return '<div class="info-item"><div class="lbl">' + LT.escape(item[0])
                 + '</div><div class="val">' + LT.escape(item[1]) + '</div></div>';
-        }).join('');
+        }).join('') + '<details class="detalhes-tecnicos full"><summary>Detalhes técnicos</summary><div class="info-grid mt-12">'
+            + tecnicos.map(function (item) {
+                return '<div class="info-item"><div class="lbl">' + LT.escape(item[0])
+                    + '</div><div class="val">' + LT.escape(item[1]) + '</div></div>';
+            }).join('') + '</div></details>';
+    }
+
+    function mostrarAvisoMapa(mensagem) {
+        const contentor = document.getElementById('mapDetalhe');
+        if (!contentor) return;
+        let aviso = contentor.querySelector('.map-fallback');
+        if (!aviso) {
+            aviso = document.createElement('div');
+            aviso.className = 'map-fallback';
+            aviso.innerHTML = '<div></div>';
+            contentor.appendChild(aviso);
+        }
+        aviso.querySelector('div').textContent = mensagem;
+        aviso.style.display = 'grid';
+    }
+
+    function esconderAvisoMapa() {
+        const contentor = document.getElementById('mapDetalhe');
+        const aviso = contentor && contentor.querySelector('.map-fallback');
+        if (aviso) aviso.style.display = 'none';
+    }
+
+    function garantirTamanhoMapa() {
+        if (!mapa) return;
+        window.requestAnimationFrame(function () {
+            mapa.invalidateSize();
+            setTimeout(function () { if (mapa) mapa.invalidateSize(); }, 250);
+        });
     }
 
     function renderizarMapa() {
         const contentor = document.getElementById('mapDetalhe');
         const resumo = document.getElementById('resumoGps');
         if (!window.L) {
-            contentor.innerHTML = '<div class="map-fallback"><div>Mapa indisponível. Verifique a ligação à Internet.</div></div>';
+            contentor.innerHTML = '<div class="map-fallback" style="display:grid"><div>Mapa indisponível. Verifique a ligação à Internet. A informação da localização continua disponível abaixo.</div></div>';
         } else {
             if (!mapa) {
                 mapa = L.map('mapDetalhe', {
                     zoomControl: true, attributionControl: false, scrollWheelZoom: false
                 }).setView([-19.2, 34.8], 5);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18})
-                    .addTo(mapa);
+                const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18});
+                let falhaTile = false;
+                tiles.on('tileerror', function () {
+                    if (falhaTile) return;
+                    falhaTile = true;
+                    mostrarAvisoMapa('Não foi possível carregar o mapa. Verifique a ligação à Internet. A informação da localização continua disponível abaixo.');
+                });
+                tiles.on('load', function () {
+                    falhaTile = false;
+                    esconderAvisoMapa();
+                });
+                tiles.addTo(mapa);
+                window.addEventListener('resize', garantirTamanhoMapa);
+                if (window.ResizeObserver && contentor) {
+                    new ResizeObserver(garantirTamanhoMapa).observe(contentor);
+                }
             }
             if (camada) {
                 camada.remove();
             }
             camada = L.layerGroup();
             const pontos = [];
-            if (detalhe.fabrica) {
+            if (detalhe.fabrica && detalhe.fabrica.latitude && detalhe.fabrica.longitude) {
                 const f = detalhe.fabrica;
                 L.circle([f.latitude, f.longitude], {
-                    radius: f.raioGeofenceMetros, color: '#f26b2e', weight: 1.5,
+                    radius: f.raioGeofenceMetros || 200, color: '#f26b2e', weight: 1.5,
                     fillColor: '#f26b2e', fillOpacity: .08, dashArray: '5 5'
                 }).addTo(camada);
                 L.marker([f.latitude, f.longitude])
@@ -283,7 +331,7 @@
             if (pontos.length) {
                 mapa.fitBounds(pontos, {padding: [28, 28], maxZoom: 13});
             }
-            setTimeout(function () { mapa.invalidateSize(); }, 220);
+            garantirTamanhoMapa();
         }
 
         const ultima = detalhe.ultimaPosicao;

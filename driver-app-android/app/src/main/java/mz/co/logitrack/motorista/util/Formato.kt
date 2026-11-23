@@ -6,7 +6,9 @@ import java.util.Locale
 import java.util.TimeZone
 
 object Formato {
-    private val locale = Locale("pt", "PT")
+    // Respeita o idioma do dispositivo (pt-MZ quando selecionado), com pt-PT apenas como fallback.
+    private val locale = Locale.getDefault().takeIf { it.language.equals("pt", ignoreCase = true) }
+        ?: Locale("pt", "MZ")
     private val padroesEntrada = listOf(
         "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
         "yyyy-MM-dd'T'HH:mm:ssXXX",
@@ -81,9 +83,12 @@ object Formato {
         return if (segunda != null) "$primeira$segunda" else "$primeira"
     }
 
-    fun agoraIso(): String {
+    fun agoraIso(): String = iso(Date())
+
+    /** Instante original da leitura de GPS, formatado como o contrato da API. */
+    fun iso(instante: Date): String {
         val formato = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-        return formato.format(Date())
+        return formato.format(instante)
     }
 
     fun estadoClasse(estado: String?): String =

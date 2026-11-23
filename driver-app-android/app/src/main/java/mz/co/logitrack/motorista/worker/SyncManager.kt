@@ -231,7 +231,11 @@ object SyncManager {
                 latitude = ponto.latitude,
                 longitude = ponto.longitude,
                 precisaoMetros = ponto.precisaoMetros,
-                timestamp = ponto.timestamp
+                timestamp = ponto.timestamp,
+                dataHoraCaptura = ponto.timestamp,
+                uuidPonto = ponto.uuidPonto.ifBlank {
+                    "ponto-${ponto.carregamentoId}-${ponto.motoristaId}-${ponto.id}"
+                }
             )
             try {
                 val resp = withTimeout(30_000L) { api.registarPosicao(ponto.carregamentoId, pedido) }

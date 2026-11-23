@@ -122,7 +122,8 @@
         }
         const chip = document.getElementById('chipVeiculos');
         if (chip) {
-            chip.textContent = (dados.veiculos || []).length + ' em rota';
+            const n = (dados.veiculos || []).length;
+            chip.textContent = n + (n === 1 ? ' veículo no mapa' : ' veículos no mapa');
         }
     }
 
@@ -130,26 +131,41 @@
         document.getElementById('kpiTransito').textContent = kpis.emTransito;
         document.getElementById('kpiAtrasados').textContent = kpis.atrasados;
         document.getElementById('kpiConcluidos').textContent = kpis.concluidosHoje;
-        document.getElementById('kpiTempo').innerHTML = LT.fmt.numero(kpis.tempoMedioEsperaHoras, 1)
-            + '<small>h</small>';
+        const espera = kpis.tempoMedioEsperaHoras;
+        document.getElementById('kpiTempo').innerHTML = espera === null || espera === undefined
+            ? 'sem dados'
+            : LT.fmt.numero(espera, 1) + '<small>h</small>';
 
         const comFases = Number(kpis.registosComFases || 0);
         const abrangencia = document.getElementById('fasesAbrangencia');
         if (abrangencia) {
             abrangencia.textContent = comFases
-                ? comFases + ' registos com horários' : 'Sem dados';
+                ? comFases + ' registo(s) com horários' : 'Sem dados';
         }
-        const valorFase = function (horas) {
-            return comFases ? LT.fmt.numero(horas, 1) + ' h' : '—';
-        };
-        [['faseEspera', kpis.tempoMedioEsperaHoras],
-         ['faseCarregamento', kpis.tempoMedioCarregamentoHoras],
-         ['faseTransporte', kpis.tempoMedioTransporteHoras]].forEach(function (par) {
+        const fases = [
+            ['faseEspera', 'Espera na fábrica', kpis.tempoMedioEsperaHoras],
+            ['faseCarregamento', 'Carregamento', kpis.tempoMedioCarregamentoHoras],
+            ['faseTransporte', 'Transporte', kpis.tempoMedioTransporteHoras]
+        ];
+        const faltam = [];
+        fases.forEach(function (par) {
             const el = document.getElementById(par[0]);
-            if (el) {
-                el.textContent = valorFase(par[1]);
-            }
+            const sem = par[2] === null || par[2] === undefined;
+            if (sem) faltam.push(par[1]);
+            if (el) el.textContent = sem ? '—' : LT.fmt.numero(par[2], 1) + ' h';
         });
+        const aviso = document.getElementById('faseAviso');
+        if (aviso) {
+            if (faltam.length) {
+                aviso.hidden = false;
+                aviso.textContent = faltam.length === fases.length
+                    ? 'Ainda não há horários registados para calcular estas fases.'
+                    : 'Sem dados suficientes para: ' + faltam.join(', ') + '.';
+            } else {
+                aviso.hidden = true;
+                aviso.textContent = '';
+            }
+        }
     }
 
     function renderizarAlertas(lista) {
@@ -210,7 +226,7 @@
                 + '<td>' + LT.chip(c.estado, c.estadoEtiqueta) + '</td>'
                 + '<td>' + LT.fmt.dataHora(c.dataHoraInicio) + '</td>'
                 + '<td>' + (c.atrasoMinutos > 0
-                    ? '<span style="color:#c0392b;font-weight:700">+' + c.atrasoMinutos + ' min</span>'
+                    ? '<span style="color:#c0392b;font-weight:700">+' + LT.fmt.duracao(c.atrasoMinutos) + '</span>'
                     : '<span class="muted">—</span>') + '</td>'
                 + '<td><a class="btn small ghost" href="' + LT.urlCarregamento(c.id) + '">'
                 + 'Abrir</a></td>'

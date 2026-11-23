@@ -13,6 +13,7 @@ server {
 
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     location = /healthz {
         access_log off;
@@ -24,41 +25,29 @@ server {
     location ~* \.(?:js|css|png|jpe?g|gif|svg|webp|ico|woff2?)$ {
         expires 7d;
         add_header Cache-Control "public, max-age=604800";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         try_files $uri =404;
     }
 
     # As páginas HTML não podem ficar com código antigo em cache.
     location ~* \.html$ {
         add_header Cache-Control "no-cache, must-revalidate";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         try_files $uri =404;
     }
 
-    # O service worker e o manifesto têm de ser sempre revalidados.
-    # Os ficheiros reais da PWA estão em /m/, não na raiz.
-    location = /sw.js {
-        add_header Cache-Control "no-cache, must-revalidate";
-        try_files $uri =404;
-    }
-
-    location = /manifest.webmanifest {
-        add_header Cache-Control "no-cache, must-revalidate";
-        try_files $uri =404;
-    }
-
-    location = /m/sw.js {
-        add_header Cache-Control "no-cache, must-revalidate";
-        try_files $uri =404;
-    }
-
-    location = /m/manifest.webmanifest {
-        add_header Cache-Control "no-cache, must-revalidate";
-        try_files $uri =404;
-    }
 
     # O aviso de versão tem de ser sempre lido sem cache.
     location = /downloads/versao.json {
         default_type application/json;
         add_header Cache-Control "no-cache, must-revalidate";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         try_files $uri =404;
     }
 
@@ -67,6 +56,9 @@ server {
         default_type application/vnd.android.package-archive;
         add_header Content-Disposition "attachment; filename=Logitrack-Motorista.apk";
         add_header Cache-Control "no-cache";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         try_files $uri =404;
     }
 

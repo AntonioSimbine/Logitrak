@@ -130,7 +130,8 @@ public class CarregamentoMapper {
 
     public CarregamentoDetalhe.PosicaoResumo toPosicao(LocalizacaoGPS g) {
         return new CarregamentoDetalhe.PosicaoResumo(
-                g.getLatitude(), g.getLongitude(), g.getPrecisaoMetros(), g.getTimestamp());
+                g.getLatitude(), g.getLongitude(), g.getPrecisaoMetros(), g.getTimestamp(),
+                g.getRecebidoEm(), g.getUuidPonto());
     }
 
     public PontoMapa toPontoMapa(LocalizacaoGPS g) {
@@ -146,7 +147,8 @@ public class CarregamentoMapper {
                 g.getLatitude(),
                 g.getLongitude(),
                 g.getPrecisaoMetros(),
-                g.getTimestamp()
+                g.getTimestamp(),
+                g.getRecebidoEm()
         );
     }
 
@@ -189,20 +191,17 @@ public class CarregamentoMapper {
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
                 "sincronizado", "Enviado à central", true,
                 c.getDataHoraInicio(), "cloud"));
-        boolean carregamentoIniciado = c.getDataHoraInicioCarregamento() != null
-                || c.getDataHoraFimCarregamento() != null || emTransito;
+        boolean carregamentoIniciado = c.getDataHoraInicioCarregamento() != null;
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
                 "espera", "Espera na fábrica", carregamentoIniciado && !rejeitado,
                 c.getDataHoraInicioCarregamento(), "clock"));
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
-                "carregamento", "Carregamento", c.getDataHoraFimCarregamento() != null
-                        || (emTransito && c.getDataHoraInicioCarregamento() != null),
+                "carregamento", "Carregamento", c.getDataHoraFimCarregamento() != null,
                 c.getDataHoraFimCarregamento(), "package"));
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
-                "transito", "Em trânsito", emTransito && !rejeitado,
-                c.getDataHoraInicioTransporte() != null
-                        ? c.getDataHoraInicioTransporte()
-                        : (emTransito ? c.getDataHoraInicio() : null), "truck"));
+                "transito", "Em trânsito",
+                emTransito && c.getDataHoraInicioTransporte() != null && !rejeitado,
+                c.getDataHoraInicioTransporte(), "truck"));
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
                 "concluido", "Concluído", concluido,
                 concluido ? c.getDataHoraFim() : null, "check"));

@@ -1,4 +1,4 @@
-# Frontend Logitrack (PWA do motorista + sistema web) servido por Nginx no Railway.
+# Frontend Logitrack (sistema web + APK do motorista) servido por Nginx no Railway.
 FROM nginx:1.27-alpine
 
 ENV PORT=8080 \
@@ -12,7 +12,7 @@ COPY . /usr/share/nginx/html
 # tenta descarregar da release estável do GitHub.
 ARG APK_URL=https://github.com/AntonioSimbine/Logitrak/releases/latest/download/Logitrack-Motorista.apk
 # Alterar este valor a cada publicação de APK para invalidar a camada do Docker.
-ARG APK_CACHE_BUST=20261123b
+ARG APK_CACHE_BUST=20261123f
 RUN echo "APK build $APK_CACHE_BUST" >/dev/null \
     && mkdir -p /usr/share/nginx/html/downloads \
     && if [ -s /usr/share/nginx/html/downloads/Logitrack-Motorista.apk ]; then \

@@ -30,7 +30,9 @@
         const fabricas = new Set(alertas.map(function (a) { return a.fabrica; }).filter(Boolean));
         document.getElementById('kpiNaoLidos').textContent = naoLidos;
         document.getElementById('kpiTotal').textContent = alertas.length;
-        document.getElementById('kpiMaior').innerHTML = maior + '<small>min</small>';
+        document.getElementById('kpiMaior').innerHTML = maior > 0
+            ? LT.fmt.duracao(maior).replace(' minutos','<small> min</small>').replace(' minuto','<small> min</small>').replace(' horas','<small> h</small>').replace(' hora','<small> h</small>').replace(' dias','<small> d</small>').replace(' dia','<small> d</small>')
+            : '0<small>min</small>';
         document.getElementById('kpiFabricas').textContent = fabricas.size;
         LT.atualizarBadge(naoLidos);
     }
@@ -50,8 +52,12 @@
                     + '<td>' + LT.escape(a.motorista || '—')
                     + '<div class="sub">' + LT.escape(a.veiculo || '') + '</div></td>'
                     + '<td>' + LT.fmt.dataHora(a.horaLimite) + '</td>'
-                    + '<td><span style="color:#c0392b;font-weight:750">+'
-                    + (a.minutosExcedidos || 0) + ' min</span></td>'
+                    + '<td><span style="color:#c0392b;font-weight:750">+' + LT.fmt.duracao(a.minutosExcedidos || 0) + '</span>'
+                    + '<div class="sub">No alerta</div>'
+                    + (a.atrasoAtualMinutos !== null && a.atrasoAtualMinutos !== undefined
+                        ? '<div class="sub">Agora: ' + (Number(a.atrasoAtualMinutos) > 0 ? '+' + LT.fmt.duracao(a.atrasoAtualMinutos) : 'dentro do prazo') + '</div>'
+                        : '')
+                    + '</td>'
                     + '<td>' + LT.fmt.dataHora(a.dataHoraEmissao) + '</td>'
                     + '<td>' + (a.lido
                         ? '<span class="chip no">Lido</span>'

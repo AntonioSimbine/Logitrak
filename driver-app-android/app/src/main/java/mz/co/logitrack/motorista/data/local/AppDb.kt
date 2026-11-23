@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [FilaEntity::class, PosicaoEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDb : RoomDatabase() {
@@ -60,6 +60,19 @@ abstract class AppDb : RoomDatabase() {
             }
         }
 
+        private val MIGRACAO_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Pontos antigos recebem um identificador determinístico e estável.
+                db.execSQL(
+                    "ALTER TABLE posicoes ADD COLUMN uuidPonto TEXT NOT NULL DEFAULT ''"
+                )
+                db.execSQL(
+                    "UPDATE posicoes SET uuidPonto = 'ponto-' || carregamentoId || '-' || " +
+                        "motoristaId || '-' || id WHERE uuidPonto = ''"
+                )
+            }
+        }
+
         fun get(context: Context): AppDb {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -67,7 +80,7 @@ abstract class AppDb : RoomDatabase() {
                     AppDb::class.java,
                     "logitrack_motorista.db"
                 )
-                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3)
+                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3, MIGRACAO_3_4)
                     .build()
                     .also { INSTANCE = it }
             }

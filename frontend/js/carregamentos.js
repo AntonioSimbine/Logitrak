@@ -51,7 +51,7 @@
                     + '<td>' + LT.chip(c.estado, c.estadoEtiqueta) + '</td>'
                     + '<td>' + LT.fmt.dataHora(c.dataHoraInicio) + '</td>'
                     + '<td>' + (c.atrasoMinutos > 0
-                        ? '<span style="color:#c0392b;font-weight:700">+' + c.atrasoMinutos + ' min</span>'
+                        ? '<span style="color:#c0392b;font-weight:700">+' + LT.fmt.duracao(c.atrasoMinutos) + '</span>'
                         : '<span class="muted">—</span>') + '</td>'
                     + '<td><a class="btn small ghost" href="' + LT.escape(url) + '">Abrir</a></td>'
                     + '</tr>';

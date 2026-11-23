@@ -153,9 +153,9 @@
     </div>
 </div>
 
-<div class="modal-backdrop" id="modalRejeitar">
-    <div class="modal narrow">
-        <div class="modal-head">
+<div class="modal-backdrop" role="dialog" aria-modal="true" id="modalRejeitar">
+    <div class="modal narrow" role="dialog" aria-modal="true">
+        <div class="modal-head" role="dialog" aria-modal="true">
             <div>
                 <h3>Não aceitar carregamento</h3>
                 <p>Tem de escrever o motivo. O motorista vai vê-lo.</p>
@@ -164,14 +164,14 @@
             <button class="icon-btn" type="button" onclick="LT.fecharModal('modalRejeitar')">×</button>
         </div>
         <form id="formRejeitar">
-            <div class="modal-body">
+            <div class="modal-body" role="dialog" aria-modal="true">
                 <div class="field">
                     <label for="motivoRejeicao">Porque não foi aceite</label>
                     <textarea class="textarea" id="motivoRejeicao" rows="4" required
                               placeholder="Ex.: A foto da guia está ilegível"></textarea>
                 </div>
             </div>
-            <div class="modal-foot">
+            <div class="modal-foot" role="dialog" aria-modal="true">
                 <button class="btn ghost" type="button" onclick="LT.fecharModal('modalRejeitar')">Cancelar</button>
                 <button class="btn danger" type="submit">Confirmar que não aceita</button>
             </div>

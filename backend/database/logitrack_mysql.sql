@@ -183,11 +183,14 @@ CREATE TABLE `localizacoes_gps` (
     `longitude`        DOUBLE      NOT NULL,
     `precisao_metros`  DOUBLE      NOT NULL,
     `timestamp`        DATETIME(6) NOT NULL,
+    `recebido_em`      DATETIME(6) NULL,
+    `uuid_ponto`       VARCHAR(64) NULL,
     `carregamento_id`  BIGINT      NOT NULL,
     `veiculo_id`       BIGINT      NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_gps_carregamento_ts` (`carregamento_id`, `timestamp`),
     KEY `idx_gps_veiculo_ts` (`veiculo_id`, `timestamp`),
+    KEY `idx_gps_uuid_ponto` (`uuid_ponto`),
     CONSTRAINT `fk_gps_carregamento`
         FOREIGN KEY (`carregamento_id`) REFERENCES `carregamentos` (`id`)
         ON DELETE CASCADE,

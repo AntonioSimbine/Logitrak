@@ -60,6 +60,7 @@ class NotificacoesActivity : AppCompatActivity() {
                     when {
                         resp.isSuccessful && corpo != null -> {
                             prefs.guardarNotificacoes(corpo)
+                            reconciliarLidas(corpo)
                             render(Notificacoes.listar(this@NotificacoesActivity, prefs, lerFila(), corpo))
                         }
                         resp.code() == 401 -> Sessao.sinalizarExpiracao()
@@ -135,6 +136,20 @@ class NotificacoesActivity : AppCompatActivity() {
                 // A leitura fica registada localmente e será reconciliada no próximo acesso.
             }
             carregar()
+        }
+    }
+
+    private suspend fun reconciliarLidas(servidor: List<mz.co.logitrack.motorista.data.dto.NotificacaoDto>) {
+        val lidasLocais = prefs.notificacoesLidas()
+        val pendentes = servidor.filter { !it.lido && "servidor:${it.id}" in lidasLocais }
+        if (pendentes.isEmpty() || !Ligacao.estado.value) return
+        val api = RetrofitClient.getApi(this)
+        for (n in pendentes) {
+            try {
+                api.marcarNotificacaoLida(n.id, MarcarLidoRequest(true))
+            } catch (_: Exception) {
+                // Mantém leitura local; tenta novamente na próxima abertura.
+            }
         }
     }
 

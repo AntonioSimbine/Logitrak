@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Logitrack Motorista</string>
+    <string name="detail_photo_offline">A fotografia da guia fica guardada no telemóvel e aparece aqui sem ligação.</string>
+    <string name="update_message_default">Está disponível uma nova versão. A instalação é feita a partir do APK descarregado pela própria aplicação.</string>
+</resources>

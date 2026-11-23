@@ -13,7 +13,8 @@ import java.util.Objects;
 @Table(name = "localizacoes_gps",
         indexes = {
                 @Index(name = "idx_gps_carregamento_ts", columnList = "carregamento_id,timestamp"),
-                @Index(name = "idx_gps_veiculo_ts", columnList = "veiculo_id,timestamp")
+                @Index(name = "idx_gps_veiculo_ts", columnList = "veiculo_id,timestamp"),
+                @Index(name = "idx_gps_uuid_ponto", columnList = "uuid_ponto")
         })
 public class LocalizacaoGPS {
 
@@ -38,9 +39,18 @@ public class LocalizacaoGPS {
     @Column(name = "precisao_metros", nullable = false)
     private Double precisaoMetros;
 
+    /** Instante real da captura no dispositivo (pode ser antigo, após offline). */
     @NotNull
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
+
+    /** Instante em que a central recebeu a posição — nunca substitui a captura. */
+    @Column(name = "recebido_em")
+    private LocalDateTime recebidoEm;
+
+    /** Identificador do ponto gerado no dispositivo, para reenvio idempotente. */
+    @Column(name = "uuid_ponto", length = 64)
+    private String uuidPonto;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carregamento_id", nullable = false,
@@ -57,12 +67,21 @@ public class LocalizacaoGPS {
 
     public LocalizacaoGPS(Double latitude, Double longitude, Double precisaoMetros,
                           LocalDateTime timestamp, Carregamento carregamento, Veiculo veiculo) {
+        this(latitude, longitude, precisaoMetros, timestamp, carregamento, veiculo,
+                null, LocalDateTime.now());
+    }
+
+    public LocalizacaoGPS(Double latitude, Double longitude, Double precisaoMetros,
+                          LocalDateTime timestamp, Carregamento carregamento, Veiculo veiculo,
+                          String uuidPonto, LocalDateTime recebidoEm) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.precisaoMetros = precisaoMetros;
         this.timestamp = timestamp;
         this.carregamento = carregamento;
         this.veiculo = veiculo;
+        this.uuidPonto = uuidPonto;
+        this.recebidoEm = recebidoEm != null ? recebidoEm : LocalDateTime.now();
     }
 
     public Long getId() {
@@ -103,6 +122,22 @@ public class LocalizacaoGPS {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public LocalDateTime getRecebidoEm() {
+        return recebidoEm;
+    }
+
+    public void setRecebidoEm(LocalDateTime recebidoEm) {
+        this.recebidoEm = recebidoEm;
+    }
+
+    public String getUuidPonto() {
+        return uuidPonto;
+    }
+
+    public void setUuidPonto(String uuidPonto) {
+        this.uuidPonto = uuidPonto;
     }
 
     public Carregamento getCarregamento() {

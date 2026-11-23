@@ -76,18 +76,20 @@ public class RelatorioService {
         long concluidos = registos.stream()
                 .filter(c -> c.getEstado() == EstadoCarregamento.CONCLUIDO).count();
         long atrasados = linhas.stream().filter(l -> l.atrasoMinutos() > 0).count();
-        double tempoMedio = registos.stream()
+        var minutosCiclo = registos.stream()
                 .filter(c -> c.getEstado() == EstadoCarregamento.CONCLUIDO
                         && c.getDataHoraInicio() != null && c.getDataHoraFim() != null)
                 .mapToLong(c -> Duration.between(c.getDataHoraInicio(), c.getDataHoraFim())
                         .toMinutes())
-                .average().orElse(0) / 60.0;
+                .toArray();
+        Double tempoMedio = minutosCiclo.length == 0 ? null : Math.round(
+                java.util.Arrays.stream(minutosCiclo).average().orElseThrow() / 60.0 * 10.0) / 10.0;
 
         RelatorioResponse.ResumoRelatorio resumo =
                 new RelatorioResponse.ResumoRelatorio(linhas.size(),
                         Math.round(toneladas * 10.0) / 10.0,
                         concluidos, atrasados,
-                        Math.round(tempoMedio * 10.0) / 10.0,
+                        tempoMedio,
                         mediaFaseHoras(linhas, 0),
                         mediaFaseHoras(linhas, 1),
                         mediaFaseHoras(linhas, 2),
@@ -111,9 +113,9 @@ public class RelatorioService {
                 exportador.nomeFicheiro(filtro), exportador.contentType());
     }
 
-    /** 0 = espera, 1 = carregamento, 2 = transporte. */
-    private double mediaFaseHoras(List<RelatorioLinha> linhas, int fase) {
-        return Math.round(linhas.stream()
+    /** 0 = espera, 1 = carregamento, 2 = transporte. Sem amostras devolve null. */
+    private Double mediaFaseHoras(List<RelatorioLinha> linhas, int fase) {
+        var valores = linhas.stream()
                 .map(RelatorioLinha::fases)
                 .filter(Objects::nonNull)
                 .map(f -> switch (fase) {
@@ -123,7 +125,9 @@ public class RelatorioService {
                 })
                 .filter(Objects::nonNull)
                 .mapToLong(Long::longValue)
-                .average().orElse(0) / 60.0 * 10.0) / 10.0;
+                .toArray();
+        return valores.length == 0 ? null : Math.round(
+                java.util.Arrays.stream(valores).average().orElseThrow() / 60.0 * 10.0) / 10.0;
     }
 
     public record Exportacao(byte[] conteudo, String nomeFicheiro, String contentType) {

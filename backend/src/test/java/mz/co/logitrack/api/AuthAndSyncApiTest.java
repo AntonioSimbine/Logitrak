@@ -28,8 +28,15 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -163,7 +170,7 @@ class AuthAndSyncApiTest {
     }
 
     @Test
-    @DisplayName("Sincronização válida cria EM_TRANSITO e duplicado é idempotente (200)")
+    @DisplayName("Sincronização válida cria REGISTADO e duplicado é idempotente (200)")
     void sincronizacaoValidaEIdempotente() throws Exception {
         UUID uuidLocal = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
         long veiculoId = criarVeiculoTeste(100.0);
@@ -177,7 +184,7 @@ class AuthAndSyncApiTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("X-Idempotente", "false"))
                 .andExpect(jsonPath("$.uuidLocal").value(uuidLocal.toString()))
-                .andExpect(jsonPath("$.estado").value("EM_TRANSITO"))
+                .andExpect(jsonPath("$.estado").value("REGISTADO"))
                 .andExpect(jsonPath("$.temDocumento").value(true))
                 .andReturn();
 
@@ -198,7 +205,9 @@ class AuthAndSyncApiTest {
         assertThat(corpo.get("id").asLong()).isEqualTo(idPrimeiro);
 
         var guardado = carregamentoRepository.findByUuidLocal(uuidLocal).orElseThrow();
-        assertThat(guardado.getEstado()).isEqualTo(EstadoCarregamento.EM_TRANSITO);
+        assertThat(guardado.getEstado()).isEqualTo(EstadoCarregamento.REGISTADO);
+        assertThat(veiculoRepository.findById(veiculoId).orElseThrow().getEstado())
+                .isNotEqualTo(EstadoVeiculo.EM_TRANSITO);
         assertThat(documentoGuiaRepository.existsByCarregamentoId(guardado.getId())).isTrue();
     }
 
@@ -266,6 +275,93 @@ class AuthAndSyncApiTest {
     void dashboardMovelSemTokenDevolve401() throws Exception {
         mockMvc.perform(get("/api/v1/mobile/dashboard"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Dois envios concorrentes do mesmo uuidLocal devolvem 201 e 200")
+    void enviosConcorrentesMesmoUuidLocal() throws Exception {
+        UUID uuidLocal = UUID.randomUUID();
+        long veiculoId = criarVeiculoTeste(100.0);
+        String payload = payload(uuidLocal, 1L, LAT_MATOLA, LON_MATOLA, 6.0, veiculoId, 30.0);
+        String token = obterToken();
+
+        List<MvcResult> resultados = executarConcorrentes(token, payload, payload);
+
+        assertThat(statuses(resultados)).containsExactlyInAnyOrder(201, 200);
+        long idCriado = id(resultados, 201);
+        long idRepetido = id(resultados, 200);
+        assertThat(idRepetido).isEqualTo(idCriado);
+        assertThat(carregamentoRepository.countByUuidLocal(uuidLocal)).isEqualTo(1);
+        assertThat(documentoGuiaRepository.countByCarregamentoId(idCriado)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Pedidos concorrentes distintos para o mesmo veículo preservam a validação 422")
+    void pedidosConcorrentesDistintosMesmoVeiculo() throws Exception {
+        UUID uuidA = UUID.randomUUID();
+        UUID uuidB = UUID.randomUUID();
+        long veiculoId = criarVeiculoTeste(10.0);
+        String token = obterToken();
+        String payloadA = payload(uuidA, 1L, LAT_MATOLA, LON_MATOLA, 6.0, veiculoId, 8.0);
+        String payloadB = payload(uuidB, 1L, LAT_MATOLA, LON_MATOLA, 6.0, veiculoId, 8.0);
+
+        List<MvcResult> resultados = executarConcorrentes(token, payloadA, payloadB);
+
+        assertThat(statuses(resultados)).containsExactlyInAnyOrder(201, 422);
+        boolean criouA = carregamentoRepository.findByUuidLocal(uuidA).isPresent();
+        boolean criouB = carregamentoRepository.findByUuidLocal(uuidB).isPresent();
+        assertThat(criouA ^ criouB).isTrue();
+    }
+
+    private List<MvcResult> executarConcorrentes(String token, String payloadA,
+                                                  String payloadB) throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch inicio = new CountDownLatch(1);
+        Callable<MvcResult> tarefaA = () -> {
+            inicio.await();
+            return mockMvc.perform(post("/api/v1/carregamentos")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(payloadA))
+                    .andReturn();
+        };
+        Callable<MvcResult> tarefaB = () -> {
+            inicio.await();
+            return mockMvc.perform(post("/api/v1/carregamentos")
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(payloadB))
+                    .andReturn();
+        };
+        try {
+            Future<MvcResult> futuroA = pool.submit(tarefaA);
+            Future<MvcResult> futuroB = pool.submit(tarefaB);
+            inicio.countDown();
+            return List.of(futuroA.get(60, TimeUnit.SECONDS), futuroB.get(60, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    private static List<Integer> statuses(List<MvcResult> resultados) {
+        return resultados.stream()
+                .map(r -> r.getResponse().getStatus())
+                .toList();
+    }
+
+    private long id(List<MvcResult> resultados, int status) throws Exception {
+        return resultados.stream()
+                .filter(r -> r.getResponse().getStatus() == status)
+                .findFirst()
+                .map(r -> {
+                    try {
+                        return objectMapper.readTree(r.getResponse().getContentAsString())
+                                .get("id").asLong();
+                    } catch (Exception ex) {
+                        throw new IllegalStateException(ex);
+                    }
+                })
+                .orElseThrow();
     }
 
     private String obterToken() throws Exception {

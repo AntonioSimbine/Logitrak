@@ -76,6 +76,6 @@
     };
 
     LT.rotaInicial = function (perfil) {
-        return url(perfil === 'MOTORISTA' ? 'm/index.html' : 'app/dashboard.html');
+        return url(perfil === 'MOTORISTA' ? 'acesso.html' : 'app/dashboard.html');
     };
 })();

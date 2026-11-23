@@ -6,6 +6,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import mz.co.logitrack.motorista.util.CriptoLocal
 import mz.co.logitrack.motorista.util.Geo
 import mz.co.logitrack.motorista.util.Prefs
 import mz.co.logitrack.motorista.worker.SyncWorker
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+        CriptoLocal.init(this)
         agendarTrabalhos()
     }
 
@@ -31,7 +33,6 @@ class App : Application() {
         val localizacao = PeriodicWorkRequestBuilder<TrackingWorker>(
             minutosSync, TimeUnit.MINUTES
         )
-            .setConstraints(conexao)
             .build()
         val work = WorkManager.getInstance(this)
         work.enqueueUniquePeriodicWork(

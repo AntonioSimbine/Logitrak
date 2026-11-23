@@ -1,17 +1,10 @@
 package mz.co.logitrack.motorista.ui
 
 import android.content.Intent
-import android.hardware.biometrics.BiometricPrompt
-import android.os.Build
 import android.os.Bundle
-import android.os.CancellationSignal
 import android.text.InputType
 import android.view.View
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
@@ -37,16 +30,6 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
         prefs = Prefs(this)
 
-        val mensagemInicial = intent?.getStringExtra(MainActivity.EXTRA_MENSAGEM)
-        if (mensagemInicial.isNullOrBlank() && prefs.sessaoValida()) {
-            validarSessaoOnline()
-            return
-        }
-        if (!mensagemInicial.isNullOrBlank()) {
-            mostrarErro(mensagemInicial)
-            intent?.removeExtra(MainActivity.EXTRA_MENSAGEM)
-        }
-
         binding.etEmail.setText(prefs.emailRecordado.orEmpty())
         binding.cbLembrar.isChecked = !prefs.emailRecordado.isNullOrBlank()
         if (binding.etEmail.text.isNullOrBlank()) {
@@ -57,8 +40,6 @@ class LoginActivity : AppCompatActivity() {
 
         binding.btnMostrarSenha.setOnClickListener { alternarSenha() }
         binding.btnEntrar.setOnClickListener { submeter() }
-        binding.wrapServidor.setOnClickListener { editarServidor() }
-        atualizarServidor()
         binding.btnEsqueci.setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.login_forgot)
@@ -66,49 +47,15 @@ class LoginActivity : AppCompatActivity() {
                 .setPositiveButton(R.string.ok, null)
                 .show()
         }
-        prepararBiometria()
         prepararAnimacoes()
-    }
 
-    /** Mostra o servidor ativo no ecrã de login. */
-    private fun atualizarServidor() {
-        binding.tvServidor.text = prefs.apiBase
-    }
-
-    /** Permite ao motorista apontar a app para outra API sem reinstalar o APK. */
-    private fun editarServidor() {
-        val campo = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            setText(prefs.apiBase)
-            setSelection(text.length)
-            hint = getString(R.string.server_dialog_hint)
-            setPadding(48, 32, 48, 32)
+        val mensagemInicial = intent?.getStringExtra(MainActivity.EXTRA_MENSAGEM)
+        if (!mensagemInicial.isNullOrBlank()) {
+            mostrarErro(mensagemInicial)
+            intent?.removeExtra(MainActivity.EXTRA_MENSAGEM)
+        } else if (prefs.sessaoValida()) {
+            validarSessaoOnline()
         }
-        val caixa = FrameLayout(this).apply { addView(campo) }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.server_dialog_title)
-            .setView(caixa)
-            .setPositiveButton(R.string.save) { _, _ ->
-                var valor = campo.text.toString().trim()
-                if (valor.isEmpty()) {
-                    valor = Prefs.BASE_PADRAO
-                }
-                if (valor.startsWith("http://")) {
-                    valor = "https://" + valor.removePrefix("http://")
-                } else if (!valor.startsWith("https://")) {
-                    valor = "https://$valor"
-                }
-                if (!Regex("^https://[^\\s]+$").matches(valor)) {
-                    Toast.makeText(this, R.string.server_invalid, Toast.LENGTH_LONG).show()
-                    return@setPositiveButton
-                }
-                prefs.apiBase = valor
-                atualizarServidor()
-                Toast.makeText(this, R.string.server_saved, Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun prepararAnimacoes() {
@@ -119,61 +66,7 @@ class LoginActivity : AppCompatActivity() {
             deslocamentoY = 20f,
             duracao = 340L
         )
-        Animacoes.pressionar(binding.btnEntrar, binding.btnBiometria, binding.btnMostrarSenha)
-    }
-
-    private fun prepararBiometria() {
-        val disponivel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
-            prefs.credencialGuardada() && prefs.sessaoOfflineValida()
-        binding.wrapBiometria.visibility = if (disponivel) View.VISIBLE else View.GONE
-        if (!disponivel) return
-        binding.btnBiometria.setOnClickListener { pedirBiometria() }
-    }
-
-    private fun pedirBiometria() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            mostrarErro(getString(R.string.login_biometric_unavailable))
-            return
-        }
-        val executor = ContextCompat.getMainExecutor(this)
-        try {
-            val prompt = BiometricPrompt.Builder(this)
-                .setTitle(getString(R.string.login_biometric_title))
-                .setSubtitle(getString(R.string.login_biometric_subtitle))
-                .setNegativeButton(
-                    getString(R.string.login_biometric_cancel),
-                    executor
-                ) { _, _ -> }
-                .build()
-
-            prompt.authenticate(
-                CancellationSignal(),
-                executor,
-                object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(
-                        result: BiometricPrompt.AuthenticationResult
-                    ) {
-                        if (prefs.restaurarSessaoOffline()) {
-                            abrirPrincipal(getString(R.string.offline_login_welcome))
-                        } else {
-                            mostrarErro(getString(R.string.login_biometric_no_session))
-                        }
-                    }
-
-                    override fun onAuthenticationError(
-                        errorCode: Int,
-                        errString: CharSequence
-                    ) {
-                        // 5 = cancelado, 10 = cancelado pelo utilizador, 13 = botão negativo.
-                        if (errorCode != 5 && errorCode != 10 && errorCode != 13) {
-                            mostrarErro(getString(R.string.login_biometric_failed))
-                        }
-                    }
-                }
-            )
-        } catch (e: Exception) {
-            mostrarErro(getString(R.string.login_biometric_unavailable))
-        }
+        Animacoes.pressionar(binding.btnEntrar, binding.btnMostrarSenha)
     }
 
     private fun alternarSenha() {
@@ -313,7 +206,12 @@ class LoginActivity : AppCompatActivity() {
             return
         }
         prefs.emailRecordado = if (binding.cbLembrar.isChecked) email else null
-        abrirPrincipal(getString(R.string.offline_login_welcome))
+        val mensagem = if (prefs.sessionExpired) {
+            getString(R.string.session_expired_redirect)
+        } else {
+            getString(R.string.offline_login_welcome)
+        }
+        abrirPrincipal(mensagem)
     }
 
     private fun concluirSessao(
@@ -363,8 +261,6 @@ class LoginActivity : AppCompatActivity() {
         binding.etEmail.isEnabled = !carregando
         binding.etSenha.isEnabled = !carregando
         binding.cbLembrar.isEnabled = !carregando
-        binding.btnBiometria.isEnabled = !carregando
-        binding.btnBiometria.alpha = if (carregando) 0.5f else 1f
     }
 
     private fun mostrarErro(texto: String) {

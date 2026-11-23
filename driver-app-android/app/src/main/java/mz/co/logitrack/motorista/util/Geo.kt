@@ -18,6 +18,7 @@ data class FabricaProxima(
 object Geo {
     const val RAIO_PADRAO = 500.0
     const val PRECISAO_PADRAO = 15.0
+    const val IDADE_MAXIMA_POSICAO_MS = 120_000L
     private const val RAIO_TERRA = 6_371_000.0
 
     fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
@@ -64,6 +65,8 @@ object Geo {
         if (valor == Math.rint(valor)) valor.toInt().toString() else String.format(LocalePt.numero, "%.1f", valor)
 
     private object LocalePt {
-        val numero = java.util.Locale("pt", "PT")
+        val numero = java.util.Locale.getDefault()
+            .takeIf { it.language.equals("pt", ignoreCase = true) }
+            ?: java.util.Locale("pt", "MZ")
     }
 }

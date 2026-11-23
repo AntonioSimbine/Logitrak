@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mz.co.logitrack.motorista.R
 import mz.co.logitrack.motorista.data.dto.CarregamentoDto
+import mz.co.logitrack.motorista.data.local.AppDb
 import mz.co.logitrack.motorista.data.local.FilaEntity
 import mz.co.logitrack.motorista.databinding.ActivityDetailBinding
 import mz.co.logitrack.motorista.databinding.ItemTimelineBinding
@@ -22,6 +23,7 @@ import mz.co.logitrack.motorista.network.NetworkUtils
 import mz.co.logitrack.motorista.network.RetrofitClient
 import mz.co.logitrack.motorista.util.Animacoes
 import mz.co.logitrack.motorista.util.Formato
+import mz.co.logitrack.motorista.util.Imagem
 import mz.co.logitrack.motorista.util.Prefs
 import mz.co.logitrack.motorista.util.Sessao
 import mz.co.logitrack.motorista.worker.FaseOperacional
@@ -295,7 +297,10 @@ class DetailActivity : AppCompatActivity() {
 
     private fun registarFase(fase: FaseOperacional) {
         lifecycleScope.launch {
-            val local = FasesManager.local(this@DetailActivity, id)
+            // Registos vindos do dashboard não têm linha local: cria-se uma sombra
+            // apenas para guardar a hora real da fase. Não entra na fila de sync.
+            val local = detalheAtual?.let { FasesManager.garantirLocal(this@DetailActivity, it) }
+                ?: FasesManager.local(this@DetailActivity, id)
             if (local == null) {
                 avisar(R.string.phase_not_found)
                 return@launch
@@ -326,8 +331,12 @@ class DetailActivity : AppCompatActivity() {
         b.tvGuiaPlaceholder.setText(R.string.detail_photo_loading)
 
         if (!NetworkUtils.estaLigado(this)) {
-            b.progressoGuia.visibility = View.GONE
-            b.tvGuiaPlaceholder.setText(R.string.detail_photo_offline)
+            lifecycleScope.launch {
+                if (!mostrarGuiaLocal()) {
+                    b.tvGuiaPlaceholder.setText(R.string.detail_photo_offline)
+                    b.progressoGuia.visibility = View.GONE
+                }
+            }
             return
         }
 
@@ -348,19 +357,36 @@ class DetailActivity : AppCompatActivity() {
                 b.tvGuiaPlaceholder.visibility = View.GONE
                 Animacoes.pop(b.imgGuia, 0.96f)
             } catch (e: Exception) {
-                b.imgGuia.visibility = View.GONE
-                b.tvGuiaPlaceholder.visibility = View.VISIBLE
-                b.tvGuiaPlaceholder.setText(
-                    if (NetworkUtils.estaLigado(this@DetailActivity)) {
-                        R.string.detail_photo_error
-                    } else {
-                        R.string.detail_photo_offline
-                    }
-                )
+                if (!mostrarGuiaLocal()) {
+                    b.imgGuia.visibility = View.GONE
+                    b.tvGuiaPlaceholder.visibility = View.VISIBLE
+                    b.tvGuiaPlaceholder.setText(
+                        if (NetworkUtils.estaLigado(this@DetailActivity)) {
+                            R.string.detail_photo_error
+                        } else {
+                            R.string.detail_photo_offline
+                        }
+                    )
+                }
             } finally {
                 b.progressoGuia.visibility = View.GONE
             }
         }
+    }
+
+    /** Mostra a fotografia guardada no dispositivo quando a API não responde. */
+    private suspend fun mostrarGuiaLocal(): Boolean {
+        val b = binding
+        val local = withContext(Dispatchers.IO) {
+            AppDb.get(this@DetailActivity).filaDao().porCarregamento(id, prefs.userId)
+        } ?: return false
+        val bitmap = withContext(Dispatchers.IO) { Imagem.deBase64(local.fotoBase64) }
+            ?: return false
+        b.imgGuia.setImageBitmap(bitmap)
+        b.imgGuia.visibility = View.VISIBLE
+        b.tvGuiaPlaceholder.visibility = View.GONE
+        b.progressoGuia.visibility = View.GONE
+        return true
     }
 
     private fun mostrarGuiaOffline() {

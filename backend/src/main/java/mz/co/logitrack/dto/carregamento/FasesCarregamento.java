@@ -41,7 +41,10 @@ public record FasesCarregamento(
         );
     }
 
-    /** Valida a ordem dos instantes recebidos, ignorando os que não foram enviados. */
+    /**
+     * Valida a sequência das fases no servidor. Não basta a ordem cronológica:
+     * cada fase só existe depois da anterior, mesmo em pedidos diretos à API.
+     */
     public static void validar(LocalDateTime inicio, LocalDateTime inicioCarregamento,
                                LocalDateTime fimCarregamento,
                                LocalDateTime inicioTransporte, LocalDateTime fim) {
@@ -57,6 +60,21 @@ public record FasesCarregamento(
                             + ". Corrija os dados e envie novamente.");
                 }
             }
+        }
+        exigir(inicioCarregamento != null, inicio != null,
+                "Registe primeiro a chegada à fábrica.");
+        exigir(fimCarregamento != null, inicioCarregamento != null,
+                "Registe primeiro o início do carregamento.");
+        exigir(inicioTransporte != null, fimCarregamento != null,
+                "Registe primeiro o fim do carregamento.");
+        exigir(fim != null, inicioTransporte != null,
+                "Registe primeiro o início do transporte.");
+    }
+
+    private static void exigir(boolean presente, boolean antecedente,
+                               String mensagem) {
+        if (presente && !antecedente) {
+            throw ApiException.unprocessable(mensagem + " A sequência das fases não está completa.");
         }
     }
 

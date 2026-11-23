@@ -49,6 +49,7 @@ import mz.co.logitrack.motorista.util.Ligacao
 import mz.co.logitrack.motorista.util.Prefs
 import mz.co.logitrack.motorista.worker.SyncWorker
 import java.io.File
+import java.util.Date
 import java.util.UUID
 
 class NovoFragment : Fragment(R.layout.fragment_novo) {
@@ -56,6 +57,17 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
     private val binding get() = _binding!!
 
     private lateinit var prefs: Prefs
+    private val gsonRascunho = com.google.gson.Gson()
+    private var rascunhoRestaurado = false
+
+    private data class RascunhoNovo(
+        val guia: String = "",
+        val quantidade: String = "",
+        val tipo: String = "",
+        val veiculoId: Long = 0L,
+        val fabricaId: Long? = null,
+        val passo: Int = 1
+    )
 
     private var refs: ReferenciasDto? = null
     private var veiculos: List<VeiculoDto> = emptyList()
@@ -75,6 +87,8 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
     private var lat: Double? = null
     private var lng: Double? = null
     private var precisao: Double = 0.0
+    // Instante da leitura GPS, usado como hora real de início do carregamento.
+    private var capturaEm: String? = null
 
     private var ligado = true
     private var aGuardar = false
@@ -159,6 +173,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
         carregarReferencias()
         pedirGps()
         atualizarResumo()
+        restaurarRascunho()
         prepararAnimacoes()
     }
 
@@ -360,6 +375,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
             val atual = fabricas.firstOrNull { it.id == fabricaId }
             if (atual != null) _binding?.actvFabrica?.setText(atual.nome, false)
         }
+        aplicarRascunhoAposRefs()
     }
 
     private fun configurarVeiculos() {
@@ -490,9 +506,15 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
     private fun aplicarLocalizacao(localizacao: Location) {
         gpsTimeout?.cancel()
         val b = _binding ?: return
+        val idadeMs = System.currentTimeMillis() - localizacao.time
+        if (idadeMs > Geo.IDADE_MAXIMA_POSICAO_MS) {
+            mostrarGpsIndisponivel(getString(R.string.gps_no_signal))
+            return
+        }
         lat = localizacao.latitude
         lng = localizacao.longitude
         precisao = localizacao.accuracy.toDouble()
+        capturaEm = Formato.iso(Date(localizacao.time))
 
         val maximo = Geo.precisaoMaxima(refs)
         if (precisao > maximo) {
@@ -870,7 +892,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
             longitude = posicaoLng,
             precisaoMetros = precisao,
             fotoBase64 = fotoBase64!!,
-            dataHoraInicio = Formato.agoraIso(),
+            dataHoraInicio = capturaEm ?: Formato.agoraIso(),
             confirmarForaGeofence = confirmar
         )
 
@@ -882,6 +904,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
                 val milissegundos = (System.nanoTime() - inicioGravacao) / 1_000_000L
                 dao.atualizar(entidade.copy(tempoGravacaoLocalMs = milissegundos))
                 agendarSincronizacao()
+                prefs.guardarRascunhoNovo(null)
                 val activity = requireActivity()
                 val intent = Intent(activity, SuccessActivity::class.java)
                     .putExtra(SuccessActivity.EXTRA_CODIGO, guia)
@@ -911,6 +934,68 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
             )
             .build()
         WorkManager.getInstance(contexto).enqueue(pedido)
+    }
+
+    private fun guardarRascunho() {
+        val b = _binding ?: return
+        if (prefs.userId <= 0L) return
+        val rascunho = RascunhoNovo(
+            guia = b.etGuia.text?.toString()?.trim().orEmpty(),
+            quantidade = b.etQtd.text?.toString()?.trim().orEmpty(),
+            tipo = tipoSelecionado.ifBlank { b.actvTipo.text?.toString()?.trim().orEmpty() },
+            veiculoId = veiculoId,
+            fabricaId = fabricaId,
+            passo = passo
+        )
+        prefs.guardarRascunhoNovo(gsonRascunho.toJson(rascunho))
+    }
+
+    private fun restaurarRascunho() {
+        if (rascunhoRestaurado) return
+        val texto = prefs.lerRascunhoNovo() ?: return
+        val r = try { gsonRascunho.fromJson(texto, RascunhoNovo::class.java) } catch (_: Exception) { null } ?: return
+        rascunhoRestaurado = true
+        val b = _binding ?: return
+        if (b.etGuia.text.isNullOrBlank() && r.guia.isNotBlank()) b.etGuia.setText(r.guia)
+        if (b.etQtd.text.isNullOrBlank() && r.quantidade.isNotBlank()) b.etQtd.setText(r.quantidade)
+        if (r.tipo.isNotBlank()) {
+            tipoSelecionado = r.tipo
+            b.actvTipo.setText(r.tipo, false)
+        }
+        if (r.veiculoId > 0L) veiculoId = r.veiculoId
+        if (r.fabricaId != null) fabricaId = r.fabricaId
+        if (r.passo in 1..4) mostrarPasso(r.passo, animar = false)
+    }
+
+    private fun aplicarRascunhoAposRefs() {
+        val texto = prefs.lerRascunhoNovo() ?: return
+        val r = try { gsonRascunho.fromJson(texto, RascunhoNovo::class.java) } catch (_: Exception) { null } ?: return
+        val b = _binding ?: return
+        if (r.veiculoId > 0L) {
+            val v = veiculos.firstOrNull { it.id == r.veiculoId }
+            if (v != null) {
+                veiculoId = v.id
+                val etiqueta = buildString {
+                    append(v.matricula)
+                    v.modelo?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                    v.capacidadeCargaToneladas?.let { append(" (").append(Formato.numero(it, 1)).append(" t)") }
+                }
+                b.actvVeiculo.setText(etiqueta, false)
+            }
+        }
+        if (r.tipo.isNotBlank() && tipos.contains(r.tipo)) {
+            tipoSelecionado = r.tipo
+            b.actvTipo.setText(r.tipo, false)
+        }
+        if (r.fabricaId != null) {
+            val f = fabricas.firstOrNull { it.id == r.fabricaId }
+            if (f != null) {
+                fabricaId = f.id
+                fabricaNome = f.nome
+                b.actvFabrica.setText(f.nome, false)
+            }
+        }
+        atualizarResumo()
     }
 
     /* ------------------------- Ligações ------------------------- */
@@ -945,6 +1030,11 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
     }
 
     private fun cor(recurso: Int): Int = ContextCompat.getColor(requireContext(), recurso)
+
+    override fun onPause() {
+        if (!aGuardar) guardarRascunho()
+        super.onPause()
+    }
 
     override fun onDestroyView() {
         gpsToken?.cancel()

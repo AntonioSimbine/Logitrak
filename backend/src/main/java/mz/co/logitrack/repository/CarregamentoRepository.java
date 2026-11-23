@@ -23,12 +23,19 @@ public interface CarregamentoRepository extends JpaRepository<Carregamento, Long
 
     Optional<Carregamento> findByUuidLocal(UUID uuidLocal);
 
+    /** Reverificação do uuidLocal dentro da transação, depois do bloqueio do veículo. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Carregamento c where c.uuidLocal = :uuidLocal")
+    Optional<Carregamento> findByUuidLocalForUpdate(@Param("uuidLocal") UUID uuidLocal);
+
     /** Serializa a passagem do motor SLA para o mesmo carregamento. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from Carregamento c where c.id = :id")
     Optional<Carregamento> findByIdForUpdate(@Param("id") Long id);
 
     boolean existsByUuidLocal(UUID uuidLocal);
+
+    long countByUuidLocal(UUID uuidLocal);
 
     @EntityGraph(attributePaths = {"fabrica", "veiculo", "motorista"})
     Optional<Carregamento> findWithRelationsById(Long id);

@@ -8,6 +8,7 @@ import mz.co.logitrack.domain.enums.EstadoVeiculo;
 import mz.co.logitrack.domain.enums.OrigemNotificacao;
 import mz.co.logitrack.domain.enums.Role;
 import mz.co.logitrack.domain.enums.TipoNotificacao;
+import mz.co.logitrack.dto.carregamento.AtualizarEstadoRequest;
 import mz.co.logitrack.dto.carregamento.CarregamentoDetalhe;
 import mz.co.logitrack.dto.carregamento.CarregamentoResumo;
 import mz.co.logitrack.dto.carregamento.FasesCarregamento;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /** Consulta e ciclo de vida dos carregamentos (RN04/RN05). */
 @Service
@@ -117,11 +119,7 @@ public class CarregamentoService {
             throw ApiException.unprocessable(
                     "A central não aceitou o registo. Corrija os dados e envie novamente.");
         }
-        if (pedido.dataHoraFimTransporte() != null
-                && c.getEstado() != EstadoCarregamento.CONCLUIDO) {
-            throw ApiException.unprocessable(
-                    "Conclua o registo antes de indicar o fim do transporte.");
-        }
+        EstadoCarregamento estadoAnterior = c.getEstado();
 
         LocalDateTime inicioCarregamento = pedido.dataHoraInicioCarregamento() != null
                 ? pedido.dataHoraInicioCarregamento() : c.getDataHoraInicioCarregamento();
@@ -148,18 +146,42 @@ public class CarregamentoService {
             c.setDataHoraFim(fimTransporte);
         }
 
+        // O estado segue o momento real da fase, não o acto de enviar a guia.
+        if (estadoAnterior == EstadoCarregamento.REGISTADO
+                && pedido.dataHoraInicioTransporte() != null
+                && estadoAnterior.podeTransitarPara(EstadoCarregamento.EM_TRANSITO)) {
+            c.setEstado(EstadoCarregamento.EM_TRANSITO);
+            if (c.getVeiculo() != null) {
+                c.getVeiculo().setEstado(EstadoVeiculo.EM_TRANSITO);
+                veiculoRepository.save(c.getVeiculo());
+            }
+        }
+        if (pedido.dataHoraFimTransporte() != null
+                && (estadoAnterior == EstadoCarregamento.REGISTADO
+                || estadoAnterior == EstadoCarregamento.EM_TRANSITO
+                || estadoAnterior == EstadoCarregamento.ATRASADO)
+                && c.getEstado().podeTransitarPara(EstadoCarregamento.CONCLUIDO)) {
+            c.setEstado(EstadoCarregamento.CONCLUIDO);
+            registarAutoria(c, "CONCLUSAO", principal);
+            vehicleOperations.libertarVeiculo(c.getVeiculo(), c.getId());
+            if (principal == null || principal.getPerfil() != Role.MOTORISTA) {
+                notificarAccaoManual(c, EstadoCarregamento.CONCLUIDO, principal);
+            }
+        }
+
         Carregamento guardado = carregamentoRepository.save(c);
         CarregamentoResumo resumo = mapper.toResumo(guardado);
         notificacaoService.publicarCarregamento(resumo);
-        log.info("Fases operacionais do carregamento {} actualizadas por {}",
-                id, principal != null ? principal.getEmail() : "sistema");
+        log.info("Fases operacionais do carregamento {} actualizadas por {} (estado {})",
+                id, principal != null ? principal.getEmail() : "sistema", guardado.getEstado());
         return resumo;
     }
 
     @Transactional
-    public CarregamentoResumo atualizarEstado(Long id, EstadoCarregamento novoEstado,
-                                              String motivoRejeicao,
+    public CarregamentoResumo atualizarEstado(Long id, AtualizarEstadoRequest pedido,
                                               AuthenticatedUser principal) {
+        EstadoCarregamento novoEstado = pedido.estado();
+        String motivoRejeicao = pedido.motivoRejeicao();
         if (novoEstado == EstadoCarregamento.ATRASADO) {
             throw ApiException.unprocessable(
                     "O prazo definido para a viagem foi ultrapassado. "
@@ -188,21 +210,23 @@ public class CarregamentoService {
         }
 
         if (novoEstado == EstadoCarregamento.EM_TRANSITO) {
-            LocalDateTime agora = LocalDateTime.now();
-            if (c.getDataHoraInicio() == null) {
-                c.setDataHoraInicio(agora);
+            // Não se inventa o início do transporte com a hora da transição.
+            LocalDateTime inicioTransporte = pedido.dataHoraInicioTransporte() != null
+                    ? pedido.dataHoraInicioTransporte() : c.getDataHoraInicioTransporte();
+            if (inicioTransporte == null || c.getDataHoraInicioCarregamento() == null
+                    || c.getDataHoraFimCarregamento() == null) {
+                throw ApiException.unprocessable(
+                        "Registe o carregamento e o início do transporte antes de indicar "
+                                + "que a viagem começou.");
             }
-            // O momento da transição é o início real do transporte.
-            if (c.getDataHoraInicioTransporte() == null) {
-                c.setDataHoraInicioTransporte(agora);
-            }
-            if (c.getDataHoraInicioCarregamento() != null
-                    && c.getDataHoraFimCarregamento() == null) {
-                c.setDataHoraFimCarregamento(agora);
+            if (inicioTransporte.isAfter(LocalDateTime.now())) {
+                throw ApiException.unprocessable(
+                        "O início do transporte não pode estar no futuro. Corrija o horário.");
             }
             FasesCarregamento.validar(c.getDataHoraInicio(),
                     c.getDataHoraInicioCarregamento(), c.getDataHoraFimCarregamento(),
-                    c.getDataHoraInicioTransporte(), c.getDataHoraFim());
+                    inicioTransporte, c.getDataHoraFim());
+            c.setDataHoraInicioTransporte(inicioTransporte);
             if (c.getVeiculo() != null) {
                 c.getVeiculo().setEstado(EstadoVeiculo.EM_TRANSITO);
                 veiculoRepository.save(c.getVeiculo());
@@ -210,7 +234,10 @@ public class CarregamentoService {
         }
 
         if (novoEstado == EstadoCarregamento.CONCLUIDO) {
-            c.setDataHoraFim(LocalDateTime.now());
+            // Se o fim real do transporte já foi registado, não o substituímos.
+            if (c.getDataHoraFim() == null) {
+                c.setDataHoraFim(LocalDateTime.now());
+            }
             registarAutoria(c, "CONCLUSAO", principal);
             vehicleOperations.libertarVeiculo(c.getVeiculo(), c.getId());
         }
@@ -260,9 +287,13 @@ public class CarregamentoService {
                 rejeicao ? "REJEITAR_CARREGAMENTO" : "CONCLUIR_CARREGAMENTO");
     }
 
+    public record ResultadoPosicao(CarregamentoDetalhe.PosicaoResumo posicao,
+                                  boolean duplicado) {
+    }
+
     @Transactional
-    public CarregamentoDetalhe.PosicaoResumo registarPosicao(Long id, PosicaoRequest pedido,
-                                                             AuthenticatedUser principal) {
+    public ResultadoPosicao registarPosicao(Long id, PosicaoRequest pedido,
+                                            AuthenticatedUser principal) {
         validarPrecisaoGps(pedido.precisaoMetros());
         Carregamento c = obterComRelacoes(id);
         verificarAcesso(c, principal);
@@ -276,17 +307,53 @@ public class CarregamentoService {
                     "Faltam dados obrigatórios. Preencha os campos assinalados.");
         }
 
-        LocalizacaoGPS localizacao = new LocalizacaoGPS(
-                pedido.latitude(), pedido.longitude(), pedido.precisaoMetros(),
-                pedido.timestamp() != null ? pedido.timestamp() : LocalDateTime.now(),
-                c, c.getVeiculo());
-        LocalizacaoGPS guardada = gpsRepository.save(localizacao);
+        LocalDateTime recebidoEm = LocalDateTime.now();
+        LocalDateTime captura = pedido.captura() != null ? pedido.captura() : recebidoEm;
+        if (captura.isAfter(recebidoEm.plusMinutes(1))) {
+            throw ApiException.unprocessable(
+                    "A hora da localização está no futuro. Verifique o relógio do telemóvel.");
+        }
 
-        PontoMapa ponto = mapper.toPontoMapa(guardada);
-        notificacaoService.publicarMapa(List.of(ponto));
-        return mapper.toPosicao(guardada);
+        LocalizacaoGPS existente = encontrarDuplicado(id, pedido, captura);
+        if (existente != null) {
+            log.info("Posição repetida ignorada: carregamento={} uuidPonto={}",
+                    id, pedido.uuidPonto());
+            return new ResultadoPosicao(mapper.toPosicao(existente), true);
+        }
+
+        LocalizacaoGPS guardada = gpsRepository.save(new LocalizacaoGPS(
+                pedido.latitude(), pedido.longitude(), pedido.precisaoMetros(),
+                captura, c, c.getVeiculo(), pedido.uuidPonto(), recebidoEm));
+
+        // Um ponto antigo recebido depois de offline é guardado no histórico,
+        // mas não pode substituir o marcador actual no mapa.
+        LocalizacaoGPS atual = gpsRepository
+                .findTopByCarregamentoIdOrderByTimestampDesc(id).orElse(null);
+        if (atual == null || !guardada.getTimestamp().isBefore(atual.getTimestamp())) {
+            notificacaoService.publicarMapa(List.of(mapper.toPontoMapa(guardada)));
+        }
+        return new ResultadoPosicao(mapper.toPosicao(guardada), false);
     }
 
+    private LocalizacaoGPS encontrarDuplicado(Long carregamentoId, PosicaoRequest pedido,
+                                              LocalDateTime captura) {
+        if (pedido.uuidPonto() != null && !pedido.uuidPonto().isBlank()) {
+            Optional<LocalizacaoGPS> peloUuid = gpsRepository
+                    .findByCarregamentoIdAndUuidPonto(carregamentoId, pedido.uuidPonto().trim());
+            if (peloUuid.isPresent()) {
+                return peloUuid.get();
+            }
+        }
+        return gpsRepository.existsByCarregamentoIdAndTimestampAndLatitudeAndLongitude(
+                carregamentoId, captura, pedido.latitude(), pedido.longitude())
+                ? gpsRepository.findByCarregamentoIdOrderByTimestampAsc(carregamentoId)
+                        .stream()
+                        .filter(g -> captura.equals(g.getTimestamp())
+                                && pedido.latitude().equals(g.getLatitude())
+                                && pedido.longitude().equals(g.getLongitude()))
+                        .findFirst().orElse(null)
+                : null;
+    }
     @Transactional(readOnly = true)
     public List<CarregamentoDetalhe.PosicaoResumo> listarPosicoes(Long id,
                                                                  AuthenticatedUser principal) {
@@ -298,7 +365,13 @@ public class CarregamentoService {
 
     @Transactional(readOnly = true)
     public List<PontoMapa> ultimosPontosMapa() {
-        return gpsRepository.findUltimaPorCarregamento().stream()
+        java.util.Map<Long, LocalizacaoGPS> maisRecentes = new java.util.LinkedHashMap<>();
+        for (LocalizacaoGPS ponto : gpsRepository.findUltimaPorCarregamento()) {
+            if (ponto.getCarregamento() != null) {
+                maisRecentes.putIfAbsent(ponto.getCarregamento().getId(), ponto);
+            }
+        }
+        return maisRecentes.values().stream()
                 .filter(g -> g.getCarregamento() != null
                         && (g.getCarregamento().getEstado() == EstadoCarregamento.EM_TRANSITO
                         || g.getCarregamento().getEstado() == EstadoCarregamento.ATRASADO))

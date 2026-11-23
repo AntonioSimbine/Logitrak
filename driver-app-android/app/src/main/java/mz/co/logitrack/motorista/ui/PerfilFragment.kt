@@ -78,10 +78,11 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
     }
 
     private fun terminarSessao() {
+        val contexto = requireContext().applicationContext
         prefs.limparSessao()
-        Toast.makeText(requireContext(), R.string.logout_done, Toast.LENGTH_SHORT).show()
+        Toast.makeText(contexto, R.string.logout_done, Toast.LENGTH_SHORT).show()
         startActivity(
-            Intent(requireContext(), LoginActivity::class.java)
+            Intent(contexto, LoginActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         )
         requireActivity().finish()

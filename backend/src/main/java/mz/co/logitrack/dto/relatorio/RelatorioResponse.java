@@ -9,8 +9,8 @@ public record RelatorioResponse(
         RelatorioFiltro filtro
 ) {
     public record ResumoRelatorio(long total, double toneladas, long concluidos,
-                                  long atrasados, double tempoMedioHoras,
-                                  double esperaMediaHoras, double carregamentoMedioHoras,
-                                  double transporteMedioHoras, long registosComFases) {
+                                  long atrasados, Double tempoMedioHoras,
+                                  Double esperaMediaHoras, Double carregamentoMedioHoras,
+                                  Double transporteMedioHoras, long registosComFases) {
     }
 }

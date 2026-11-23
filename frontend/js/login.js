@@ -109,8 +109,7 @@
                 try {
                     const destino = new URL(redirecionar, window.location.href);
                     if (destino.origin === window.location.origin
-                            && (destino.pathname.indexOf('/app/') >= 0
-                                || destino.pathname.indexOf('/m/') >= 0)) {
+                            && destino.pathname.indexOf('/app/') >= 0) {
                         window.location.replace(destino.href);
                         return;
                     }

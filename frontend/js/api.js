@@ -354,12 +354,20 @@
             }).format(Number(valor));
         },
         duracao: function (minutos) {
-            if (!minutos || minutos <= 0) {
+            if (minutos === null || minutos === undefined || isNaN(Number(minutos)) || Number(minutos) < 0) {
                 return '—';
             }
-            const h = Math.floor(minutos / 60);
-            const m = Math.round(minutos % 60);
-            return h > 0 ? h + 'h ' + m + 'min' : m + ' min';
+            const total = Math.round(Number(minutos));
+            if (total === 0) return '0 min';
+            const dias = Math.floor(total / 1440);
+            const horas = Math.floor((total % 1440) / 60);
+            const mins = total % 60;
+            const partes = [];
+            if (dias > 0) partes.push(dias + (dias === 1 ? ' dia' : ' dias'));
+            if (horas > 0) partes.push(horas + (horas === 1 ? ' hora' : ' horas'));
+            if (mins > 0 && dias === 0) partes.push(mins + (mins === 1 ? ' minuto' : ' minutos'));
+            if (dias > 0 && horas === 0 && mins > 0) partes.push(mins + (mins === 1 ? ' minuto' : ' minutos'));
+            return partes.join(' ') || '0 min';
         },
         relativo: function (valor) {
             const d = comoData(valor);
@@ -421,8 +429,9 @@
         if (alerta.guiaNumero) dados.push('Guia ' + alerta.guiaNumero);
         if (alerta.fabrica) dados.push('Fábrica ' + alerta.fabrica);
         if (alerta.motorista) dados.push('Motorista ' + alerta.motorista);
-        const minutos = Number(alerta.minutosExcedidos) > 0
-            ? ' O prazo foi ultrapassado por ' + alerta.minutosExcedidos + ' minutos.' : '';
+        const nMin = Number(alerta.minutosExcedidos);
+        const minutos = nMin > 0
+            ? ' O prazo foi ultrapassado por ' + LT.fmt.duracao(nMin) + '.' : '';
         return 'O prazo definido para a viagem foi ultrapassado.' + minutos
             + (dados.length ? ' ' + dados.join(' · ') : '')
             + ' Abra a ocorrência para ver o motivo.';
@@ -443,17 +452,69 @@
         return new URLSearchParams(window.location.search).get(nome);
     };
 
+    const focoModal = new Map();
+
+    function elementosFocaveis(contentor) {
+        return Array.prototype.filter.call(
+            contentor.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+            function (el) {
+                return el.offsetParent !== null || contentor === el;
+            }
+        );
+    }
+
+    function prepararModal(el) {
+        if (!el || el.dataset.modalPronto === '1') return;
+        const dialogo = el.querySelector('.modal');
+        if (dialogo) {
+            dialogo.setAttribute('role', 'dialog');
+            dialogo.setAttribute('aria-modal', 'true');
+            if (!dialogo.hasAttribute('tabindex')) dialogo.setAttribute('tabindex', '-1');
+            const titulo = dialogo.querySelector('h1, h2, h3, [id]');
+            if (titulo) {
+                if (!titulo.id) titulo.id = el.id + '-titulo';
+                dialogo.setAttribute('aria-labelledby', titulo.id);
+            }
+        }
+        el.dataset.modalPronto = '1';
+    }
+
+    function atualizarInerciaFundo() {
+        const algumAberto = !!document.querySelector('.modal-backdrop.open');
+        const app = document.querySelector('.app');
+        if (app) {
+            if (algumAberto) {
+                app.setAttribute('aria-hidden', 'true');
+                if ('inert' in app) app.inert = true;
+            } else {
+                app.removeAttribute('aria-hidden');
+                if ('inert' in app) app.inert = false;
+            }
+        }
+        document.body.style.overflow = algumAberto ? 'hidden' : '';
+    }
+
     LT.abrirModal = function (id) {
         const el = document.getElementById(id);
-        if (el) {
-            el.classList.add('open');
-        }
+        if (!el) return;
+        prepararModal(el);
+        focoModal.set(id, document.activeElement instanceof HTMLElement ? document.activeElement : null);
+        el.classList.add('open');
+        atualizarInerciaFundo();
+        const dialogo = el.querySelector('.modal') || el;
+        const focaveis = elementosFocaveis(dialogo);
+        (focaveis[0] || dialogo).focus();
     };
 
     LT.fecharModal = function (id) {
         const el = document.getElementById(id);
-        if (el) {
-            el.classList.remove('open');
+        if (!el) return;
+        el.classList.remove('open');
+        atualizarInerciaFundo();
+        const anterior = focoModal.get(id);
+        focoModal.delete(id);
+        if (anterior && typeof anterior.focus === 'function') {
+            setTimeout(function () { anterior.focus(); }, 0);
         }
     };
 
@@ -688,18 +749,54 @@
         document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
             backdrop.addEventListener('click', function (ev) {
                 if (ev.target === backdrop) {
-                    backdrop.classList.remove('open');
+                    if (backdrop.id) {
+                        LT.fecharModal(backdrop.id);
+                    } else {
+                        backdrop.classList.remove('open');
+                        atualizarInerciaFundo();
+                    }
                 }
             });
         });
         document.addEventListener('keydown', function (ev) {
             if (ev.key === 'Escape') {
-                document.querySelectorAll('.modal-backdrop.open').forEach(function (m) {
-                    m.classList.remove('open');
-                });
+                const abertos = document.querySelectorAll('.modal-backdrop.open');
+                if (abertos.length) {
+                    const ultimo = abertos[abertos.length - 1];
+                    if (ultimo.id) {
+                        LT.fecharModal(ultimo.id);
+                    } else {
+                        ultimo.classList.remove('open');
+                        atualizarInerciaFundo();
+                    }
+                    ev.preventDefault();
+                    return;
+                }
                 const lightbox = document.querySelector('.lightbox.open');
                 if (lightbox) {
                     lightbox.classList.remove('open');
+                }
+            }
+            if (ev.key === 'Tab') {
+                const aberto = document.querySelector('.modal-backdrop.open:last-of-type');
+                if (!aberto) return;
+                const dialogo = aberto.querySelector('.modal') || aberto;
+                const focaveis = elementosFocaveis(dialogo);
+                if (!focaveis.length) {
+                    ev.preventDefault();
+                    dialogo.focus();
+                    return;
+                }
+                const primeiro = focaveis[0];
+                const ultimo = focaveis[focaveis.length - 1];
+                if (ev.shiftKey) {
+                    if (document.activeElement === primeiro || document.activeElement === dialogo) {
+                        ev.preventDefault();
+                        ultimo.focus();
+                    }
+                } else if (document.activeElement === ultimo) {
+                    ev.preventDefault();
+                    primeiro.focus();
                 }
             }
         });

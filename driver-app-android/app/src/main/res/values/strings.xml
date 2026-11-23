@@ -12,7 +12,7 @@
     <string name="splash_starting">A abrir a aplicação…</string>
 
     <!-- M1 — Login -->
-    <string name="login_title">Bem-vindo</string>
+    <string name="login_title">Bem-Vindo de volta</string>
     <string name="login_subtitle">Escreva o seu e-mail e a palavra-passe para entrar.</string>
     <string name="login_tagline">Registe a carga.\nFunciona sem internet.</string>
     <string name="login_sheet_title">Entrar</string>

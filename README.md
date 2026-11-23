@@ -18,14 +18,13 @@ o carregamento em tempo real, recebe alertas de atraso e exporta relatórios.
 | **Sistema web** | <https://web-production-f93e366a.up.railway.app/> |
 | **Apresentação do sistema** | <https://web-production-f93e366a.up.railway.app/apresentacao.html> |
 | **Acesso e download** | <https://web-production-f93e366a.up.railway.app/acesso.html> |
-| **App do motorista (PWA)** | <https://web-production-f93e366a.up.railway.app/m/> |
 | **APK Android** | <https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk> |
 | **API Spring Boot** | <https://api-production-938e6a7a.up.railway.app/api/v1/health> |
 | Espelho no GitHub Pages | <https://antoniosimbine.github.io/Logitrak/> |
 | Repositório | <https://github.com/AntonioSimbine/Logitrak> |
 
-O **Railway** aloja a API Spring Boot, o MySQL, o site (sistema web + PWA do
-motorista) e o APK Android. O GitHub Pages mantém-se como espelho do frontend.
+O **Railway** aloja a API Spring Boot, o MySQL, o site (sistema web) e o APK nativo do motorista. O **GitHub Pages** mant?m um espelho est?tico do --> <!--
+motorista) e o APK Android. O GitHub Pages mantém-se como espelho do -->
 
 ### Contas de demonstração
 
@@ -139,7 +138,7 @@ administrador cria o utilizador no painel ou define a palavra-passe do seed em
 Não precisa de loja de aplicações nem de APK.
 
 1. Abre o endereço do frontend no **Chrome/Edge (Android)** ou **Safari (iPhone)**.
-2. Entra em `/m/` (a app do motorista).
+2. Entra no painel ou descarrega o APK em `/acesso.html`.
 3. No menu do browser, escolhe **“Instalar aplicação”** / **“Adicionar ao ecrã inicial”**.
 4. Abre o ícone **Logitrack** que aparece no telemóvel.
 5. Inicia sessão com a conta de motorista fornecida pelo administrador.
@@ -157,7 +156,6 @@ Existem duas variantes no repositório:
 | Pasta | Tecnologia | Como gerar |
 |---|---|---|
 | `driver-app-android/` | Kotlin nativo (Jetpack, Room, CameraX) | Abrir no Android Studio ou `gradlew assembleDebug` |
-| `driver-app/` | Capacitor (reutiliza a PWA) | `npm install` e `npm run build:apk` |
 
 O APK de debug fica em `driver-app-android/app/build/outputs/apk/debug/app-debug.apk`.
 
@@ -339,7 +337,7 @@ Os testes usam **H2 em modo MySQL** e não precisam de MySQL. O relatório fica 
 | `SLA_INTERVALO_MS` | não | Intervalo do agendador de SLA (padrão `60000`) |
 
 > Em produção: define `JWT_SECRET` forte, `LOGITRACK_DEMO_SEED=false`, cria os
-> utilizadores reais e restringe `CORS_ALLOWED_ORIGINS` ao domínio do frontend.
+> utilizadores reais e restringe `CORS_ALLOWED_ORIGINS` ao domínio do -->
 
 ---
 
@@ -399,7 +397,7 @@ logitrack/
 
 ## 9. Publicação no Railway
 
-O Railway aloja a **API**, o **MySQL**, o **site** (sistema web + PWA) e o **APK**.
+O Railway aloja a **API**, o **MySQL**, o **site** (sistema web) e o **APK nativo**.
 
 **Estado atual:**
 

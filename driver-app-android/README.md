@@ -29,6 +29,14 @@ cd driver-app-android
 ```
 APK em: `app/build/outputs/apk/debug/app-debug.apk`
 
+A APK pública é gerada com `./gradlew assembleRelease` e fica em
+`app/build/outputs/apk/release/app-release.apk` (versão 1.6, `versionCode 7`).
+É assinada com a mesma chave das versões anteriores para que a atualização
+dentro da app seja aceite. Para usar uma chave própria, define em
+`local.properties` (ficheiro ignorado pelo Git):
+`release.storeFile`, `release.keyAlias`, `release.storePassword`, `release.keyPassword`.
+Sem esses valores, o build de release usa a chave de debug já publicada.
+
 Para já deixar o endereço da API definido no build:
 ```bash
 ./gradlew assembleDebug -PapiBase=https://a-tua-api.exemplo.com
@@ -37,8 +45,8 @@ Para já deixar o endereço da API definido no build:
 ## Configurar API
 
 A app lê o endereço inicial de `BuildConfig.API_BASE_PADRAO` (definido em
-`app/build.gradle`, por omissão `http://192.168.137.1:8080`, usado no hotspot do
-Windows). O endereço pode ser alterado **sem reinstalar**:
+`app/build.gradle`, por omissão `https://api-production-938e6a7a.up.railway.app`).
+O endereço pode ser alterado **sem reinstalar**:
 
 1. Abre o ecrã de **login**.
 2. Toca no cartão **“Servidor da API”**.

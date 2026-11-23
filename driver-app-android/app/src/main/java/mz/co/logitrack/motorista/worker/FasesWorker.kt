@@ -7,7 +7,10 @@ import androidx.work.WorkerParameters
 /** Envia os instantes de fase gravados localmente após a sincronização inicial. */
 class FasesWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
-        FasesManager.sincronizar(applicationContext)
-        return Result.success()
+        val resultado = FasesManager.sincronizar(applicationContext)
+        return when {
+            resultado.sessaoExpirada || resultado.semRede || resultado.falhas > 0 -> Result.retry()
+            else -> Result.success()
+        }
     }
 }

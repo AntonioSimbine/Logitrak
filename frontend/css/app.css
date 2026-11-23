@@ -597,6 +597,8 @@ h1, h2, h3, h4 {
 .content {
     padding: 26px 28px 44px;
     flex: 1;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .page-head {
@@ -674,6 +676,8 @@ h1, h2, h3, h4 {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .card-head {
@@ -701,6 +705,12 @@ h1, h2, h3, h4 {
 
 .card-body {
     padding: 18px;
+}
+
+.card-foot {
+    padding: 12px 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
 }
 
 .kpi-grid {
@@ -966,6 +976,12 @@ h1, h2, h3, h4 {
 /* ---------- Tabelas ---------- */
 .table-wrap {
     overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.relatorio-compacto .col-extra {
+    display: none;
 }
 
 table.data {
@@ -1155,8 +1171,19 @@ table.data .sub {
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 14px;
+}
+
+.form-grid > .field {
+    min-width: 0;
+}
+
+.form-grid .input,
+.form-grid .select,
+.form-grid .textarea {
+    min-width: 0;
+    width: 100%;
 }
 
 .form-grid .full {
@@ -1259,7 +1286,7 @@ table.data .sub {
 
 .filters {
     display: grid;
-    grid-template-columns: 1.5fr repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 10px;
     align-items: end;
 }
@@ -1455,10 +1482,12 @@ table.data .sub {
 
 .map-mini {
     height: 240px;
+    min-height: 240px;
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--line);
     background: #eef2f7;
+    position: relative;
 }
 
 /* ---------- Modal ---------- */
@@ -1834,3 +1863,20 @@ table.data .sub {
     height: 18px;
     stroke: currentColor;
 }
+
+/* Menus de a��es em tabelas */
+.action-menu-wrap { position: relative; display: inline-flex; gap: 6px; align-items: center; }
+.action-menu { display: none; position: absolute; right: 0; top: calc(100% + 4px); min-width: 190px; background: #fff; border: 1px solid var(--line, #dbe3ee); border-radius: 10px; box-shadow: 0 10px 24px rgba(11,31,58,.12); padding: 6px; z-index: 50; }
+.action-menu-wrap.open .action-menu { display: grid; gap: 2px; }
+.action-menu-item { width: 100%; text-align: left; background: #fff; border: 0; padding: 9px 10px; border-radius: 8px; font: inherit; color: #1f2937; cursor: pointer; }
+.action-menu-item:hover, .action-menu-item:focus { background: #f3f6fb; outline: none; }
+.action-menu-item.danger { color: #b91c1c; }
+.action-menu-item.danger:hover, .action-menu-item.danger:focus { background: #fef2f2; }
+.table-wrap .action-menu-wrap { position: relative; }
+@media (max-width: 900px) { .action-menu { right: 0; left: auto; } }
+
+/* Detalhes t�cnicos */
+.detalhes-tecnicos { margin-top: 12px; border: 1px solid var(--line, #dbe3ee); border-radius: 10px; padding: 10px 12px; background: #fbfcfe; }
+.detalhes-tecnicos summary { cursor: pointer; font-weight: 600; color: #334155; }
+.detalhes-tecnicos .info-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.detalhes-tecnicos.full { grid-column: 1 / -1; }

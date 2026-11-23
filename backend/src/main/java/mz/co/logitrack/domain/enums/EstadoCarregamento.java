@@ -4,9 +4,9 @@ package mz.co.logitrack.domain.enums;
  * Ciclo de vida do carregamento no servidor central.
  *
  * <p>Os estados GUARDADO_LOCAL e PENDENTE_SINCRONIZACAO existem apenas na app
- * móvel (fonte de verdade local). Quando o registo é aceite pelo servidor,
- * passa por REGISTADO e entra imediatamente em EM_TRANSITO, conforme a regra
- * "Envio ao Servidor com Sucesso: REGISTADO -> EM_TRANSITO".</p>
+ * móvel (fonte de verdade local). Quando o registo é aceite pelo servidor fica
+ * em REGISTADO. A passagem a EM_TRANSITO exige o registo do início real do
+ * transporte; enviar a guia não significa que a viagem começou.</p>
  */
 public enum EstadoCarregamento {
 

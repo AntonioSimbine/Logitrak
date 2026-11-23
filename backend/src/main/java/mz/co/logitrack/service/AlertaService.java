@@ -144,7 +144,8 @@ public class AlertaService {
                 alerta.getTratadoPorId(),
                 alerta.getTratadoPorNome(),
                 alerta.getTratadoPorPerfil(),
-                alerta.getDataHoraTratamento()
+                alerta.getDataHoraTratamento(),
+                c != null ? mapper.atrasoMinutos(c) : 0L
         );
     }
 }

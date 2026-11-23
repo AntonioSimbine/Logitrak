@@ -48,7 +48,8 @@ public record CarregamentoDetalhe(
     }
 
     public record PosicaoResumo(Double latitude, Double longitude, Double precisaoMetros,
-                                LocalDateTime timestamp) {
+                                LocalDateTime timestamp, LocalDateTime recebidoEm,
+                                String uuidPonto) {
     }
 
     public record EtapaTimeline(String codigo, String titulo, boolean concluida,

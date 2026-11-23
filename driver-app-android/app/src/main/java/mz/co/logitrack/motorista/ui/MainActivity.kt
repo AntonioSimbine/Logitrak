@@ -120,6 +120,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun tratarSessaoExpirada() {
         if (aSair) return
+        prefs.sessionExpired = true
+        if (!NetworkUtils.estaLigado(this)) {
+            // Sem rede não é possível renovar sessão; manter o utilizador a trabalhar localmente.
+            Toast.makeText(this, R.string.session_expired_redirect, Toast.LENGTH_LONG).show()
+            return
+        }
         aSair = true
         prefs.limparSessao()
         MaterialAlertDialogBuilder(this)

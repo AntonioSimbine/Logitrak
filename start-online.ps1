@@ -121,7 +121,7 @@ if ($apiOk) {
     Write-Host "  API publica : $url  (ainda sem resposta; pode levar ~30 s)" -ForegroundColor Yellow
 }
 Write-Host "  Painel web  : $link" -ForegroundColor Green
-Write-Host "  App movel   : $link  -> abrir o icone Logitrack (PWA) ou /m/" -ForegroundColor Green
+Write-Host "  App movel   : $link/acesso.html  -> descarregar o APK nativo" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Abre o link uma vez no browser: o endereco da API fica guardado." -ForegroundColor DarkGray
 Write-Host "  Para parar: fecha as janelas do backend e o processo cloudflared." -ForegroundColor DarkGray

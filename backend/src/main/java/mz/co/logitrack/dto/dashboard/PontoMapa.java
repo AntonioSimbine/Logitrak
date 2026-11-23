@@ -14,6 +14,9 @@ public record PontoMapa(
         double latitude,
         double longitude,
         double precisaoMetros,
-        LocalDateTime timestamp
+        /** Hora real da captura no dispositivo. */
+        LocalDateTime timestamp,
+        /** Hora em que a central recebeu o ponto. */
+        LocalDateTime recebidoEm
 ) {
 }

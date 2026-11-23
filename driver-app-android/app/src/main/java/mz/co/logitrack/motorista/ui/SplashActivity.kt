@@ -79,23 +79,15 @@ class SplashActivity : AppCompatActivity() {
         finish()
     }
 
-    override fun onDestroy() {
-        Animacoes.parar(binding.ivSplashCamiao)
-        super.onDestroy()
-    }
-
     private fun animarEntrada() {
         Animacoes.entrada(
             binding.logo,
             binding.wordmark,
-            binding.hero,
-            binding.subtitle,
             deslocamentoY = 22f,
             atraso = 90L,
             intervalo = 85L,
             duracao = 460L
         )
-        Animacoes.zoomLento(binding.ivSplashCamiao)
 
         if (!Animacoes.ativas(this)) return
         binding.logoReflexo.alpha = 0f
