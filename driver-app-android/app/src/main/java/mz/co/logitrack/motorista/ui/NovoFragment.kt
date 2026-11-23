@@ -515,6 +515,7 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
         lng = localizacao.longitude
         precisao = localizacao.accuracy.toDouble()
         capturaEm = Formato.iso(Date(localizacao.time))
+        atualizarMapa(localizacao.latitude, localizacao.longitude)
 
         val maximo = Geo.precisaoMaxima(refs)
         if (precisao > maximo) {
@@ -533,6 +534,38 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
         b.tvGpsPrecisao.setText(R.string.gps_unavailable)
         b.tvGpsPrecisao.setTextColor(cor(R.color.amber))
         b.tvGpsPrecisao.contentDescription = mensagem
+        b.tvMapaFallback.visibility = View.VISIBLE
+        b.tvMapaFallback.text = mensagem
+    }
+
+    private fun atualizarMapa(latitude: Double, longitude: Double) {
+        val b = _binding ?: return
+        val web = b.mapLocalizacao
+        web.settings.javaScriptEnabled = true
+        web.settings.domStorageEnabled = true
+        web.settings.loadWithOverviewMode = true
+        web.settings.useWideViewPort = true
+        web.webViewClient = object : android.webkit.WebViewClient() {
+            override fun onReceivedError(
+                view: android.webkit.WebView,
+                request: android.webkit.WebResourceRequest,
+                error: android.webkit.WebResourceError
+            ) {
+                if (request.isForMainFrame) {
+                    b.tvMapaFallback.visibility = View.VISIBLE
+                    b.tvMapaFallback.setText(R.string.gps_unavailable)
+                }
+            }
+
+            override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
+                if (b.tvMapaFallback.text != getString(R.string.gps_unavailable) || lat != null) {
+                    b.tvMapaFallback.visibility = View.GONE
+                }
+            }
+        }
+        b.tvMapaFallback.visibility = View.GONE
+        val url = "https://www.google.com/maps?q=$latitude,$longitude&z=17&output=embed"
+        if (web.url != url) web.loadUrl(url)
     }
 
     private fun avaliarGeofence() {

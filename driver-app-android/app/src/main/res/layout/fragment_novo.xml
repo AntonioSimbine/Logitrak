@@ -687,44 +687,24 @@
 
                     <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="170dp"
+                        android:layout_height="210dp"
                         android:background="@drawable/bg_map_blue">
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="center"
-                            android:background="@drawable/bg_geofence_circle" />
-
-                        <FrameLayout
-                            android:layout_width="42dp"
-                            android:layout_height="42dp"
-                            android:layout_gravity="center"
-                            android:background="@drawable/bg_avatar">
-
-                            <ImageView
-                                android:layout_width="21dp"
-                                android:layout_height="21dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="@null"
-                                android:src="@drawable/ic_pin"
-                                app:tint="@color/white" />
-                        </FrameLayout>
+                        <WebView
+                            android:id="@+id/mapLocalizacao"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:overScrollMode="never" />
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|start"
-                            android:layout_margin="10dp"
-                            android:background="@drawable/bg_pill_blue"
-                            android:paddingStart="9dp"
-                            android:paddingTop="4dp"
-                            android:paddingEnd="9dp"
-                            android:paddingBottom="4dp"
-                            android:text="@string/gps_location"
-                            android:textColor="@color/blue_dark"
-                            android:textSize="10.5sp"
-                            android:textStyle="bold" />
+                            android:id="@+id/tvMapaFallback"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:padding="16dp"
+                            android:text="@string/gps_waiting"
+                            android:textColor="@color/muted"
+                            android:textSize="13sp" />
                     </FrameLayout>
 
                     <LinearLayout
