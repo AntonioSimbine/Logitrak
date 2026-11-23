@@ -84,8 +84,16 @@ Detalhes técnicos (códigos HTTP, excepções, UUIDs, tempos limite) continuam 
 - Backend: `.\mvnw.cmd -B -q test` — **34 testes, 0 falhas, 0 erros**. As asserções antigas que esperavam textos técnicos foram atualizadas para as mensagens simples, sem alterar regras de negócio nem códigos HTTP.
 - Apresentação: revisão estática dos cartões e mensagens. Acrescentado `ellipsize="end"` ao texto das notificações (`item_notificacao.xml`) para não cortar frases longas sem indicação. Não foi feito teste visual em ecrã real.
 
+### Publicação em produção — 23/11/2026
+
+- Commit `88b941e` enviado para `origin main`.
+- `railway up -s api --ci` — deploy concluído, healthcheck `/api/v1/health` OK.
+- `railway up -s web --ci` — deploy concluído. O serviço web serve o painel, `apresentacao.html`, `login.html` e a PWA em `/m/`.
+- Verificação HTTP em produção: 200 em `/`, `/apresentacao.html`, `/login.html` e `/m/index.html`, com os novos textos presentes.
+- Verificação da API em produção: login com palavra-passe errada devolve 401 com `Não foi possível entrar. Verifique o e-mail e a palavra-passe.`; campo em falta devolve 422 com `Faltam dados obrigatórios. Preencha os campos assinalados.`
+
 ### Ainda pendente
 
-- Publicar as alterações: rebuild do frontend/PWA, da API e da APK, mantendo os endereços do Railway em `docs/DEPLOY.md`.
+- **APK nativa:** o `Dockerfile` web descarrega o ficheiro da última release do GitHub; esta ronda não substituiu o asset `Logitrack-Motorista.apk`. A APK compilada em debug está em `driver-app-android/app/build/outputs/apk/debug/`.
 - **Compreensão com utilizadores: pendente** até sessões reais de teste com motoristas, operadores e administradores serem realizadas. Nenhuma afirmação de compreensão foi validada com pessoas até agora.
 - Ficheiro acidental `0` (untracked, com `24404` em UTF-16 LE) continua no repositório local; removê-lo só com confirmação.
