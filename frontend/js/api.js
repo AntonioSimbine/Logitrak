@@ -413,6 +413,10 @@
 
     // Texto simples dos alertas: diz o que aconteceu e o que fazer a seguir.
     LT.textoAlerta = function (alerta) {
+        // A central já envia o texto com a acção necessária; aproveitá-lo evita perder esse detalhe.
+        if (alerta && alerta.mensagem) {
+            return LT.textoSimples(alerta.mensagem);
+        }
         const dados = [];
         if (alerta.guiaNumero) dados.push('Guia ' + alerta.guiaNumero);
         if (alerta.fabrica) dados.push('Fábrica ' + alerta.fabrica);

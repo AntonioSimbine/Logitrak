@@ -365,14 +365,24 @@
             const titulo = $('#dashboardFilaTitulo');
             const texto = $('#dashboardFilaTexto');
             const icone = $('#dashboardFilaIcono');
-            if (acao === 0) {
+            if (!fila.length) {
+                if (titulo) {
+                    titulo.textContent = 'Ainda não há registos';
+                }
+                if (texto) {
+                    texto.textContent = 'Quando registar carregamentos, eles aparecem aqui.';
+                }
+                if (icone) {
+                    icone.innerHTML = '<svg><use href="#i-list"/></svg>';
+                }
+            } else if (acao === 0) {
                 if (titulo) {
                     titulo.textContent = 'Tudo enviado à central';
                 }
                 if (texto) {
                     texto.textContent = state.ultimaSync
                         ? 'Último envio às ' + fmt.hora(state.ultimaSync)
-                        : 'Não há registos guardados no telemóvel.';
+                        : 'Não há registos à espera de envio.';
                 }
                 if (icone) {
                     icone.innerHTML = '<svg><use href="#i-check"/></svg>';
@@ -494,7 +504,7 @@
         });
         if (!filtrada.length) {
             const textos = {
-                PENDENTE: ['Sem registos para enviar', 'Todos os registos foram enviados à central.'],
+                PENDENTE: ['Sem registos para enviar', 'Não há registos à espera de envio neste telemóvel.'],
                 SINCRONIZADO: ['Sem registos enviados à central', 'Os registos aceites pela central aparecem aqui.'],
                 REJEITADO: ['Sem registos não aceites', 'Não há registos com problemas.']
             };
@@ -581,7 +591,7 @@
         }
         if (!fila.length) {
             if (!silencioso) {
-                LTM.toast('Tudo enviado à central', 'Não há registos para enviar.', 'success');
+                LTM.toast('Não há registos para enviar', 'Quando registar carregamentos, envie-os à central aqui.', 'success');
             }
             await atualizarResumoFila();
             return;

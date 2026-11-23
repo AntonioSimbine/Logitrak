@@ -92,6 +92,11 @@ Detalhes técnicos (códigos HTTP, excepções, UUIDs, tempos limite) continuam 
 - Verificação HTTP em produção: 200 em `/`, `/apresentacao.html`, `/login.html` e `/m/index.html`, com os novos textos presentes.
 - Verificação da API em produção: login com palavra-passe errada devolve 401 com `Não foi possível entrar. Verifique o e-mail e a palavra-passe.`; campo em falta devolve 422 com `Faltam dados obrigatórios. Preencha os campos assinalados.`
 
+### Ajustes locais ainda não publicados
+
+- O painel web volta a usar o texto enviado pela central nos alertas, para não perder a acção necessária (`frontend/js/api.js`).
+- A app web do motorista deixou de dizer “Tudo enviado à central” quando ainda não existe nenhum registo (`frontend/m/js/app.js`). Estes ajustes estão no código local e ainda não foram enviados para o Railway.
+
 ### Ainda pendente
 
 - **APK nativa:** o `Dockerfile` web descarrega o ficheiro da última release do GitHub; esta ronda não substituiu o asset `Logitrack-Motorista.apk`. A APK compilada em debug está em `driver-app-android/app/build/outputs/apk/debug/`.
