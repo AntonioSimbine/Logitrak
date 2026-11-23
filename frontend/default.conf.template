@@ -55,6 +55,13 @@ server {
         try_files $uri =404;
     }
 
+    # O aviso de versão tem de ser sempre lido sem cache.
+    location = /downloads/versao.json {
+        default_type application/json;
+        add_header Cache-Control "no-cache, must-revalidate";
+        try_files $uri =404;
+    }
+
     # APK Android servido pelo próprio Railway.
     location = /downloads/Logitrack-Motorista.apk {
         default_type application/vnd.android.package-archive;

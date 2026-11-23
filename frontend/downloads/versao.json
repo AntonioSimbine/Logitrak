@@ -1,0 +1,8 @@
+{
+  "versionCode": 4,
+  "versionName": "1.3",
+  "obrigatoria": false,
+  "mensagem": "Esta versão permite descarregar e instalar novas versões dentro da aplicação.",
+  "url": "https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk",
+  "sha256": "24cca710a56ba29be49c06405cc86cfe084cfc3a6bde75b6f59e2a081dbf2e3e"
+}

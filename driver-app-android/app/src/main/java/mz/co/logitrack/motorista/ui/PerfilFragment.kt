@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import mz.co.logitrack.motorista.BuildConfig
 import mz.co.logitrack.motorista.R
 import mz.co.logitrack.motorista.databinding.FragmentPerfilBinding
 import mz.co.logitrack.motorista.util.Animacoes
@@ -35,12 +36,19 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
         binding.tvEmailPerfil.text = email
         binding.tvContaEmail.text = email
         binding.tvAvatarPerfil.text = Formato.iniciais(nome)
+        binding.tvVersao.text = getString(R.string.profile_version, BuildConfig.VERSION_NAME)
 
         binding.cardSync.setOnClickListener {
             startActivity(Intent(requireContext(), SyncActivity::class.java))
         }
         binding.cardHistorico.setOnClickListener {
             findNavController().navigate(R.id.queueFragment)
+        }
+        binding.cardAtualizacao.setOnClickListener {
+            startActivity(
+                Intent(requireContext(), AtualizacaoActivity::class.java)
+                    .putExtra(AtualizacaoActivity.EXTRA_MANUAL, true)
+            )
         }
         binding.btnSair.setOnClickListener { confirmarSaida() }
         prepararAnimacoes()
@@ -52,7 +60,12 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
             Animacoes.surgir(it, atraso = 40L, deslocamentoY = 14f)
         }
         Animacoes.cascata(binding.perfilContent, atraso = 170L, intervalo = 55L)
-        Animacoes.pressionar(binding.cardSync, binding.cardHistorico, binding.btnSair)
+        Animacoes.pressionar(
+            binding.cardSync,
+            binding.cardHistorico,
+            binding.cardAtualizacao,
+            binding.btnSair
+        )
     }
 
     private fun confirmarSaida() {

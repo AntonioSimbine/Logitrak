@@ -86,9 +86,10 @@ carregamentos de demonstração.
 4. **Health check path:** `/healthz`.
 5. Gera o domínio público.
 
-O `Dockerfile` descarrega o APK da release estável do GitHub
-(`/releases/latest/download/Logitrack-Motorista.apk`) para `downloads/`, pelo que
-o ficheiro passa a ser servido pelo próprio Railway.
+O `Dockerfile` usa a cópia local em `frontend/downloads/Logitrack-Motorista.apk`.
+Se essa cópia não existir, tenta descarregar a release estável do GitHub
+(`/releases/latest/download/Logitrack-Motorista.apk`). Assim, o ficheiro passa
+sempre a ser servido pelo próprio Railway, no link oficial.
 
 ### 2.4 Deploy a partir do computador
 
@@ -145,11 +146,24 @@ $env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'
 O endereço da API pode ser alterado sem reinstalar: ecrã de login → cartão
 **Servidor da API**.
 
-Para publicar uma nova versão, cria uma release com o asset
-`Logitrack-Motorista.apk` (o `web` descarrega sempre a release marcada como
-*latest*). O link de download no site fica:
+Para publicar uma nova versão:
+
+1. Aumenta `versionCode` e `versionName` em `app/build.gradle`.
+2. Compila e copia o APK para `frontend/downloads/Logitrack-Motorista.apk`.
+3. Atualiza `frontend/downloads/versao.json` com o novo `versionCode`,
+   `versionName`, mensagem, `sha256` do APK e `obrigatoria` (true/false).
+4. Aumenta `APK_CACHE_BUST` no `frontend/Dockerfile`.
+5. Publica o serviço `web` com `railway up -s web --ci`.
+
+A aplicação lê `versao.json` ao abrir. Se houver versão nova, mostra o aviso e
+descarrega o APK dentro da app; o instalador do Android pede a confirmação final.
+Também há **Perfil → Verificar atualização** para verificar a qualquer momento.
+O `versionName` e o código da versão aparecem no Perfil.
+
+Links oficiais:
 
 ```text
+https://web-production-f93e366a.up.railway.app/downloads/versao.json
 https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk
 ```
 
@@ -188,6 +202,8 @@ Não uses `*` em produção.
 - [ ] `https://web-production-f93e366a.up.railway.app/` abre com estilos.
 - [ ] `.../m/` instala como PWA (HTTPS).
 - [ ] `.../downloads/Logitrack-Motorista.apk` descarrega o APK.
+- [ ] `.../downloads/versao.json` devolve o `versionCode` da última versão.
+- [ ] A app antiga avisa e instala a nova versão sem abrir o browser.
 - [ ] `CORS_ALLOWED_ORIGINS` inclui o domínio do site.
 - [ ] `JWT_SECRET` tem ≥ 32 caracteres e não está no repositório.
 - [ ] `LOGITRACK_DEMO_SEED=false` numa instalação real.

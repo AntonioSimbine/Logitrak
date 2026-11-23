@@ -29,6 +29,7 @@ Nomes de acções (usar sempre os mesmos):
 - **Tentar novamente** (depois de uma falha).
 - **Guardar carregamento** (guardar no telemóvel).
 - **Voltar**, **Continuar**, **Cancelar**, **Confirmar**.
+- **Atualizar agora**, **Depois**, **Instalar agora**, **Abrir definições** (atualização da aplicação).
 
 ## 2. Estados dos registos — não misturar
 
@@ -57,6 +58,8 @@ Nos cartões e chips usar as formas curtas: **Aguarda envio**, **Envio em curso*
 | Sessão terminada | A sessão terminou. Entre novamente com ligação à Internet. |
 | Carregamento não aceite | A central não aceitou o carregamento. Motivo: <motivo>. Corrija e tente novamente. |
 | Sem espaço no telemóvel | Não há espaço livre no telemóvel. Envie os registos à central ou apague registos antigos. |
+| Nova versão disponível | Está disponível uma nova versão da aplicação. Toque em **Atualizar agora**. |
+| Sem permissão para instalar | O telemóvel precisa de permitir instalar aplicações desta fonte. Abra as definições e active essa opção. |
 
 Detalhes técnicos (códigos HTTP, excepções, UUIDs, tempos limite) continuam só nos registos internos de apoio.
 
