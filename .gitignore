@@ -12,6 +12,8 @@ npm-debug.log*
 .kotlin/
 local.properties
 *.apk
+# A APK pública da app do motorista tem de entrar no deploy do Railway.
+!frontend/downloads/Logitrack-Motorista.apk
 *.aab
 
 ### Segredos e ambiente ###
