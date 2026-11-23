@@ -53,7 +53,7 @@
         INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS:
             'De quantos em quantos minutos os registos guardados no telemóvel são enviados à central.',
         PRECISAO_MAXIMA_GPS_METROS:
-            'A localização só é aceite quando for precisa até este valor. O limite é 15 m.',
+            'A localização só é aceite quando for precisa até este valor. O limite é 50 m.',
         INTERVALO_VERIFICACAO_SLA_MINUTOS:
             'De quantos em quantos minutos o sistema verifica se alguma viagem ultrapassou o prazo.'
     };

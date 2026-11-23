@@ -72,18 +72,18 @@ class RegrasCriticasTest {
     @DisplayName("O parâmetro GPS tem teto fixo de 15 m e configurações antigas são normalizadas")
     void tetoGpsFixedo() {
         String chave = ParametroService.PRECISAO_MAXIMA_GPS_METROS;
-        assertThat(parametroService.obterDouble(chave)).isEqualTo(15.0);
+        assertThat(parametroService.obterDouble(chave)).isEqualTo(50.0);
 
-        assertThatThrownBy(() -> parametroService.atualizar(chave, "50"))
+        assertThatThrownBy(() -> parametroService.atualizar(chave, "60"))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("A precisão indicada não é válida.");
 
         ParametroGlobal parametro = parametroRepository.findByChaveIgnoreCase(chave).orElseThrow();
         String valorOriginal = parametro.getValor();
         try {
-            parametro.setValor("50");
+            parametro.setValor("60");
             parametroRepository.saveAndFlush(parametro);
-            assertThat(parametroService.obterDouble(chave)).isEqualTo(15.0);
+            assertThat(parametroService.obterDouble(chave)).isEqualTo(50.0);
         } finally {
             parametro.setValor(valorOriginal);
             parametroRepository.saveAndFlush(parametro);
@@ -93,17 +93,17 @@ class RegrasCriticasTest {
     @Test
     @DisplayName("Valores limite e inválidos de precisão GPS")
     void validacaoValoresLimiteGps() {
-        assertThatCode(() -> ValidacaoGps.validar(0.0, 15.0)).doesNotThrowAnyException();
-        assertThatCode(() -> ValidacaoGps.validar(15.0, 15.0)).doesNotThrowAnyException();
-        assertThatThrownBy(() -> ValidacaoGps.validar(15.01, 15.0))
+        assertThatCode(() -> ValidacaoGps.validar(0.0, 50.0)).doesNotThrowAnyException();
+        assertThatCode(() -> ValidacaoGps.validar(50.0, 50.0)).doesNotThrowAnyException();
+        assertThatThrownBy(() -> ValidacaoGps.validar(50.01, 50.0))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("A localização ainda não é precisa")
                 .hasMessageContaining("máximo 15m");
-        assertThatThrownBy(() -> ValidacaoGps.validar(Double.NaN, 15.0))
+        assertThatThrownBy(() -> ValidacaoGps.validar(Double.NaN, 50.0))
                 .isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> ValidacaoGps.validar(Double.POSITIVE_INFINITY, 15.0))
+        assertThatThrownBy(() -> ValidacaoGps.validar(Double.POSITIVE_INFINITY, 50.0))
                 .isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> ValidacaoGps.validar(-1.0, 15.0))
+        assertThatThrownBy(() -> ValidacaoGps.validar(-1.0, 50.0))
                 .isInstanceOf(ApiException.class);
     }
 

@@ -136,7 +136,7 @@ class AuthAndSyncApiTest {
     @Test
     @DisplayName("GPS com precisão superior a 15 m é rejeitado com orientação clara")
     void precisaoGpsInsuficiente() throws Exception {
-        String payload = payload(UUID.randomUUID(), 1L, LAT_MATOLA, LON_MATOLA, 18.5,
+        String payload = payload(UUID.randomUUID(), 1L, LAT_MATOLA, LON_MATOLA, 55.0,
                 criarVeiculoTeste(100.0), 30.0);
 
         mockMvc.perform(post("/api/v1/carregamentos")

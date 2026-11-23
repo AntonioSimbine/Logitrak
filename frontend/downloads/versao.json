@@ -1,8 +1,8 @@
 {
-  "versionCode": 8,
-  "versionName": "1.7",
+  "versionCode": 9,
+  "versionName": "1.8",
   "obrigatoria": false,
-  "mensagem": "Versão 1.7: correções na sessão e sincronização, GPS com validação de idade/precisão, rastreio offline, reconciliação de notificações lidas, rascunho do formulário e mapa de localização no registo de carregamento.",
-  "url": "https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk?v=1.7",
-  "sha256": "b97663b17c9d1a6e930eabe509f1f674714c93c1465ac10b76d3d688bf100bec"
+  "mensagem": "Versão 1.8: correção do mapa no registo de carregamento e maior tolerância de precisão GPS para facilitar o registo em campo.",
+  "url": "https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk?v=1.8",
+  "sha256": "fe03dcf70ddf39fcc1a9fa33af52907d2014c1392d7cebc7226b08cea65ba724"
 }

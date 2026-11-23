@@ -564,8 +564,16 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
             }
         }
         b.tvMapaFallback.visibility = View.GONE
-        val url = "https://www.google.com/maps?q=$latitude,$longitude&z=17&output=embed"
-        if (web.url != url) web.loadUrl(url)
+        val embed = "https://www.google.com/maps?q=$latitude,$longitude&z=17&output=embed"
+        val html = """
+            <!DOCTYPE html><html><head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+            <style>html,body{margin:0;padding:0;height:100%;background:#f1f5f9}iframe{border:0;width:100%;height:100%}</style>
+            </head><body>
+            <iframe src="$embed" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </body></html>
+        """.trimIndent()
+        web.loadDataWithBaseURL("https://www.google.com/", html, "text/html", "UTF-8", null)
     }
 
     private fun avaliarGeofence() {

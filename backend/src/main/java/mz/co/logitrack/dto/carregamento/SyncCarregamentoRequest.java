@@ -44,7 +44,7 @@ public record SyncCarregamentoRequest(
         @NotNull(message = "A localização é obrigatória.")
         @DecimalMin(value = "0.0",
                 message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
-        @DecimalMax(value = "15.0",
+        @DecimalMax(value = "50.0",
                 message = "A localização ainda não é precisa. Vá para um local aberto e tente novamente.")
         Double precisaoMetros,
 

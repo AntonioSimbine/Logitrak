@@ -17,7 +17,7 @@ data class FabricaProxima(
 /** Cálculos de geofence alinhados com o frontend web. */
 object Geo {
     const val RAIO_PADRAO = 500.0
-    const val PRECISAO_PADRAO = 15.0
+    const val PRECISAO_PADRAO = 50.0
     const val IDADE_MAXIMA_POSICAO_MS = 120_000L
     private const val RAIO_TERRA = 6_371_000.0
 

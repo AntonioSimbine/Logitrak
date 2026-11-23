@@ -29,7 +29,7 @@ public class ParametroService {
     public static final String INTERVALO_VERIFICACAO_SLA_MINUTOS = "INTERVALO_VERIFICACAO_SLA_MINUTOS";
 
     /** Teto fixo do RNF005: nenhuma configuração pode aceitar precisão superior. */
-    public static final double LIMITE_GPS_METROS = 15.0;
+    public static final double LIMITE_GPS_METROS = 50.0;
     public static final String ORIENTACAO_GPS =
             "Vá para um local aberto e tente novamente.";
 
@@ -49,7 +49,7 @@ public class ParametroService {
         DESCRICOES.put(INTERVALO_SINCRONIZACAO_AUTOMATICA_MINUTOS,
                 "Periodicidade com que a app envia à central os registos guardados no telemóvel "
                         + "(intervalo de envio automático).");
-        PADROES.put(PRECISAO_MAXIMA_GPS_METROS, "15.0");
+        PADROES.put(PRECISAO_MAXIMA_GPS_METROS, "50.0");
         DESCRICOES.put(PRECISAO_MAXIMA_GPS_METROS,
                 "Define quão exata deve ser a localização, em metros, para o registo ser aceite. "
                         + "Quanto menor o valor, mais rigorosa a verificação.");
