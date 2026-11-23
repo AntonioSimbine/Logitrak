@@ -93,7 +93,8 @@ class RegrasCriticasTest {
         assertThatCode(() -> ValidacaoGps.validar(15.0, 15.0)).doesNotThrowAnyException();
         assertThatThrownBy(() -> ValidacaoGps.validar(15.01, 15.0))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining("A localização ainda não é precisa.");
+                .hasMessageContaining("A localização ainda não é precisa")
+                .hasMessageContaining("máximo 15m");
         assertThatThrownBy(() -> ValidacaoGps.validar(Double.NaN, 15.0))
                 .isInstanceOf(ApiException.class);
         assertThatThrownBy(() -> ValidacaoGps.validar(Double.POSITIVE_INFINITY, 15.0))

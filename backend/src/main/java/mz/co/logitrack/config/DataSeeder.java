@@ -181,7 +181,8 @@ public class DataSeeder implements ApplicationRunner {
                         "66666666-6666-6666-6666-666666666666"), "GT-2026-0006",
                 "Brita", 27.0, EstadoCarregamento.REJEITADO,
                 agora.minusHours(20), agora.minusHours(19),
-                "Guia ilegível — fotografia sem resolução mínima", matola, v3, motorista2);
+                "A fotografia da guia não serve. Tire outra com boa luz e o documento inteiro dentro da moldura.",
+                matola, v3, motorista2);
 
         // 7) Atrasado com alerta aberto.
         Carregamento emAtraso = carregamento(UUID.fromString(
@@ -344,7 +345,7 @@ public class DataSeeder implements ApplicationRunner {
                   <rect x="92" y="580" width="676" height="120" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
                   <text x="112" y="620" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#64748b">OBSERVAÇÕES</text>
                   <text x="112" y="654" font-family="Arial, sans-serif" font-size="16" fill="#475569">Documento de demonstração gerado automaticamente pelo Logitrack.</text>
-                  <text x="112" y="682" font-family="Arial, sans-serif" font-size="16" fill="#475569">A autenticidade pode ser verificada pelo hash SHA-256 registado na central.</text>
+                  <text x="112" y="682" font-family="Arial, sans-serif" font-size="16" fill="#475569">Documento de demonstração. Os dados desta guia ficam guardados na central.</text>
                   <rect x="92" y="780" width="320" height="170" fill="none" stroke="#cbd5e1" stroke-dasharray="8 6"/>
                   <text x="112" y="820" font-family="Arial, sans-serif" font-size="15" fill="#94a3b8">Assinatura do motorista</text>
                   <rect x="452" y="780" width="316" height="170" fill="none" stroke="#cbd5e1" stroke-dasharray="8 6"/>

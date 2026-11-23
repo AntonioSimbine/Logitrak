@@ -187,7 +187,7 @@ public class CarregamentoMapper {
                 "guardado", "Guardado no telemóvel. Aguarda envio.", true,
                 c.getDataHoraInicio(), "save"));
         etapas.add(new CarregamentoDetalhe.EtapaTimeline(
-                "sincronizado", "Enviado à central.", true,
+                "sincronizado", "Enviado à central", true,
                 c.getDataHoraInicio(), "cloud"));
         boolean carregamentoIniciado = c.getDataHoraInicioCarregamento() != null
                 || c.getDataHoraFimCarregamento() != null || emTransito;
@@ -208,7 +208,7 @@ public class CarregamentoMapper {
                 concluido ? c.getDataHoraFim() : null, "check"));
         if (rejeitado) {
             etapas.add(new CarregamentoDetalhe.EtapaTimeline(
-                    "rejeitado", "Não aceite pela central", true,
+                    "rejeitado", "Não aceite", true,
                     c.getDataHoraFim(), "x"));
         }
         return etapas;

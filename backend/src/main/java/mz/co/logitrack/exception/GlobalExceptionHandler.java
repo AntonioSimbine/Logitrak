@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> tratarJson(HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest().body(ApiError.of(
-                "Faltam dados obrigatórios. Preencha os campos assinalados."));
+                "Os dados não estão corretos. Verifique os campos e tente novamente."));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

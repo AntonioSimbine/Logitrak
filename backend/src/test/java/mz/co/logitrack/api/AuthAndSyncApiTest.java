@@ -157,7 +157,9 @@ class AuthAndSyncApiTest {
                         .content(payload))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error").value(
-                        org.hamcrest.Matchers.containsString("Está fora da área da fábrica.")));
+                        org.hamcrest.Matchers.containsString("Está fora da área da fábrica.")))
+                .andExpect(jsonPath("$.error").value(
+                        org.hamcrest.Matchers.containsString("distância máxima")));
     }
 
     @Test
