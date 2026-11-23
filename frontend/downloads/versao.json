@@ -1,8 +1,8 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8",
+  "versionCode": 10,
+  "versionName": "1.9",
   "obrigatoria": false,
-  "mensagem": "Versão 1.8: correção do mapa no registo de carregamento e maior tolerância de precisão GPS para facilitar o registo em campo.",
-  "url": "https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk?v=1.8",
-  "sha256": "fe03dcf70ddf39fcc1a9fa33af52907d2014c1392d7cebc7226b08cea65ba724"
+  "mensagem": "Versão 1.9: permite escolher outra fábrica mesmo perto da mais próxima, melhora o envio de registos pendentes/rejeitados e mostra melhor erros de ligação ao servidor.",
+  "url": "https://web-production-f93e366a.up.railway.app/downloads/Logitrack-Motorista.apk?v=1.9",
+  "sha256": "d02598459a6d9856dd1e7954253046d573aefa58c1fdc99819480cae7b2aebb7"
 }

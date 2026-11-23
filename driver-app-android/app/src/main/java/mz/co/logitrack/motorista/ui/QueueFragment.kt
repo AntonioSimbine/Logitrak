@@ -271,8 +271,8 @@ class QueueFragment : Fragment(R.layout.fragment_queue) {
                 aSincronizar = false
                 atualizarBotaoSync()
             }
-            if (resultado.sessaoExpirada) return@launch
             when {
+                resultado.sessaoExpirada -> avisar(R.string.api_error_401)
                 resultado.semRede -> avisar(R.string.sync_offline_toast)
                 resultado.nadaPorEnviar -> avisar(R.string.sync_all_done)
                 resultado.rejeitados > 0 -> avisar(R.string.sync_rejected_warning)

@@ -5,7 +5,7 @@ ENV PORT=8080 \
     NGINX_ENVSUBST_FILTER=PORT
 
 # Alterar este valor a cada publicaAA�o de APK para invalidar a camada do Docker.
-ARG APK_CACHE_BUST=20261123i
+ARG APK_CACHE_BUST=20261123j
 RUN echo "APK build $APK_CACHE_BUST" >/dev/null
 
 COPY default.conf.template /etc/nginx/templates/default.conf.template
@@ -16,7 +16,7 @@ COPY . /usr/share/nginx/html
 # tenta descarregar da release estável do GitHub.
 ARG APK_URL=https://github.com/AntonioSimbine/Logitrak/releases/latest/download/Logitrack-Motorista.apk
 # Alterar este valor a cada publicação de APK para invalidar a camada do Docker.
-ARG APK_CACHE_BUST=20261123i
+ARG APK_CACHE_BUST=20261123j
 RUN echo "APK build $APK_CACHE_BUST" >/dev/null \
     && mkdir -p /usr/share/nginx/html/downloads \
     && if [ -s /usr/share/nginx/html/downloads/Logitrack-Motorista.apk ]; then \

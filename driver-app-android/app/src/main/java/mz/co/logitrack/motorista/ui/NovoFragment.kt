@@ -613,28 +613,23 @@ class NovoFragment : Fragment(R.layout.fragment_novo) {
         }
 
         if (mais.dentro) {
-            fabricaId = mais.fabrica.id
-            fabricaNome = mais.fabrica.nome
-            foraGeofence = false
-            b.actvFabrica.setText(mais.fabrica.nome, false)
-            b.actvFabrica.isEnabled = false
-            b.tvFabricaNome.text = mais.fabrica.nome
-            b.tvFabricaInfo.text = getString(
-                R.string.factory_gps_detect,
-                Math.round(mais.distancia),
-                mais.raio
-            )
+            // Auto-sugere a fábrica mais próxima, mas permite ao motorista ver/escolher outra.
+            if (fabricaId == null) {
+                fabricaId = mais.fabrica.id
+                fabricaNome = mais.fabrica.nome
+                b.actvFabrica.setText(mais.fabrica.nome, false)
+            }
+            b.actvFabrica.isEnabled = true
+            b.wrapFabricaManual.visibility = View.VISIBLE
+            aplicarSelecaoManual()
+            definirPillAutomatica(true)
+            esconderAvisoFabrica()
             atualizarGeo(
                 mais.fabrica.nome,
                 getString(R.string.factory_gps_detect, Math.round(mais.distancia), mais.raio),
                 getString(R.string.geofence_inside),
                 R.color.green
             )
-            definirPillAutomatica(true)
-            esconderAvisoFabrica()
-            b.wrapFabricaManual.visibility = View.GONE
-            b.wrapConfirm.visibility = View.GONE
-            b.cbConfirmar.isChecked = false
             atualizarResumo()
             return
         }

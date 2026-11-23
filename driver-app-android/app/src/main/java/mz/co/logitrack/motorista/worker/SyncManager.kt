@@ -206,8 +206,13 @@ object SyncManager {
             dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_timeout)))
             ResultadoItem.FALHA
         } catch (e: IOException) {
-            dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_offline)))
-            ResultadoItem.SEM_REDE
+            if (NetworkUtils.estaLigado(context)) {
+                dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_generic)))
+                ResultadoItem.FALHA
+            } else {
+                dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_offline)))
+                ResultadoItem.SEM_REDE
+            }
         } catch (e: Exception) {
             dao.atualizar(tentativa.copy(erro = context.getString(R.string.sync_error_generic)))
             ResultadoItem.FALHA

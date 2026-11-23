@@ -27,7 +27,11 @@ interface FilaDao {
     )
     fun documentos(motoristaId: Long): Flow<List<DocumentoResumo>>
 
-    @Query("SELECT uuidLocal FROM fila WHERE estado = 'PENDENTE' AND motoristaId = :motoristaId ORDER BY criadoEm ASC")
+    @Query(
+        "SELECT uuidLocal FROM fila " +
+            "WHERE estado IN ('PENDENTE','REJEITADO') AND motoristaId = :motoristaId " +
+            "ORDER BY criadoEm ASC"
+    )
     suspend fun pendentesUuids(motoristaId: Long): List<String>
 
     @Query("SELECT * FROM fila WHERE uuidLocal = :uuid AND motoristaId = :motoristaId LIMIT 1")
